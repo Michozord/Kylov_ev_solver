@@ -8,7 +8,7 @@ Created on Wed Feb  7 15:00:36 2024
 from dff import plot_beta, beta, q_omega
 import numpy as np
 from matplotlib import pyplot as plt
-from ansatz_collocation import gauss, indicator
+from ansatz_collocation import gauss, indicator, alpha_equidistant
 from newton import newton
 
 tau = 0.025
@@ -64,29 +64,30 @@ class functional:
 def compute_alpha(omega_min, omega_max, omega_end, tau, target, T, S):
     F = functional(T, S, target)
     L = int(T/tau)
-    alpha_start = np.zeros(L+1)
+    alpha_start = alpha_equidistant(0, omega_end, target, T, tau, L)
     alpha = newton(F.gradient, F.hessian, alpha_start)
-    # alpha = newton(F.gradient, alpha_start, fprime=F.hessian)
     print("Newton found local extremum: F(alpha) =", F.value(alpha))
     return alpha
 
 
-fig, ax = plt.subplots()
-for T in [1, 2.5, 5, 10]:
-    for S in [20, 40, 100, 400]:
-        print(f"T = {T}, S = {S}")
-        try:
-            alpha = compute_alpha(omega_min, omega_max, omega_end, tau, indicator, T, S)
-            L = int(T/tau)
-            plot_beta(0, omega_end, alpha, tau, L, ax, label=f"S = {S}")
-        except RuntimeError:
-            print("Newton did not converge!")
-            pass
-    ax.grid()
-    plt.xlim(omega_start, omega_end)
-    plt.xticks([2*n for n in range(11)])
-    plt.legend()
-    plt.title(f"Minimalisation approach, start value: 0-vector, T = {T}")
-plt.show()
+
+if __name__ == "__main__":
+    fig, ax = plt.subplots()
+    for T in [1, 2.5, 5, 10]:
+        for S in [400]:
+            print(f"T = {T}, S = {S}")
+            try:
+                alpha = compute_alpha(omega_min, omega_max, omega_end, tau, indicator, T, S)
+                L = int(T/tau)
+                plot_beta(0, omega_end, alpha, tau, L, ax, label=f"T={T}, S = {S}")
+            except RuntimeError:
+                print("Lambda too small!")
+                pass
+        ax.grid()
+        plt.xlim(omega_start, omega_end)
+        plt.xticks([2*n for n in range(11)])
+        plt.legend()
+        plt.title(f"Minimalisation approach, start value: equidistant collocation")
+    plt.show()
     
     
