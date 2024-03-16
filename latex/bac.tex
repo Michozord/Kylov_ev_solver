@@ -29,6 +29,9 @@
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\bigO}{\mathcal{O}}
 
+\algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+
+
 % Zum Druck verwende schwarze Links!
 %\usepackage[unicode,colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black,pagebackref=false]{hyperref} 
 	% colorlinks=false umrahmt Links statt einzufaerben, 
@@ -309,7 +312,24 @@ Now we can project the original problem \eqref{eq:matrix form} onto $m$-dimensio
 
 Since matrices $S$ and $M$ are Hermitian, Krylov iteration leads to convergence of eigenspaces of \eqref{eq:Krylov problem} towards eigenspace of $C$ corresponding to eigenvalue $\mu_{max}$ with largest absolute value. Obviously, projected eigenvalues $\omega_m^2$ converge towards eigenvalue $\omega^2$ of original problem \eqref{eq:matrix form} to eigenspace corresponding to $\mu_{max}$.
 
-%To sum up this section, we can explicit formulate an algorithm to compute eigenvalues in 
+To sum up core idea of this section, we can explicit formulate an (not implementable yet) algorithm based on Krylov spaces to compute eigenvalues $\omega^2$.
+\begin{algorithm}[H]
+\caption{Krylov eigenvalue solver}\
+    \begin{algorithmic}
+        \State \textbf{Input:} matrix $C$, start vector $r$, $M^{-1}$, $S$
+        \State $b_0 \gets r$
+        \State $m \gets 1$ \Comment{Dimension of Krylov space}
+        \Do 
+            \State $b_{m} \gets Cb_{m-1} - \sum_{i=0}^{m-1} (b_i^T C b_{m-1}) b_i$ \Comment{Gram-Schmidt orthonormalisation}
+            \State $ b_m \gets b_{m}/\|b_{m}\|_2 $ 
+            \State $m \gets m+1$
+            \State $B_m \gets (b_0, \dots, b_{m-1})$ \Comment{Projection matrix}
+            \State $A \gets B_m^T M^{-1}S B_m$
+            \State solve $Av = \omega_m^2 v$ with power iteration
+        \doWhile{stopping criterion}
+    \end{algorithmic}
+\end{algorithm}
+
 
 Our goal is to compute eigenvalues $\omega^2$ of \eqref{eq:matrix form} in a given region of interest $(\omega_{\min}^2, \omega_{\max}^2)$. Therefore we need, that matrix $C$ fulfills following four conditions.
 \begin{itemize}
@@ -318,14 +338,14 @@ Our goal is to compute eigenvalues $\omega^2$ of \eqref{eq:matrix form} in a giv
     \item Eigenvalues $\mu$ corresponding to eigenspaces of eigenvalues $\omega^2$, that are unsought, should be close 0. 
     \item Each Krylov-step $r \mapsto Cr$ can be computed with low costs.
 \end{itemize}
-I other words, use of matrix $C$ filters sought eigenvalues from among all eigenvalues of the original problem \eqref{eq:matrix form} via common eigenspaces. 
+In other words, use of matrix $C$ filters sought eigenvalues from among all eigenvalues of the original problem \eqref{eq:matrix form} via common eigenspaces. 
 
 \begin{rem}
     Shift-and-inverse matrix:
     \begin{equation*}
         C_\rho := (S - \rho M)^{-1}M
     \end{equation*}
-    for some $\rho \in \R$ has eigenvalue $\mu = (\omega^2 - \rho)^{-1}$ corresponding to eigenspace to eigenvalue $\omega^2$ of original problem \eqref{eq:matrix form}. Therefore $C_\rho$ with $\rho = (\omega^2_{\min}+\omega^2_{\max})/2 $ would be a possible choice of matrix C. Nevertheless, it needs inverse of a $N\times N$ matrix $(S - \rho M)$, what for large $N$ is impossible with low computational complexity.
+    for some $\rho \in \R$ has eigenvalue $\mu = (\omega^2 - \rho)^{-1}$ corresponding to eigenspace to eigenvalue $\omega^2$ of original problem \eqref{eq:matrix form}. Therefore $C_\rho$ with $\rho = (\omega^2_{\min}+\omega^2_{\max})/2 $ would be a possible choice of matrix C. Nevertheless, it requires inverse of a $N\times N$ matrix $(S - \rho M)$, what for large $N$ is impossible with low computational complexity.
 \end{rem}
 \begin{proof}
     Let $(\mu, w)\in \R\times\R^N$ be an eigenpair of $C_\rho$:
@@ -339,15 +359,105 @@ I other words, use of matrix $C$ filters sought eigenvalues from among all eigen
 \end{proof}
 
 \section{Filtered time-domain solutions}
+To construct appropriate finite-dimensional operator, that will replace role of the matrix $C$ from previous section, we proceed as follows. We consider homogeneous wave equation with some initial condition $u_0 = (\varphi_1, \dots, \varphi_N)r$ projected onto our discrete solution space $V_h$ (see Definition \ref{def:solution space}). We discretize the problem in space and formulate its weak form. The evaluation of our operator at the point $r$ is a time integral of the solution to this semi-discrete problem.
+
+We consider homogeneous 2- or 3-dimensional wave equation in $\Omega \times (0, \infty)$:
+\begin{align}
+\begin{split}\label{eq:wave equation}
+    \ddot{u} = \Delta u \, \,\, \text{in } \Omega \times (0, \infty),& \, \,\,  u = 0 \, \,\, \text{in } \partial\Omega\times (0, \infty),\\
+    \,\,\,u( \cdot, 0)= u_0, & \, \dot{u}(\cdot, 0) = 0 \, \,\, \text{in } \Omega,
+\end{split}
+\end{align}
+where $u$ is a function $\Omega \times [0, \infty) \rightarrow \R$ and $\ddot{u}$ denotes the second time-derivative.
+\begin{prop}
+    Let $V_h$ be a discrete solution space with basis $(\varphi_1, \dots, \varphi_N)$ and let $r$ denote the coordinate vector of the projection of $u_0$ onto $V_h$, i.e. $u_0 = (\varphi_1, \dots, \varphi_N)r$. Let $S$ and $M$ denote the matrices from Definition \ref{def:SM matrices}. Discretization in space of the problem \eqref{eq:wave equation} leads to following linear system of ordinary differential equations:
+    \begin{align}\label{eq:discr wave equation}
+    \begin{split}
+        M \ddot{y}(t; r) &= -S y (t; r) \,\,\, \text{ for all } t \in (0, \infty) \\
+        y(0; r) &= r, \, \dot{y}(0; r) = 0. 
+    \end{split}
+    \end{align}
+\end{prop}
+\begin{proof}
+    Theory of partial differential equations leads us to ansatz $u(t, x) = \sum_{i=1}^\infty \kappa_i(t) \xi_i(x)$, where $\xi_i$ are the eigenfunctions of the negative Laplace operator \cite[p. 122]{Jungel}. Since we want to solve the problem in our solution space $V_h$, we can assume, that $u(\cdot, t)=(\varphi_1, \dots, \varphi_N)y(t)$ for some vector-valued function $y: [0, \infty) \rightarrow \R^N$.
+
+    We reformulate $\ddot{u} = \Delta u$ to its weak form:
+    \begin{align*}
+        \forall \varphi \in V_h : \, \int_\Omega \ddot{u} \varphi \, dx &= \int_\Omega \Delta u \varphi \, dx, \\
+        \forall \varphi \in V_h : \, \int_\Omega \ddot{u} \varphi \, dx &= - \int_\Omega \nabla  u\cdot  \nabla \varphi \, dx.
+    \end{align*}
+    $V_h$ is a finite-dimensional space, therefore condition "for all test functions" is equivalent to condition "for all basis test functions":
+    \begin{align*}
+        \forall j=1, \dots, N:\, \int_\Omega (\varphi_1, \dots, \varphi_N)\ddot{y} \varphi_j \, dx &= -  \int_\Omega (\nabla \varphi_1, \dots, \nabla \varphi_N)y\cdot  \nabla \varphi_j \, dx, \\
+        M\ddot{y} &= -Sy.
+    \end{align*}
+    Remains to show the equivalence of initial conditions. For $u_0$ holds:
+    \begin{equation*}
+        (\varphi_1, \dots, \varphi_N)r = u_0 = u(\cdot, 0) = (\varphi_1, \dots, \varphi_N)y(0),
+    \end{equation*}
+    so $y(0) = r$ in $\Omega$ and similarly $\dot{y}(0) = 0$ in $\Omega$.
+\end{proof}
+Now we can solve semi-discrete wave equation \eqref{eq:discr wave equation} to construct an integral operator. 
+\begin{lemma}\label{lemma:y solution}
+    The unique solution to \eqref{eq:discr wave equation} is:
+    \begin{equation}\label{eq:solution wave eq}
+        y(t; r) = \sum_{j=1}^N \cos(\omega_j t) (v_j^T r) v_j,
+    \end{equation}
+    where $(v_j)_{j=1}^N$ is an orthonormal basis of $\R^N$ of eigenvectors of matrix $M^{-1}S$ with corresponding eigenvalues $\omega_j^2$.
+\end{lemma}
+\begin{proof}
+    Because of symmetry of matrices $S$ and $M$, there exists an orthonormal basis $(v_j)_{j=1}^N$ of eigenvectors of $M^{-1}S$. We denote corresponding eigenvalues with $\omega_j^2$, $j=1, \dots N$. Obviously, for all $j=1, \dots, N$ and for all $c_{1j}, c_{2j}\in \R$ function $t\mapsto \left(c_{1j} \cos(\omega_j t) + c_{2j} \sin(\omega_j t)\right)v_j$ solves the differential equation \eqref{eq:discr wave equation}. Due to linearity of the problem, 
+    \begin{equation*}
+        y(t) = \sum_{j=1}^N \left(c_{1j} \cos(\omega_j t) + c_{2j} \sin(\omega_j t)\right)v_j
+    \end{equation*}
+    solves the differential equation. Initial values lead to the form \eqref{eq:solution wave eq}. Uniqueness of the solution follows from the Picard-Lindelöf theorem.
+\end{proof}
+
+Now we can define an integral operator, that maps initial value of the semi-discrete wave equation \eqref{eq:discr wave equation} to a weighted time-integral of its unique solution. Discrete form of this operator will take over the role of matrix $C$. Depending on choice of the weight function, eigenvalues of this discrete operator may fulfill requirements, that we have set for matrix $C$ in previous section. This will be discussed later in Chapter \ref{chapter:function}. 
+
+\begin{definition}
+    Let $\alpha: [0; \infty) \rightarrow \R$ be a piecewise continuous function with compact support. We define $\Pi_\alpha: \R^N \rightarrow \R^N$ as linear operator:
+    \begin{equation*}
+        \Pi_\alpha r := \int_0^\infty \alpha(t) y(t;r) \,dt,
+    \end{equation*}
+    where $y(t;r)$ is the unique solution to \eqref{eq:discr wave equation} from Lemma \ref{lemma:y solution}.
+\end{definition}
+
+Following lemma determines correspondence between eigenvalues of $\Pi_\alpha$ and eigenvalues of the original problem \eqref{eq:matrix form}.
+\begin{lemma}
+    Let $\beta_\alpha : [0, \infty) \rightarrow \R$ be filter function defined by:
+    \begin{equation}
+        \beta_\alpha(\omega) := \int_0^\infty \alpha(t) \cos(\omega t) \,dt. 
+    \end{equation}
+    Then hold following two statements.
+    \begin{enumerate}
+        \item If $\omega^2$ is an eigenvalue of \eqref{eq:discr wave equation} to eigenvector $v$, then $v$ is also an eigenvector of $\Pi_\alpha$ corresponding to eigenvalue $\beta_\alpha(\omega)$. 
+        \item If $\lambda$ is an eigenvalue of $\Pi_\alpha$ corresponding to eigenvector $v$, then there exists eigenvalue $\omega^2$ of \eqref{eq:discr wave equation}, such that $\beta_\alpha (\omega) = \lambda$ and 
+        \begin{equation*}
+            v \in \bigoplus\{ U : \exists \omega \, U \text{ is eigenspace to eigenvalue to } \omega \text{ and } \beta_\alpha(\omega) = \lambda\}.
+        \end{equation*}
+    \end{enumerate}
+\end{lemma}
+\begin{proof}
+    \begin{enumerate}
+        \item If $v$ is an eigenvector of \eqref{eq:matrix form}, then it is equal $v_j$ from \eqref{eq:solution wave eq} for some $j=1, \dots, N$. Therefore $y(t, v) = \cos(\omega_j t)v$ and 
+        \begin{equation*}
+            \Pi_\alpha v = \int_0^\infty \alpha(t) \cos(\omega_j t) v \, dt = \beta_\alpha(\omega) v.
+        \end{equation*}
+        So the first claim holds.
+        \item If $\lambda$ is an eigenvalue of $\Pi_\alpha$ to eigenvector $v$, then for all $j=1, \dots, N$ holds:
+        \begin{align*}
+            \forall k =1, \dots, N:\, 0 &= (\Pi_\alpha v - \lambda v)v_k = \int_0^\infty \alpha(t) \sum_{j=1}^N \cos(\omega_k t) (v_j^T v)\underbrace{(v_j^T v_k)}_{=\delta_{jk}} \, dt - \lambda v^Tv_k \\ &= \left(\int_0^\infty \alpha(t) \cos(\omega_kt) - \lambda \right)v_k^T v = (\beta_\alpha(\omega_k) - \lambda)v_k^T v.
+        \end{align*}
+        If $\beta_\alpha (\omega_k)\neq \lambda$, then $v_k^Tv = 0$, because $(v_k)_{k=1}^N$ is a basis. Therefore $v$ is in sum of eigenspaces to eigenvalues such that $\beta_\alpha(\omega_k) = \lambda)$. Moreover $v$ is an eigenvector, so $v\neq 0$. Therefore there exists at least one $k$, such that $v_k^T v \neq 0$, what implies $\beta_\alpha (\omega_k) = \lambda$. 
+    \end{enumerate}
+\end{proof}
 
 
 
 
-
-
-
-\chapter{Choice of the discrete filter function}
-\label{chapter:dff}
+\chapter{Choice of the weight function}
+\label{chapter:function}
 \cite{nannen}\cite{numodes}
 
 \bibliographystyle{alpha} 
