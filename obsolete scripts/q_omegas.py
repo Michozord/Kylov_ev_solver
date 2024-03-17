@@ -13,7 +13,7 @@ L = 40
 mesh = np.linspace(0, 20)
 tau = 0.025
 
-Q = np.zeros((len(mesh), L+1))
+Q = np.zeros((len(mesh), L))
 for i in range(len(mesh)):
     omega = mesh[i]
     Q[i,:] = q_omega(omega, tau, L)
