@@ -13,20 +13,29 @@ def q_omega(omega: float, tau: float, L: int) -> np.array:
     q_omegas = [1., 1.]
     for l in range(1, L):
         q_omegas.append((2-tau**2 * omega**2)*q_omegas[-1] - q_omegas[-2])
-    return np.array(q_omegas)
+    return np.array(q_omegas)[1:]
     
 
-def beta (omega: float, alpha: np.array, tau: float) -> float:
-    q = q_omega(omega, tau, len(alpha)-1)
-    return tau * alpha @ q
+def beta (omega: float, alpha: np.array, tau: float, multiply_with_tau=True) -> float:
+    q = q_omega(omega, tau, len(alpha))
+    if multiply_with_tau:
+        return tau * alpha @ q
+    else:
+        return alpha @ q
 
 
-def plot_beta(start: float, end: float, alpha, tau, L, ax, label=None, absolute=True):
-    mesh = np.linspace(start, end, num=995)
+def plot_beta(start: float, end: float, alpha, tau, L, ax, label=None, absolute=True, multiply_with_tau=True):
+    mesh = np.linspace(start, end, num=5000)
     if isinstance(alpha, Callable):
-        alpha_vec = np.array(list(map(lambda l: alpha(tau*l), range(0, L+1))))
+        alpha_vec = np.array(list(map(lambda l: alpha(tau*l), range(0, L))))
     else:
         alpha_vec = np.array(alpha)
     abs_fun = abs if absolute else lambda x: x
-    ax.plot(mesh, list(map(lambda om: abs_fun(beta(om, alpha_vec, tau)), mesh)), label=label)
+    ax.plot(mesh, list(map(lambda om: abs_fun(beta(om, alpha_vec, tau, multiply_with_tau)), mesh)), label=label)
         
+
+if __name__ == "__main__":
+    omega = 1
+    L = 10
+    tau = 0.025
+    print(q_omega(omega, tau, L))
