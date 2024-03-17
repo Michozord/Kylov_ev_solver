@@ -27,6 +27,9 @@
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\Q}{\mathbb{Q}}
 \newcommand{\Z}{\mathbb{Z}}
+\renewcommand{\i}{\mathrm{i}}
+\renewcommand{\Im}{\mathfrak{Im}}
+\newcommand{\dff}{\Tilde{\beta}_\alpha}
 \newcommand{\bigO}{\mathcal{O}}
 
 \algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
@@ -415,7 +418,7 @@ Now we can solve semi-discrete wave equation \eqref{eq:discr wave equation} to c
 
 Now we can define an integral operator, that maps initial value of the semi-discrete wave equation \eqref{eq:discr wave equation} to a weighted time-integral of its unique solution. Discrete form of this operator will take over the role of matrix $C$. Depending on choice of the weight function, eigenvalues of this discrete operator may fulfill requirements, that we have set for matrix $C$ in previous section. This will be discussed later in Chapter \ref{chapter:function}. 
 
-\begin{definition}
+\begin{definition}\label{def:pi_alpha}
     Let $\alpha: [0; \infty) \rightarrow \R$ be a piecewise continuous function with compact support. We define $\Pi_\alpha: \R^N \rightarrow \R^N$ as linear operator:
     \begin{equation*}
         \Pi_\alpha r := \int_0^\infty \alpha(t) y(t;r) \,dt,
@@ -426,7 +429,7 @@ Now we can define an integral operator, that maps initial value of the semi-disc
 Following lemma determines correspondence between eigenvalues of $\Pi_\alpha$ and eigenvalues of the original problem \eqref{eq:matrix form}.
 \begin{lemma}
     Let $\beta_\alpha : [0, \infty) \rightarrow \R$ be filter function defined by:
-    \begin{equation}
+    \begin{equation}\label{eq:cont filter function}
         \beta_\alpha(\omega) := \int_0^\infty \alpha(t) \cos(\omega t) \,dt. 
     \end{equation}
     Then hold following two statements.
@@ -453,6 +456,97 @@ Following lemma determines correspondence between eigenvalues of $\Pi_\alpha$ an
     \end{enumerate}
 \end{proof}
 
+\section{Discretization in time}
+In previous section we constructed an operator $\Pi_\alpha$, that can fulfill our eigenvalue requirements and replace matrix $C$ in Krylov iteration. Exact computation of the value $\Pi_\alpha r$ is impossible for two reasons: it demands analytical solution $y(\cdot; r)$ to semi-discrete wave equation \eqref{eq:discr wave equation} and computation of an improper integral. 
+
+In numerical method we replace integral in the definition of $\Pi_\alpha$ by rectangular rule. Since we need the values of function $y(\cdot; r)$ in quadrature nodes only, we can discretize the problem \eqref{eq:discr wave equation} in time and compute approximation of the exact solution in those points using finite difference method. 
+\begin{lemma}[Finite difference method]\label{lemma:finite diffs}
+    For given function $y \in C^4 ([a, b])$ and uniform mesh $(t_l := a+\tau l)_{l=0}^{L}$ with $L+1\in\N$ nodes and mesh-size $\tau = (a-b)/L$ there holds for all $l=1, \dots, L-1$:
+    \begin{equation*}
+        \ddot{y}(t_l) = \frac{y(t_{l+1}) - 2 y(t_l) + y(t_{l-1})}{\tau^2} + \bigO(\tau^2).
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    Straight-forward calculation, that follows from Taylor expansion of function $y$. We refer to \cite[p. 93]{numodes}.
+\end{proof}
+
+\begin{prop}[Finite difference method for semi-discrete wave equation]
+    Let $\tau>0$ be step-size of a uniform mesh on $[0, \infty)$. Replacing the second time-derivatives in \eqref{eq:discr wave equation} by the finite differences from Lemma \ref{lemma:finite diffs} we obtain following approximation $y_l(r)$ of $y(l\tau; r)$ for all $l \in \N$:
+    \begin{align}\label{eq:fd for wave eq}
+    \begin{split}
+        y_{l+1}(r) &:= -\tau^2M^{-1}S y_l(r) + 2y_l(r) - y_{l-1}(r) \, \text{ for } l \in \N, \\
+        y_{-1}(r) &:= y_0(r) := r.
+    \end{split}
+    \end{align}
+\end{prop}
+\begin{proof}
+    For initial values there holds $y(0; r) = r = y_0(r)$ and by Taylor expansion:
+    \begin{equation*}
+        y(-\tau, r) = y(0; r) - \tau \underbrace{\dot{y}(0; r)}_{=0} + \bigO(\tau^2) = r + \bigO(\tau^2) = y_{-1}(r) + \bigO(\tau^2).
+    \end{equation*} 
+    Replacing second time-derivative in \eqref{eq:discr wave equation} leads by finite difference leads to:
+    \begin{align*}
+        y((l+1)\tau; r) &- 2 y(l\tau; r) + y((l-1)\tau; r) = -\tau^2 M^{-1}S y(l\tau; r) + \bigO(\tau^4), \\
+        y((l+1)\tau; r) &= -\tau^2 M^{-1}S y(l\tau; r) + 2y(l\tau; r) - y((l-1)\tau; r) + \bigO(\tau^4).
+    \end{align*}
+    Hence $y_l(r)$ defined in \eqref{eq:fd for wave eq} approximates $y(l\tau; r)$ for all $l \in \N$.
+\end{proof}
+
+\begin{prop}[Discrete operator for Krylov iteration]\label{prop:C operator}
+    Let $L \in \N$ be the number of quadrature nodes and $T>0$ be the upper bound of integration. Discretization of the operator $\Pi_\alpha$ (see Definition \ref{def:pi_alpha}) by the rectangular rule with step-size $\tau = T/L$ and approximation $y(l\tau; r) \approx y_l(r)$ leads to discrete operator $C : \R^N \rightarrow \R^N$:
+    \begin{equation*}
+        r \mapsto Cr := \sum_{l=0}^{L-1} \tau \alpha(l\tau) y_l(r).
+    \end{equation*}
+\end{prop}
+
+Discrete operator $C$ defined in Proposition \ref{prop:C operator} lets us avoid high computational costs in each Krylov step $r \mapsto Cr$. However, we have to verify coincidence between eigenpairs of $C$ and eigenpairs of the original problem \eqref{eq:matrix form}. For this reason we construct discrete filter function as discrete analogon of \eqref{eq:cont filter function}. 
+
+If $r$ is an eigenvector of matrix $M^{-1}S$ to eigenvalue $\omega^2$, then time-stepping \eqref{eq:fd for wave eq} takes following form:
+\begin{align}\label{eq:q def}
+    \begin{split}
+        q_{l+1}(\omega) &:= (2-\tau^2\omega^2) q_l(\omega) - q_{l-1}(\omega) \, \text{ for } l \in \N,\\
+        q_{-1}(\omega) &:= q_0(\omega) := 1.
+    \end{split}
+\end{align}
+This linear difference problem has unique solution, that will be needed later in Lemma \ref{lemma:dff}. Therefore we analyse behaviour of the solution as $l$ tends to infinity.
+
+\begin{lemma}[Courant--Friedrichs--Lewy condition for $q_l$]
+    For given $\tau > 0$ and $\omega > 0$, the unique solution to \eqref{eq:q def} is:
+    \begin{equation*}
+        q_l(\omega) = \frac{1 - \overline{c(\omega)}}{2\i \Im(c(\omega))} c(\omega)^l + \frac{c(\omega)-1}{2\i \Im(c(\omega))} \overline{c(\omega)}^l,
+    \end{equation*}
+    where 
+    \begin{equation*}
+        c(\omega) := 1 - \frac{\tau^2 \omega^2}{2} + \i \sqrt{1 - \left(1 - \frac{\tau^2 \omega^2}{2}\right)^2}.
+    \end{equation*}
+    Therefore if $\tau < 2/\omega$, then CFL condition is satisfied and $|c(\omega)|=1$, what implies boundness of $|q_l(\omega)|$ as $l \rightarrow \infty$. Otherwise $|q_l(\omega)|$ is unbounded.
+\end{lemma}
+\begin{proof}
+    We refer to \cite[p. 6]{nannen}.
+\end{proof}
+\begin{lemma}\label{lemma:dff}
+    Let $L\in \N$ be the number of quadrature nodes, $T$ be the upper bound of integral and $\tau = T/L$, like in Proposition \ref{prop:C operator}. Let $q_l(\omega)$ be defined for all $l \in N$ and $\omega \in \R$ by \eqref{eq:q def}. We define the discrete filter function $\dff: [0, \infty) \rightarrow \R$ by:
+    \begin{equation*}
+        \dff(\omega) := \sum_{l=0}^{L-1} \tau \alpha(\tau l) q_l(\omega).
+    \end{equation*}
+    \begin{enumerate}
+        \item $\dff$ is a polynomial of degree $L-1$ in $\omega^2$.
+        \item For $C$ defined in Proposition \ref{prop:C operator} holds $C = \dff(M^{-1}S)$.
+        \item If $(\omega^2, v)$ is an eigenpair of original problem \eqref{eq:matrix form}, then $(\dff(\omega), v)$ is an eigenpair of $C$.
+        \item If $(\lambda, v)$ is an eigenpair of $C$, then there exists $\omega \in \R$, such that $\omega^2$ is an eigenvalue of \eqref{eq:matrix form}, $\dff(\omega)=\lambda$ and
+        \begin{equation*}
+            v \in \bigoplus\{ U : \exists \omega \, U \text{ is eigenspace to eigenvalue to } \omega \text{ and } \dff(\omega) = \lambda\}.
+        \end{equation*}
+    \end{enumerate}
+\end{lemma}
+\begin{proof}
+    First claim follows directly from construction of $q_l(\omega)$ \eqref{eq:q def}. Third and fourth claims follow from the second one. Let $\dff(\omega) = \sum_{l=0}^{L-1} c_l \omega^{2l}$ for some $c_0, \dots, c_{L-1}\in \R$. If $v$ is an eigenvector of $C$ to eigenvalue $\omega^2$, then:
+    \begin{equation*}
+        Cv = \dff(M^{-1}S)v = \sum_{l=0}^{L-1} c_l (M^{-1}S)^{2l}v = \sum_{l=0}^{L-1} c_l \omega^{2l}v = \dff(\omega)v.
+    \end{equation*}
+    Remains to show the second statement. 
+    ........
+\end{proof}
 
 
 
