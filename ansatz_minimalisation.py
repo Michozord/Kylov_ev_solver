@@ -8,6 +8,7 @@ Created on Sat Mar 16 21:10:26 2024
 import numpy as np
 from matplotlib import pyplot as plt
 from dff import *
+from alpha_parser import write_to_file
 
 def l2_matrix(L: int, omega_end: float, M: int, tau: float):
     A = np.zeros((L, L))        # A[i,j] = (q_i, q_j)_L2
@@ -50,23 +51,14 @@ def alpha_l2(L: int, omega_min: float, omega_max: float, omega_end: float, M: in
 
 if __name__ == "__main__":
     omega_start, omega_end = 0, 360
-    tau = 2/omega_end           # approx. 0.0056
+    tau = 1/omega_end           
     omega_min, omega_max = 2, 4
-    # Ts = [1, 2.5, 5, 10]
-    Ts = [5, 10]
-    target_name = "$\chi$"
+    Ts = [1, 2.5, 5, 10]
+    target_name = r"$\chi$"
     
     for T in Ts:
-        fig1 = plt.figure()
-        ax1 = fig1.add_subplot()
         L = int(T/tau)
-        for M in [10*omega_end, 20*omega_end, 50*omega_end]:
-            alpha = alpha_l2(L, omega_min, omega_max, omega_end, M, tau)
-            plot_beta(0, omega_end, alpha, tau, L, ax1, label=f"M = {M} quadrature points", multiply_with_tau=False)
-        plt.xlim(omega_start, omega_end)
-        plt.title(f"L2 minimalisation, target function {target_name}, T = {T}, L = {L}")
-        ax1.legend()
-        ax1.grid()
-        plt.ylim(-0.5, 1)
-    plt.show()
-        
+        for M in [2*omega_end, 10*omega_end, 20*omega_end]:
+            alpha = alpha_l2(L, omega_min, omega_max, omega_end, M, tau)/tau
+            write_to_file(f"L2 minimalisation, target function {target_name}, T = {T}, L = {L}", f"M = {M} quadrature points", alpha, tau, L)
+

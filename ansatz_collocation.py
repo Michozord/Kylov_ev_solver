@@ -6,8 +6,8 @@ Created on Thu Feb  1 18:27:30 2024
 """
 
 from dff import *
-from matplotlib import pyplot as plt
 import numpy as np
+from alpha_parser import *
 
 omega_min, omega_max = 2, 4
 
@@ -56,62 +56,29 @@ def alpha_chebyshev(omega_start, omega_end, target, T, tau, K):
 
 if __name__ == "__main__":
     omega_start, omega_end = 0, 360
-    tau = 2/omega_end           # approx. 0.0056
+    tau = 1/omega_end           
     omega_min, omega_max = 2, 4
     Ts = [1, 2.5, 5, 10]
-    target_name = "$\chi$"
+    target_name = r"$\chi$"
     target = indicator
     # target_name = "Gauss"
     # target = gauss
     
-    for T in Ts:
-        fig1 = plt.figure()
-        ax1 = fig1.add_subplot()
-        fig3 = plt.figure()
-        ax3 = fig3.add_subplot()
-        axes = [ax1, ax3]
-        
+    for T in Ts:      
         L = int(T/tau)
-        Ks = [L, 4*L, 10*L]
+        Ks = [L, L+1, 4*L, 10*L]
         for K in Ks:
             alpha = alpha_equidistant(omega_start, omega_end, target, T, tau, K)
-            plot_beta(omega_start, omega_end, alpha, tau, L, ax1, label="K="+str(K))
-            if K > 2*L+3:
-                plot_beta(omega_start, omega_end, alpha, tau, L, ax3, label="K="+str(K))
+            write_to_file(f"Equidistant mesh, target function {target_name}, T = {T}, L = {L}", f"K = {K}", alpha, tau, L)
 
-        for ax in axes:
-            plt.sca(ax)
-            plt.xlim(omega_start, omega_end)
-            plt.title(f"Equidistant mesh, target function {target_name}, T = {T}, L = {L}")
-            ax.legend()
-            ax.grid()
-            plt.ylim(-1, 10)
-        
-    
+
     for T in Ts:
-        fig1 = plt.figure()
-        ax1 = fig1.add_subplot()
-        fig3 = plt.figure()
-        ax3 = fig3.add_subplot()
-        axes = [ax1, ax3]
-
         L = int(T/tau)
-        Ks = [L, 4*L, 10*L]
+        Ks = [L, L+1, 4*L, 10*L]
         for K in Ks:
             alpha, K = alpha_chebyshev(omega_start, omega_end, target, T, tau, K)
-            plot_beta(omega_start, omega_end, alpha, tau, L, ax1, label="K="+str(K))
-            if K > 2*L+3:
-                plot_beta(omega_start, omega_end, alpha, tau, L, ax3, label="K="+str(K))
+            write_to_file(f"Chebyshev mesh, target function {target_name}, T = {T}, L = {L}", f"K = {K}", alpha, tau, L)
 
-        for ax in axes:
-            plt.sca(ax)
-            plt.xlim(omega_start, omega_end)
-            plt.title(f"Chebyshev mesh, target function {target_name}, T = {T}, L = {L}")
-            ax.legend()
-            ax.grid()
-            plt.ylim(-1, 10)
-    
-    plt.show()
         
     
     
