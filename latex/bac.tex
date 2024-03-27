@@ -179,7 +179,9 @@ Wien, am \today
 
 \chapter{A Krylov eigenvalue solver based on filtered time domain solutions}
 \label{chapter:ftd}
-In this chapter we present concept of Krylov eigenvalue solver in a simple setting -- computation of eigenvalues of the negative Laplace operator. We formulate the weak form of the problem and introduce discretization in space. Then we define Krylov spaces and project our problem onto this spaces with smaller dimension. ..... This chapter is based on \cite{nannen}.
+In this chapter we present concept of Krylov eigenvalue solver computing eigenvalues of the negative Laplace operator. We 
+
+This chapter is based on \cite{nannen}.
 \begin{definition}[Eigenvalue problem of the negative Laplace operator]\label{def:ev problem}
     Let $\Omega~\subset~\R^d$ for $d=2,3$ be a bounded domain with Lipschitz boundary. We solve for eigenvalues $\omega^2~\in~\R_{+}$ and eigenfunctions $u\in H^1(\Omega)$ of the negative Laplace operator with Neumann boundary conditions:
         \begin{align}\begin{split}\label{eq:ev problem}
@@ -317,19 +319,19 @@ Since matrices $S$ and $M$ are Hermitian, Krylov iteration leads to convergence 
 
 To sum up core idea of this section, we can explicit formulate an (not implementable yet) algorithm based on Krylov spaces to compute eigenvalues $\omega^2$.
 \begin{algorithm}[H]
-\caption{Krylov eigenvalue solver}\
+\caption{Krylov eigenvalue solver}\label{alg:Krylov base}
     \begin{algorithmic}
-        \State \textbf{Input:} matrix $C$, start vector $r$, $M^{-1}$, $S$
+        \State \textbf{Input:} matrix $C$, start vector $r$, $M^{-1}$, $S$, $m$ dimension of the Krylov space
         \State $b_0 \gets r$
-        \State $m \gets 1$ \Comment{Dimension of Krylov space}
-        \Do 
-            \State $b_{m} \gets Cb_{m-1} - \sum_{i=0}^{m-1} (b_i^T C b_{m-1}) b_i$ \Comment{Gram-Schmidt orthonormalisation}
-            \State $ b_m \gets b_{m}/\|b_{m}\|_2 $ 
-            \State $m \gets m+1$
-            \State $B_m \gets (b_0, \dots, b_{m-1})$ \Comment{Projection matrix}
-            \State $A \gets B_m^T M^{-1}S B_m$
-            \State solve $Av = \omega_m^2 v$ with power iteration
-        \doWhile{stopping criterion}
+        \For{$ k = 1, \dots, m-1$}
+            \State $b_k \gets Cb_{k-1}$ \Comment{Krylov step}
+            \State $b_{k} \gets b_k - \sum_{i=0}^{k-1} (b_i^T b_k) b_i$ \Comment{Gram-Schmidt orthogonalisation}
+            \State $ b_k \gets b_{k}/\|b_{k}\|_2 $\Comment{normalization}
+        \EndFor
+        \State $B_m \gets (b_0, \dots, b_{m-1})$ \Comment{Projection matrix}
+        \State $A \gets B_m^T M^{-1}S B_m$
+        \State solve $Av = \omega_m^2 v$ with power iteration
+
     \end{algorithmic}
 \end{algorithm}
 
@@ -448,9 +450,9 @@ Following lemma determines correspondence between eigenvalues of $\Pi_\alpha$ an
             \Pi_\alpha v = \int_0^\infty \alpha(t) \cos(\omega_j t) v \, dt = \beta_\alpha(\omega) v.
         \end{equation*}
         So the first claim holds.
-        \item If $\lambda$ is an eigenvalue of $\Pi_\alpha$ to eigenvector $v$, then for all $j=1, \dots, N$ holds:
+        \item If $\lambda$ is an eigenvalue of $\Pi_\alpha$ to eigenvector $v$, then for all $k=1, \dots, N$ holds:
         \begin{align*}
-            \forall k =1, \dots, N:\, 0 &= (\Pi_\alpha v - \lambda v)v_k = \int_0^\infty \alpha(t) \sum_{j=1}^N \cos(\omega_k t) (v_j^T v)\underbrace{(v_j^T v_k)}_{=\delta_{jk}} \, dt - \lambda v^Tv_k \\ &= \left(\int_0^\infty \alpha(t) \cos(\omega_kt) - \lambda \right)v_k^T v = (\beta_\alpha(\omega_k) - \lambda)v_k^T v.
+             0 &= (\Pi_\alpha v - \lambda v)v_k = \int_0^\infty \alpha(t) \sum_{j=1}^N \cos(\omega_k t) (v_j^T v)\underbrace{(v_j^T v_k)}_{=\delta_{jk}} \, dt - \lambda v^Tv_k \\ &= \left(\int_0^\infty \alpha(t) \cos(\omega_kt) - \lambda \right)v_k^T v = (\beta_\alpha(\omega_k) - \lambda)v_k^T v.
         \end{align*}
         If $\beta_\alpha (\omega_k)\neq \lambda$, then $v_k^Tv = 0$, because $(v_k)_{k=1}^N$ is a basis. Therefore $v$ is in sum of eigenspaces to eigenvalues such that $\beta_\alpha(\omega_k) = \lambda)$. Moreover $v$ is an eigenvector, so $v\neq 0$. Therefore there exists at least one $k$, such that $v_k^T v \neq 0$, what implies $\beta_\alpha (\omega_k) = \lambda$. 
     \end{enumerate}
@@ -494,14 +496,18 @@ In numerical method we replace integral in the definition of $\Pi_\alpha$ by rec
 
 \begin{prop}[Discrete operator for Krylov iteration]\label{prop:C operator}
     Let $L \in \N$ be the number of quadrature nodes and $T>0$ be the upper bound of integration. Discretization of the operator $\Pi_\alpha$ (see Definition \ref{def:pi_alpha}) by the rectangular rule with step-size $\tau = T/L$ and approximation $y(l\tau; r) \approx y_l(r)$ leads to discrete operator $C : \R^N \rightarrow \R^N$:
-    \begin{equation*}
+    \begin{equation}\label{eq:C operator}
         r \mapsto Cr := \sum_{l=0}^{L-1} \tau \alpha(l\tau) y_l(r).
-    \end{equation*}
+    \end{equation}
 \end{prop}
 
 Discrete operator $C$ defined in Proposition \ref{prop:C operator} lets us avoid high computational costs in each Krylov step $r \mapsto Cr$. However, we have to verify coincidence between eigenpairs of $C$ and eigenpairs of the original problem \eqref{eq:matrix form}. For this reason we construct discrete filter function as discrete analogon of \eqref{eq:cont filter function}. 
 
-If $r$ is an eigenvector of matrix $M^{-1}S$ to eigenvalue $\omega^2$, then time-stepping \eqref{eq:fd for wave eq} takes following form:
+If $r$ is an eigenvector of matrix $M^{-1}S$ to eigenvalue $\omega^2$, then time-stepping \eqref{eq:fd for wave eq} takes following form for all $n\in \N$:
+\begin{equation}\label{eq:y_l q_l}
+    y_l(r) = q_l(\omega)r  
+\end{equation}
+with $q_l(\omega)$ solution to following recursion:
 \begin{align}\label{eq:q def}
     \begin{split}
         q_{l+1}(\omega) &:= (2-\tau^2\omega^2) q_l(\omega) - q_{l-1}(\omega) \, \text{ for } l \in \N,\\
@@ -510,7 +516,7 @@ If $r$ is an eigenvector of matrix $M^{-1}S$ to eigenvalue $\omega^2$, then time
 \end{align}
 This linear difference problem has unique solution, that will be needed later in Lemma \ref{lemma:dff}. Therefore we analyse behaviour of the solution as $l$ tends to infinity.
 
-\begin{lemma}[Courant--Friedrichs--Lewy condition for $q_l$]
+\begin{lemma}[Courant--Friedrichs--Lewy condition for $q_l$]\label{lemma:cfl}
     For given $\tau > 0$ and $\omega > 0$, the unique solution to \eqref{eq:q def} is:
     \begin{equation*}
         q_l(\omega) = \frac{1 - \overline{c(\omega)}}{2\i \Im(c(\omega))} c(\omega)^l + \frac{c(\omega)-1}{2\i \Im(c(\omega))} \overline{c(\omega)}^l,
@@ -540,13 +546,53 @@ This linear difference problem has unique solution, that will be needed later in
     \end{enumerate}
 \end{lemma}
 \begin{proof}
-    First claim follows directly from construction of $q_l(\omega)$ \eqref{eq:q def}. Third and fourth claims follow from the second one. Let $\dff(\omega) = \sum_{l=0}^{L-1} c_l \omega^{2l}$ for some $c_0, \dots, c_{L-1}\in \R$. If $v$ is an eigenvector of $C$ to eigenvalue $\omega^2$, then:
+    First claim follows directly from construction of $q_l(\omega)$ \eqref{eq:q def}. Let $V: = (v_1, \dots, v_N)$ be an orthonormal basis of eigenvectors corresponding to eigenvalues $\omega_1^2, \dots, \omega_N^2$ of $M^{-1}S$. The spectral decomposition of $M^{-1}S$ is $M^{-1}S = V \mathrm{diag}(\omega_1^2, \dots, \omega_N^2) V^T$. Since \eqref{eq:fd for wave eq} is a linear difference equation, for arbitrary $r\in\R^N$ and for all $l\in \N$ we obtain:
     \begin{equation*}
-        Cv = \dff(M^{-1}S)v = \sum_{l=0}^{L-1} c_l (M^{-1}S)^{2l}v = \sum_{l=0}^{L-1} c_l \omega^{2l}v = \dff(\omega)v.
+        y_l(r) = y_l \left( \sum_{j=1}^N (r^T v_j)v_j \right) = \sum_{j=1}^N (r^T v_j)y_l(v_j) \stackrel{\eqref{eq:y_l q_l}}{=} \sum_{j=1}^N (r^T v_j)q_l(\omega_j)v_j.
     \end{equation*}
-    Remains to show the second statement. 
-    ........
+    Therefore holds by the definition of $C$:
+    \begin{align*}
+        Cr &= \sum_{l=0}^{L-1} \tau\alpha(l\tau) y_l(r) = \sum_{j=1}^N \sum_{l=1}^{L-1} \tau\alpha(l\tau)q_l(\omega_j) (r^T v_j) v_j \\ &= \sum_{j=1}^{N}\dff(\omega_j)(r^Tv_j)v_j = V \mathrm{diag}\left(\dff(\omega_1), \dots, \dff(\omega_N)\right)V^Tr = \dff(M^{-1} S)r.
+    \end{align*}
+    So the second statement holds. Third and fourth claims follow from the second one. Let $\dff(\omega) = \sum_{l=0}^{L-1} c_l \omega^{2l}$ for some $c_0, \dots, c_{L-1}\in \R$. If $v$ is an eigenvector of \eqref{eq:matrix form} to eigenvalue $\omega^2$, then:
+    \begin{equation*}
+        Cv = \dff(M^{-1}S)v = \sum_{l=0}^{L-1} c_l (M^{-1}S)^{2l}v = \sum_{l=0}^{L-1} c_l \omega^{2l}v = \dff(\omega)v,
+    \end{equation*}
+    so $\dff(\omega)$ is eigenvalue of $C$ to $v$. If $(\lambda, v)$ is an eigenpair of $C$, then for all $k=0,\dots, N$ holds:
+    \begin{align*}
+        0 &= (Cv - \lambda v)v_k = \left(\left(\dff(M^{-1}S)v_k\right)^Tv - \lambda v^T v_k\right) \\&= \dff(\omega_k)v_k^T v - \lambda v^T v_k = \left(\dff(\omega_k) - \lambda\right)v^T v_k.
+    \end{align*}
+    Since $v^Tv_k \neq 0$ for some $k=1, \dots, N$, holds $\lambda = \dff(\omega_k)$ and $v$ belongs to sum of all eigenspaces to eigenvalues $\omega^2$, such that $\dff(\omega) = \lambda$.
 \end{proof}
+
+\section{Algorithm}
+Since we have constructed operator $C$, that meets our requirements, we can reformulate Algorithm \ref{alg:Krylov base} to implementable form.
+\begin{algorithm}[H]
+\caption{Krylov eigenvalue solver with filtered time-domain}\label{alg:Krylov pro}
+   \begin{algorithmic}
+        \State \textbf{Input: } weight function $\alpha$, start vector $r$ with $\|r\|_2 = 1$, $M^{-1}$, $S$, dimension $m$ of the Krylov space, time-step $\tau$, number of time-steps $L$
+        \State $b_0 \gets r$
+        \For{$k = 1, \dots, m-1$}\Comment{Krylov loop}
+            \State $y_{-1}, y_{0} \gets r$
+            \State $b_k \gets \tau \alpha(0) r$
+            \For{$l = 1, \dots L-1$}\Comment{Time-stepping in each Krylov step}
+                \State $y_l \gets -\tau^2 M^{-1}S y_{l-1} + 2y_{l-1} - y_{l-2}$ \Comment{$y_l$ represents $y_l(r)$ from \eqref{eq:fd for wave eq}}
+                \State $b_k \gets b_k + \tau \alpha(\tau l)y_l$ \Comment{Computation of \eqref{eq:C operator}}
+            \EndFor
+            \State $b_k \gets b_k - \sum_{i=0}^{k-1}(b_i^Tb_k)b_i$ \Comment{Gram-Schmidt orthogonalization}
+            \If{$\|b_k\|_2 \neq 0$}
+                \State $b_k\gets b_k/\|b_k\|_2$ \Comment{normalization}
+            \Else
+                \State $m\gets k$   \Comment{$b_k$ is not linear independent from $b_0, \dots, b_{k-1}$. Exact eigenspace}
+                \State \textbf{break} \Comment{ is a subspace of $\mathcal{K}_k(C; r)$.}
+            \EndIf
+        \EndFor
+        \State $B_m \gets (b_0, \dots, b_{m-1})$ \Comment{Projection matrix}
+        \State $A \gets B_m^T M^{-1}S B_m$
+        \State solve $Av_m = \omega_m^2 v_m$ with power iteration
+    \end{algorithmic} 
+\end{algorithm}
+Chosen time-step $\tau$ should fulfill CFL condition (see Lemma \ref{lemma:cfl}) for the largest absolute value among eigenvalues $\omega^2$ of \eqref{eq:matrix form}. Computational complexity of this method depends on the number of time-steps $L$ (and thus by the end time of integration $T = L\tau$) and the dimension of Krylov space $m$. Notice, that in presented algorithm we can easily increase the dimension of Krylov space without large computational costs, since increasing $m$ by $\hat{m}$ requires only $\hat{m}$ additional iterations of Krylov loop and solving eigenvalue problem with power iteration. For more details about the stopping criterion we refer to \cite[p. 8--9]{nannen}. In the next chapter we will discuss the choice of the weight function $\alpha$.
 
 
 
