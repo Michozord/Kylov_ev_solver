@@ -83,24 +83,35 @@ def plt_col_ind_cheb():
 # L2 MINIMALISATION APPROACH: TARGET INDICATOR  
 def plt_l2_ind():
     omega_start, omega_end = 0, 360
-    tau = 1/omega_end           
-    omega_min, omega_max = 2, 4
+    tau = 1/omega_end      
+
     Ts = [1, 2.5, 5, 10]
-    target_name = r"$\chi$"
     
     for T in Ts:
         fig1 = plt.figure()
-        ax1 = fig1.add_subplot()
+        ax1 = plt.subplot()
+        fig2 = plt.figure()
+        ax2 = plt.subplot()
         L = int(T/tau)
-        for M in [2*omega_end, 10*omega_end, 20*omega_end]:
-            alpha, tau, L = read_file(f"L2 minimalisation, target function {target_name}, T = {T}, L = {L}", f"M = {M} quadrature points")
-            plot_beta(0, omega_end + 10, alpha, tau, L, ax1, label=f"M = {M} quadrature points")
+        for omega_min, omega_max in [(2, 4), (6,8), (20, 22), (100, 110)]:
+            for M in [2*omega_end, 10*omega_end]:
+                alpha, tau, L = read_file(f"L2 minimalisation, target ({omega_min}, {omega_max}), T = {T}, L = {L}", f"M = {M} quadrature points")
+                plot_beta(0, omega_end + 10, alpha, tau, L, ax1, label=f"({omega_min}, {omega_max}): M = {M}")
+                plot_beta(omega_end - 0.1, omega_end, alpha, tau, L, ax2, label=f"({omega_min}, {omega_max}): M = {M}")
+        plt.sca(ax1)
         plt.xlim(omega_start, omega_end)
-        plt.title(f"L2 minimalisation, target function {target_name}, T = {T}, L = {L}")
+        plt.title(f"L2 minimalisation, T = {T}, L = {L}")
         ax1.legend()
         ax1.grid()
-        plt.ylim(-0.5, 3)
+        plt.ylim(-0.5, 2)
+        plt.sca(ax2)
+        plt.xlim(omega_end-0.1, omega_end)
+        plt.title(f"L2 minimalisation, T = {T}, L = {L}")
+        ax2.legend()
+        ax2.grid()
+        plt.ylim(-0.5, 2)
     plt.show()
+                
     
 def comparison():
     for T in [1, 2.5, 5, 10]:
@@ -146,6 +157,6 @@ if __name__ == "__main__":
     # COLLOCATION APROACH: TARGET INDICATOR AND CHEBYSHEV MESH
     # plt_col_ind_cheb()
     # L2 MINIMALISATION APPROACH: TARGET INDICATOR  
-    # plt_l2_ind()
+    plt_l2_ind()
     # COMPARE DIFFERENT METHODS
-    comparison()
+    # comparison()
