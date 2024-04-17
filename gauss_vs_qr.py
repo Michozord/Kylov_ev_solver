@@ -40,11 +40,11 @@ def dets_conds(omega_end, omega_min, omega_max, T, tau):
             # solve R alpha = c
             Q, R = np.linalg.qr(A, mode='complete')
             R = R[:L,:]     # upper triangle square matrix
-            breakpoint()
+            # breakpoint()
             ret[k, 1] = np.linalg.det(R)
             ret[k, 2] = np.linalg.cond(R)
             ATA = A.transpose()@A
-            breakpoint()
+            # breakpoint()
             ret[k, 3] = np.linalg.det(ATA)
             ret[k, 4] = np.linalg.cond(ATA)
     return ret

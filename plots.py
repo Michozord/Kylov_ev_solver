@@ -35,7 +35,7 @@ def plot_col_ind_eq():
                 # plot_beta(omega_end-0.1, omega_end, alpha, tau, L, ax2, label=f"({omega_min}, {omega_max}): K = {K}, QR")
                 alpha, tau, L = read_file(f"Collocation/linear minimalization, equidistant mesh, ({omega_min}, {omega_max}), T = {T}, L = {L}", f"K = {K}, solve ATAx=ATb")
                 plot_beta(omega_start, omega_end+10, alpha, tau, L, ax1, label=f"({omega_min}, {omega_max}): K = {K}, Gauss")
-                plot_beta(omega_end-0.1, omega_end, alpha, tau, L, ax2, label=f"({omega_min}, {omega_max}): K = {K}, Gauss")
+                # plot_beta(omega_end-0.1, omega_end, alpha, tau, L, ax2, label=f"({omega_min}, {omega_max}): K = {K}, Gauss")
             
             
             plt.sca(ax1)
@@ -51,40 +51,6 @@ def plot_col_ind_eq():
             print(f"T = {T}, ({omega_min}, {omega_max}) done")
     plt.show()
         
-        
-        
-# COLLOCATION APROACH: TARGET INDICATOR AND CHEBYSHEV MESH
-def plt_col_ind_cheb():
-    omega_start, omega_end = 0, 360
-    tau = 1/omega_end           
-    omega_min, omega_max = 2, 4
-    Ts = [1, 2.5, 5, 10]
-    target_name = r"$\chi$"
-    target = indicator
-    for T in Ts:
-        fig1 = plt.figure()
-        ax1 = fig1.add_subplot()
-        fig3 = plt.figure()
-        ax3 = fig3.add_subplot()
-        axes = [ax1, ax3]
-        
-        L = int(T/tau)
-        Ks = [L, L+3, 4*L, 10*L]
-        for K in Ks:
-            alpha, tau, L = read_file(f"Chebyshev mesh, target function {target_name}, T = {T}, L = {L}", f"K = {K}")
-            plot_beta(omega_start, omega_end+10, alpha, tau, L, ax1, label="K="+str(K))
-            if K > 2*L:
-                plot_beta(omega_start, omega_end+10, alpha, tau, L, ax3, label="K="+str(K))
-            
-        for ax in axes:
-            plt.sca(ax)
-            plt.xlim(omega_start, omega_end)
-            plt.title(f"Chebyshev mesh, target function {target_name}, T = {T}, L = {L}")
-            ax.legend()
-            ax.grid()
-            plt.ylim(-1, 3)
-    plt.show()
-
 
 # L2 MINIMALISATION APPROACH: TARGET INDICATOR  
 def plt_l2_ind():
@@ -150,10 +116,8 @@ def comparison():
 
 if __name__ == "__main__":
     # COLLOCATION APROACH: TARGET INDICATOR AND EQUIDISTANT MESH
-    # plot_col_ind_eq()
-    # COLLOCATION APROACH: TARGET INDICATOR AND CHEBYSHEV MESH
-    # plt_col_ind_cheb()
+    plot_col_ind_eq()
     # L2 MINIMALISATION APPROACH: TARGET INDICATOR  
     # plt_l2_ind()
     # COMPARE DIFFERENT METHODS
-    comparison()
+    # comparison()

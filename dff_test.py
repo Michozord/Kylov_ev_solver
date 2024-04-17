@@ -40,12 +40,12 @@ def alpha_fourier_gauss(T, omega_min, omega_max):
     return alpha
 
 if __name__ == "__main__":
-    omega_min = 2
-    omega_max = 4
+    omega_min = 100
+    omega_max = 110
     start = 0
-    end = 20
+    end = 360
     Ts = [1, 2.5, 5, 10]
-    tau = 0.025
+    tau = 1/end
     fig, ax = plt.subplots()
     for T in Ts:
         alpha = alpha_fourier_gauss(T, omega_min, omega_max)

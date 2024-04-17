@@ -25,7 +25,7 @@ def beta (omega: float, alpha: np.array, tau: float, multiply_with_tau=True) -> 
 
 
 def plot_beta(start: float, end: float, alpha, tau, L, ax, label=None, absolute=True, multiply_with_tau=True):
-    mesh = np.linspace(start, end, num=5000)
+    mesh = np.linspace(start, end, num=2000)
     if isinstance(alpha, Callable):
         alpha_vec = np.array(list(map(lambda l: alpha(tau*l), range(0, L))))
     else:
