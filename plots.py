@@ -23,26 +23,32 @@ def plot_col_ind_eq():
     target = indicator
     for T in Ts:
         fig1 = plt.figure()
-        ax1 = fig1.add_subplot()
-        fig3 = plt.figure()
-        ax3 = fig3.add_subplot()
-        axes = [ax1, ax3]
-        
-        L = int(T/tau)
-        Ks = [L, L+1, 4*L, 10*L]
-        for K in Ks:
-            alpha, tau, L = read_file(f"Equidistant mesh, target function {target_name}, T = {T}, L = {L}", f"K = {K}")
-            plot_beta(omega_start, omega_end+10, alpha, tau, L, ax1, label="K="+str(K))
-            if K > 2*L:
-                plot_beta(omega_start, omega_end+10, alpha, tau, L, ax3, label="K="+str(K))
+        ax1 = plt.subplot()
+        fig2 = plt.figure()
+        ax2 = plt.subplot()
+        for omega_min, omega_max in [(2, 4), (6,8), (20, 22), (100, 110)]:
+        # for omega_min, omega_max in [(2, 4)]:
+            L = int(T/tau)
+            for K in [2*L, 5*L, 10*L]:
+                # alpha, tau, L = read_file(f"Collocation/linear minimalization, equidistant mesh, ({omega_min}, {omega_max}), T = {T}, L = {L}", f"K = {K}")
+                # plot_beta(omega_start, omega_end+10, alpha, tau, L, ax1, label=f"({omega_min}, {omega_max}): K = {K}, QR")
+                # plot_beta(omega_end-0.1, omega_end, alpha, tau, L, ax2, label=f"({omega_min}, {omega_max}): K = {K}, QR")
+                alpha, tau, L = read_file(f"Collocation/linear minimalization, equidistant mesh, ({omega_min}, {omega_max}), T = {T}, L = {L}", f"K = {K}, solve ATAx=ATb")
+                plot_beta(omega_start, omega_end+10, alpha, tau, L, ax1, label=f"({omega_min}, {omega_max}): K = {K}, Gauss")
+                plot_beta(omega_end-0.1, omega_end, alpha, tau, L, ax2, label=f"({omega_min}, {omega_max}): K = {K}, Gauss")
             
-        for ax in axes:
-            plt.sca(ax)
+            
+            plt.sca(ax1)
             plt.xlim(omega_start, omega_end)
-            plt.title(f"Equidistant mesh, target function {target_name}, T = {T}, L = {L}")
-            ax.legend()
-            ax.grid()
-            plt.ylim(-1, 3)
+            plt.sca(ax2)
+            plt.xlim(omega_end-0.1, omega_end)
+            for ax in [ax1, ax2]:
+                plt.sca(ax)
+                plt.title(f"Equidistant mesh, T = {T}, L = {L}")
+                ax.legend()
+                plt.grid()
+                plt.ylim(-1, 2)
+            print(f"T = {T}, ({omega_min}, {omega_max}) done")
     plt.show()
         
         
@@ -98,6 +104,7 @@ def plt_l2_ind():
                 alpha, tau, L = read_file(f"L2 minimalisation, target ({omega_min}, {omega_max}), T = {T}, L = {L}", f"M = {M} quadrature points")
                 plot_beta(0, omega_end + 10, alpha, tau, L, ax1, label=f"({omega_min}, {omega_max}): M = {M}")
                 plot_beta(omega_end - 0.1, omega_end, alpha, tau, L, ax2, label=f"({omega_min}, {omega_max}): M = {M}")
+            print(f"T = {T}, ({omega_min}, {omega_max}): done")
         plt.sca(ax1)
         plt.xlim(omega_start, omega_end)
         plt.title(f"L2 minimalisation, T = {T}, L = {L}")
@@ -111,43 +118,33 @@ def plt_l2_ind():
         ax2.grid()
         plt.ylim(-0.5, 2)
     plt.show()
-                
-    
+
+
 def comparison():
-    for T in [1, 2.5, 5, 10]:
-        start, end = 0, 360
-        omega_min, omega_max = 2, 4
-        target_name = "$\\chi$"
-        target = indicator
-        
-        for tau in [1/end]:
+    Ts = [1, 2.5, 5, 10]
+    omega_end = 360
+    tau = 1/omega_end
+    for T in Ts:
+        L = int(T/tau)
+        for omega_min, omega_max in [(2, 4), (6,8), (20, 22), (100, 110)]:
             fig, ax = plt.subplots()
-            L = int(T/tau)
-            alpha, _, __ = read_file(f"L2 minimalisation, target function $\chi$, T = {T}, L = {L}", f"M = {2*end} quadrature points")
-            plot_beta(start, end+10, alpha, tau, L, ax, label=f"L2-minimalisation; {2*end} quadrature points")
-            alpha, _, __ = read_file(f"L2 minimalisation, target function $\chi$, T = {T}, L = {L}", f"M = {20*end} quadrature points")
-            plot_beta(start, end+10, alpha, tau, L, ax, label=f"L2-minimalisation; {20*end} quadrature points")
+            alpha, tau, L = read_file(f"L2 minimalisation, target ({omega_min}, {omega_max}), T = {T}, L = {L}", f"M = {10*omega_end} quadrature points")
+            plot_beta(0, omega_end+10, alpha, tau, L, ax, label="L2 minimalization")
+            for K in [2*L, 5*L, 10*L]:
+                alpha, tau, L = read_file(f"Collocation/linear minimalization, equidistant mesh, ({omega_min}, {omega_max}), T = {T}, L = {L}", f"K = {K}, solve ATAx=ATb")
+                plot_beta(0, omega_end+10, alpha, tau, L, ax, label=f"linear minimalization; equidistant mesh; K = {K}; Gauss eq.")
             
-            alpha, _, __ = read_file(f"Equidistant mesh, target function $\chi$, T = {T}, L = {L}", f"K = {4*L}")
-            plot_beta(start, end+10, alpha, tau, L, ax, label=f"Collocation; equidistant mesh with {4*L} points")
-            alpha, _, __ = read_file(f"Equidistant mesh, target function $\chi$, T = {T}, L = {L}", f"K = {10*L}")
-            plot_beta(start, end+10, alpha, tau, L, ax, label=f"Collocation; equidistant mesh with {10*L} points")
-
-            alpha, _, __ = read_file(f"Chebyshev mesh, target function $\chi$, T = {T}, L = {L}", f"K = {4*L}")
-            plot_beta(start, end+10, alpha, tau, L, ax, label=f"Collocation; Chebyshev mesh with {4*L} points")
-            alpha, _, __ = read_file(f"Chebyshev mesh, target function $\chi$, T = {T}, L = {L}", f"K = {10*L}")
-            plot_beta(start, end+10, alpha, tau, L, ax, label=f"Collocation; Chebyshev mesh with {10*L} points")
-
             alpha = alpha_fourier_indicator(T, omega_min, omega_max)
-            plot_beta(start, end+10, alpha, tau, L, ax, label="Fourier")
+            plot_beta(0, omega_end+10, alpha, tau, L, ax, label="Fourier")
             
-            ax.grid()
-            plt.xlim(start, end)
-            plt.ylim(-1, 3)
+            plt.grid()
             plt.legend()
-            plt.title(f"Different methods: target function {target_name}, T = {T}")
+            plt.xlim(0, omega_end)
+            plt.ylim(-1, 2)
+            plt.title(f"Different methods: target indicator ({omega_min}, {omega_max}), T = {T}")
+            print(f"T = {T}, ({omega_min}, {omega_max}): done")
     plt.show()
-    
+
 
 
 
@@ -157,6 +154,6 @@ if __name__ == "__main__":
     # COLLOCATION APROACH: TARGET INDICATOR AND CHEBYSHEV MESH
     # plt_col_ind_cheb()
     # L2 MINIMALISATION APPROACH: TARGET INDICATOR  
-    plt_l2_ind()
+    # plt_l2_ind()
     # COMPARE DIFFERENT METHODS
-    # comparison()
+    comparison()

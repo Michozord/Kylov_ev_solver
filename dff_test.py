@@ -8,7 +8,7 @@ Created on Fri Jan 19 13:06:35 2024
 from dff import *
 import numpy as np
 from matplotlib import pyplot as plt
-from sympy_test import sympy_plot
+# from sympy_test import sympy_plot
 
 
 def alpha_fourier_indicator(T, omega_min, omega_max):
