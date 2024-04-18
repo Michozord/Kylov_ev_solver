@@ -47,43 +47,76 @@ def alpha_equidistant(omega_start, omega_end, omega_min, omega_max, target_gener
     return alpha
 
 
+def alpha_chebyshev(omega_start, omega_end, omega_min, omega_max, target_generator, T, tau):
+    K = int(T/tau)
+    target = target_generator(omega_min, omega_max)
+    mesh = (omega_end-omega_start)/2 * np.array(list(map(lambda k: np.cos((2*k+1)/(2*K)*np.pi), range(K)))) + (omega_end-omega_start)/2
+    beta_vec = np.array(list(map(target, mesh)))                # vector [target(omega_0), ..., target(omega_K-1)] - rhs of equation
+    A = np.zeros((K, K))
+    for k in range(K):
+        A[k,:] = tau * q_omega_cheb(mesh[k], tau, K)
+    alpha = np.linalg.solve(A, beta_vec)
+    return alpha, mesh
+
+
+# if __name__ == "__main__":
+#     omega_start, omega_end = 0, 360
+#     tau = 1/omega_end           
+    
+#     Ts = [1, 5]
+    
+#     for T in Ts:
+#         fig1 = plt.figure()
+#         ax1 = plt.subplot()
+#         fig2 = plt.figure()
+#         ax2 = plt.subplot()
+#         L = int(T/tau)
+#         for K in [2*L, 5*L, 10*L]:
+#             for omega_min, omega_max in [(2,4), (100, 110)]: #[(2, 4), (6,8), (20, 22), (100, 110)]:
+#                 # GAUSS NORMAL EQUATION:
+#                 alpha = alpha_equidistant(omega_start, omega_end, omega_min, omega_max, indicator, T, tau, K)
+#                 # write_to_file(f"Collocation/linear minimalization, equidistant mesh, ({omega_min}, {omega_max}), T = {T}, L = {L}", f"K = {K}, solve ATAx=ATb", alpha, tau, L)
+#                 # SOLVE WITH QR DECOMPOSITION:
+#                 # alpha = alpha_equidistant(omega_start, omega_end, omega_min, omega_max, indicator, T, tau, K, method="QR")
+#                 # write_to_file(f"Collocation/linear minimalization, equidistant mesh, ({omega_min}, {omega_max}), T = {T}, L = {L}", f"K = {K}", alpha, tau, L)
+                
+#                 plot_beta(0, omega_end, alpha, tau, L, ax1, label=f"({omega_min}, {omega_max}): K = {K}")
+#                 plot_beta(omega_end-0.1, omega_end, alpha, tau, L, ax2, label=f"({omega_min}, {omega_max}): K = {K}")
+#             print(f"T = {T}, K={K} done")
+#         plt.sca(ax1)
+#         ax1.legend()
+#         ax1.grid()
+#         plt.xlim(0, omega_end)
+#         plt.ylim(-1, 2)
+#         plt.title(f"Collocation/linear minimalization, equidistant mesh, T={T}")
+#         plt.sca(ax2)
+#         ax2.legend()
+#         ax2.grid()
+#         plt.xlim(omega_end-0.1, omega_end)
+#         plt.ylim(-1, 2)
+#         plt.title(f"Collocation/linear minimalization, equidistant mesh, T={T}")
+#         print(f"T={T} done")
+#     plt.show()
+
+
 if __name__ == "__main__":
     omega_start, omega_end = 0, 360
-    tau = 1/omega_end           
+    tau = 2/omega_end
     
-    Ts = [1, 5]
-    
+    Ts = [1, 5, 10]
+    omega_min, omega_max = 2, 4
     for T in Ts:
-        fig1 = plt.figure()
-        ax1 = plt.subplot()
-        fig2 = plt.figure()
-        ax2 = plt.subplot()
-        L = int(T/tau)
-        for K in [2*L, 5*L, 10*L]:
-            for omega_min, omega_max in [(2,4), (100, 110)]: #[(2, 4), (6,8), (20, 22), (100, 110)]:
-                # GAUSS NORMAL EQUATION:
-                alpha = alpha_equidistant(omega_start, omega_end, omega_min, omega_max, indicator, T, tau, K)
-                # write_to_file(f"Collocation/linear minimalization, equidistant mesh, ({omega_min}, {omega_max}), T = {T}, L = {L}", f"K = {K}, solve ATAx=ATb", alpha, tau, L)
-                # SOLVE WITH QR DECOMPOSITION:
-                # alpha = alpha_equidistant(omega_start, omega_end, omega_min, omega_max, indicator, T, tau, K, method="QR")
-                # write_to_file(f"Collocation/linear minimalization, equidistant mesh, ({omega_min}, {omega_max}), T = {T}, L = {L}", f"K = {K}", alpha, tau, L)
-                
-                plot_beta(0, omega_end, alpha, tau, L, ax1, label=f"({omega_min}, {omega_max}): K = {K}")
-                plot_beta(omega_end-0.1, omega_end, alpha, tau, L, ax2, label=f"({omega_min}, {omega_max}): K = {K}")
-            print(f"T = {T}, K={K} done")
-        plt.sca(ax1)
-        ax1.legend()
-        ax1.grid()
-        plt.xlim(0, omega_end)
-        plt.ylim(-1, 2)
-        plt.title(f"Collocation/linear minimalization, equidistant mesh, T={T}")
-        plt.sca(ax2)
-        ax2.legend()
-        ax2.grid()
-        plt.xlim(omega_end-0.1, omega_end)
-        plt.ylim(-1, 2)
-        plt.title(f"Collocation/linear minimalization, equidistant mesh, T={T}")
-        print(f"T={T} done")
-    plt.show()
-    
+        L = int(T/tau) 
+        fig, ax = plt.subplots()
+        # alpha = alpha_equidistant(omega_start, omega_end, omega_min, omega_max, indicator, T, tau, L)
+        # plot_beta(omega_start, omega_end, alpha, tau, L, ax, label="equidistant mesh")
+        plt.plot()
+        alpha, mesh = alpha_chebyshev(omega_start, omega_end, omega_min, omega_max, indicator, T, tau)
+        plot_beta_cheb(omega_start, omega_end, alpha, tau, L, ax, label="Chebyshev mesh")
+        plt.plot(mesh, list(map(indicator(omega_min, omega_max), mesh)), "x")
+        plt.grid()
+        plt.legend()
+        plt.title(f"T = {T}")
+
+    plt.show()    
     
