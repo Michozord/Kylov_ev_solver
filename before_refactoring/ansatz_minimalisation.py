@@ -58,36 +58,48 @@ def alpha_l2(L: int, omega_min: float, omega_max: float, omega_end: float, M: in
     return alpha
 
 
+
 if __name__ == "__main__":
-    omega_start, omega_end = 0, 360
-    tau = 1/omega_end           
-    
-    Ts = [1, 2.5, 5, 10]
-    
-    for T in Ts:
-        fig1 = plt.figure()
-        ax1 = plt.subplot()
-        fig2 = plt.figure()
-        ax2 = plt.subplot()
-        L = int(T/tau)
-        for M in [2*omega_end, 10*omega_end]:
-            for omega_min, omega_max in [(2, 4), (6,8), (20, 22), (100, 110)]: 
-                alpha = alpha_l2(L, omega_min, omega_max, omega_end, M, tau)
-                write_to_file(f"L2 minimalisation, target ({omega_min}, {omega_max}), T = {T}, L = {L}", f"M = {M} quadrature points", alpha, tau, L)
-                plot_beta(0, omega_end, alpha, tau, L, ax1, label=f"({omega_min}, {omega_max}): M = {M}")
-                plot_beta(omega_end-0.1, omega_end, alpha, tau, L, ax2, label=f"({omega_min}, {omega_max}): M = {M}")
-        plt.sca(ax1)
-        ax1.legend()
-        ax1.grid()
-        plt.xlim(0, omega_end)
-        plt.ylim(-1, 2)
-        plt.title(f"L2 minimalisation, T={T}")
-        plt.sca(ax2)
-        ax2.legend()
-        ax2.grid()
-        plt.xlim(omega_end-0.1, omega_end)
-        plt.ylim(-1, 2)
-        plt.title(f"L2 minimalisation, T={T}")
-        print(f"T={T} done")
+    om_min, om_max, om_end = 12, 14, 360
+    tau = 1/om_end
+    L = int(10/tau)
+    alpha = alpha_l2(L, om_min, om_max, om_end, 5*om_end, tau)
+    print(alpha)
+    fig, ax = plt.subplots()
+    plot_beta(0, 360, alpha, tau, L, ax)
     plt.show()
+
+
+# if __name__ == "__main__":
+#     omega_start, omega_end = 0, 360
+#     tau = 1/omega_end           
+    
+#     Ts = [1, 2.5, 5, 10]
+    
+#     for T in Ts:
+#         fig1 = plt.figure()
+#         ax1 = plt.subplot()
+#         fig2 = plt.figure()
+#         ax2 = plt.subplot()
+#         L = int(T/tau)
+#         for M in [2*omega_end, 10*omega_end]:
+#             for omega_min, omega_max in [(2, 4), (6,8), (20, 22), (100, 110)]: 
+#                 alpha = alpha_l2(L, omega_min, omega_max, omega_end, M, tau)
+#                 write_to_file(f"L2 minimalisation, target ({omega_min}, {omega_max}), T = {T}, L = {L}", f"M = {M} quadrature points", alpha, tau, L)
+#                 plot_beta(0, omega_end, alpha, tau, L, ax1, label=f"({omega_min}, {omega_max}): M = {M}")
+#                 plot_beta(omega_end-0.1, omega_end, alpha, tau, L, ax2, label=f"({omega_min}, {omega_max}): M = {M}")
+#         plt.sca(ax1)
+#         ax1.legend()
+#         ax1.grid()
+#         plt.xlim(0, omega_end)
+#         plt.ylim(-1, 2)
+#         plt.title(f"L2 minimalisation, T={T}")
+#         plt.sca(ax2)
+#         ax2.legend()
+#         ax2.grid()
+#         plt.xlim(omega_end-0.1, omega_end)
+#         plt.ylim(-1, 2)
+#         plt.title(f"L2 minimalisation, T={T}")
+#         print(f"T={T} done")
+#     plt.show()
         

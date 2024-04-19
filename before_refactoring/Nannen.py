@@ -10,12 +10,11 @@ tau = 0.0056
 
 tau2 = tau**2
 
-N = 5000
+N = 500
 
 C=1;
 
-# X=2/tau2*(1-np.cos((2*np.linspace(0,C*N-1,C*N)+1)/2/(C*N)*np.pi)) #Chebyshev knots
-X = np.linspace(0, 2/tau2,  num=5000)
+X=2/tau2*(1-np.cos((2*np.linspace(0,C*N-1,C*N)+1)/2/(C*N)*np.pi)) #Chebyshev knots
 
 w_min = 12
 w_max = 12.6
@@ -37,8 +36,8 @@ for k in range(2,N):
 goalfunc = lambda x: (x<=lammax)*(x>=lammin)
 
 val=goalfunc(X)
-# alpha=np.linalg.solve(Q,val)
-alpha=np.linalg.lstsq(Q,val)[0]
+alpha=np.linalg.solve(Q,val)
+# alpha=np.linalg.lstsq(Q,val)[0]
 
 #Y=np.linspace(0,4/tau2,50000)
 Y=np.linspace(0,400,50000)
