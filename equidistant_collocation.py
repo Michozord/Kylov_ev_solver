@@ -20,15 +20,39 @@ def compute_alpha(om_end: float, L: int, K: int, tau: float, target: Callable) -
 
 
 if __name__ == "__main__":
-    om_min, om_max, om_end = 12, 14, 360
+    om_min, om_max = 12, 14
     target = indicator(om_min, om_max)
-    tau = 2/om_end
-    L = int(10/tau)
+    tau = 0.0056
+    om_end= 2/tau
+    L = 200
+    title = r"Equidistant collocation, T = " + str(L * tau)[0:7] + r", $\omega_{end}$ = " + str(om_end)[0:7] + ", L = " + str(L) + f", target intervall ({om_min}, {om_max})"
+    ax1 = prepare_plot(0, om_end, title=title)
+    ax2 = prepare_plot(om_end-0.5, om_end, title=title)
+    
+    alpha = compute_alpha(om_end, L, L, tau, target)
+    Q1 = plot_beta(alpha, L, tau, 0, om_end, ax1, label=f"colloc K={L} knots")
+    Q2 = plot_beta(alpha, L, tau, om_end-0.5, om_end, ax2, label=f"colloc K={L} knots")
+    
+    alpha = compute_alpha(om_end, L, 2*L, tau, target)
+    plot_beta(alpha, L, tau, 0, om_end, ax1, label=f"colloc K={2*L} knots", Q=Q1)
+    plot_beta(alpha, L, tau, om_end-0.5, om_end, ax2, label=f"colloc K={2*L} knots", Q=Q2)
+    
+    alpha = compute_alpha(om_end, L, 5*L, tau, target)
+    plot_beta(alpha, L, tau, 0, om_end, ax1, label=f"colloc K={5*L} knots", Q=Q1)
+    plot_beta(alpha, L, tau, om_end-0.5, om_end, ax2, label=f"colloc K={5*L} knots", Q=Q2)
+    
     alpha = compute_alpha(om_end, L, 10*L, tau, target)
-    ax = prepare_plot(0, om_end)
-    Q = plot_beta(alpha, L, tau, 0, om_end, ax, label="approximation")
+    plot_beta(alpha, L, tau, 0, om_end, ax1, label=f"colloc K={10*L} knots", Q=Q1)
+    plot_beta(alpha, L, tau, om_end-0.5, om_end, ax2, label=f"colloc K={10*L} knots", Q=Q2)
+    
     alpha = fourier_indicator(om_min, om_max, 10)
-    plot_beta(alpha, L, tau, 0, om_end, ax, label="fourier", Q=Q)
-    plt.legend()
+    plot_beta(alpha, L, tau, 0, om_end, ax1, label="Fourier", Q=Q1)
+    plot_beta(alpha, L, tau, om_end-0.5, om_end, ax2, label="Fourier", Q=Q2)
+    
+    # plot_nodes(np.linspace(0, om_end, num=L), target, ax1)
+    # plot_nodes(np.linspace(0, om_end, num=L), target, ax2)
+    
+    ax1.legend()
+    ax2.legend()
     plt.show()
     

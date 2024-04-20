@@ -65,7 +65,7 @@ def plot_nodes(nodes: np.array, target: Callable, ax: plt.axis):
 
 
 def prepare_plot(start: float, end: float, title: Optional[str]="", 
-                 xlabel: Optional[str]="", ylabel: Optional[str]="") -> plt.axis:
+                 xlabel: Optional[str]=r"$\omega$", ylabel: Optional[str]=r"$|\beta(\omega)|$") -> plt.axis:
     fig, ax = plt.subplots()
     plt.xlim(start, end)
     plt.ylim(-0.5, 2)
