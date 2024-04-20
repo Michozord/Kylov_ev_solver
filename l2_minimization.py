@@ -18,6 +18,7 @@ def compute_alpha(om_end: float, L: int, tau: float, om_min: float, om_max: floa
     Q[0,:] *= 1/np.sqrt(2)
     Q[-1,:] *= 1/np.sqrt(2)
     X = 1/K * Q.transpose() @ Q 
+    print(f"det(X) = {np.linalg.det(X)}, cond(X) = {np.linalg.cond(X)}")
     alpha = np.linalg.solve(X, rhs)/tau
     return alpha
 
