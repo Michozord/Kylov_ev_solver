@@ -92,7 +92,7 @@ def comparison():
     tau = 1/omega_end
     for T in Ts:
         L = int(T/tau)
-        for omega_min, omega_max in [(2, 4), (6,8), (20, 22), (100, 110)]:
+        for omega_min, omega_max in [(100, 110)]: #[(2, 4), (6,8), (20, 22), (100, 110)]:
             fig, ax = plt.subplots()
             alpha, tau, L = read_file(f"L2 minimalisation, target ({omega_min}, {omega_max}), T = {T}, L = {L}", f"M = {10*omega_end} quadrature points")
             plot_beta(0, omega_end+10, alpha, tau, L, ax, label="L2 minimalization")
@@ -116,8 +116,8 @@ def comparison():
 
 if __name__ == "__main__":
     # COLLOCATION APROACH: TARGET INDICATOR AND EQUIDISTANT MESH
-    plot_col_ind_eq()
+    # plot_col_ind_eq()
     # L2 MINIMALISATION APPROACH: TARGET INDICATOR  
     # plt_l2_ind()
     # COMPARE DIFFERENT METHODS
-    # comparison()
+    comparison()
