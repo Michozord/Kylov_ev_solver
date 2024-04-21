@@ -32,6 +32,8 @@
 \renewcommand{\Re}{\mathfrak{Re}}
 \newcommand{\dff}{\Tilde{\beta}_\alpha}
 \newcommand{\bigO}{\mathcal{O}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\e}{\mathrm{end}}
 
 \algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
 
@@ -351,7 +353,7 @@ To sum up the core idea of this section, we can explicitly formulate an (not yet
     \end{algorithmic}
 \end{algorithm}
 
-Our goal is to compute eigenvalues $\omega^2$ of \eqref{eq:matrix form} in a given region of interest $(\omega_{\min}^2, \omega_{\max}^2)$. Therefore, we need matrix $C$ to fulfill the following four conditions.
+Our goal is to compute eigenvalues $\omega^2$ of \eqref{eq:matrix form} in a given region of interest $\left[\omega_{\min}^2, \omega_{\max}^2\right]$. Therefore, we need matrix $C$ to fulfill the following four conditions.
 \begin{itemize}
     \item $C$ satisfies the conditions in Definition \ref{def:C}.
     \item Eigenvalues $\mu$ corresponding to eigenspaces of eigenvalues $\omega^2$ in the region of interest have large absolute value.
@@ -571,9 +573,9 @@ The matrix $M^{-1}S$ has spectral decomposition $M^{-1}S = V\mathrm{diag}(\omega
 
 \begin{lemma}\label{lemma:dff}
     Let $L\in \N$ be the number of quadrature nodes, $T$ be the upper bound of the integral, and $\tau = T/L$, as in Proposition \ref{prop:C operator}. Let $q_l(\omega)$ be defined for all $l \in \N$ and $\omega \in \R$ by \eqref{eq:q def}. We define the discrete filter function $\dff: [0, \infty) \rightarrow \R$ as follows:
-    \begin{equation*}
+    \begin{equation}\label{eq:dff}
         \dff(\omega) := \sum_{l=0}^{L-1} \tau \alpha(\tau l) q_l(\omega).
-    \end{equation*}
+    \end{equation}
     \begin{enumerate}
         \item $\dff$ is a polynomial of degree $L-1$ in $\omega^2$.
         \item For $C$ defined in Proposition \ref{prop:C operator}, $C = \dff\left(\sqrt{M^{-1}S}\right)$.
@@ -639,6 +641,62 @@ The chosen time-step $\tau$ should fulfill the CFL condition (see Lemma \ref{lem
 
 \chapter{Choice of the weight function}
 \label{chapter:function}
+For the full functionality of the Krylov eigenvalue solver based on filtered time-domain we need appropriate weight function $\alpha$. First section of this chapter follows choice in \cite{nannen}. In subsequent sections we discuss other numerical methods of selection of the weight function.
+
+The whole spectrum of eigenvalues $\omega^2$ of the discrete approximation \eqref{eq:matrix form} of the negative Laplacian eigenvalue problem is included in some interval $\left[0, \omega_\e^2\right]$. We search eigenvalues in given region of interest $\left[\omega_{\min}^2, \omega_{\max}^2\right]$. Deployed Krylov eigenvalue solver (Algorithm \ref{alg:Krylov pro}) allows us to compute eigenvalues $\omega^2$, such that absolute value of the discrete filter function $|\dff(\omega)|$ is maximal. 
+
+Therefore our goal is to construct such weight function $\alpha$, that the filter function $|\beta_\alpha|$ \eqref{eq:cont filter function} or its discrete equivalent $|\dff|$ \eqref{eq:dff} takes on larger values, if $\omega \in \left[\omega_{\min}, \omega_{\max} \right]$ and is close to 0 otherwise. Of course, we can require this only in the controlled interval $\left[0, \omega_\e\right]$, since, according to Lemma \ref{lemma:dff}, $\dff$ is a polynomial. Moreover, we require, that the function $\alpha$ is piecewise continuous and compactly supported (see Definition \ref{def:pi_alpha}).
+
+\section{Inverse Fourier transform method}
+In this section we follow choice in \cite{nannen}. First presented method of selecting weight function bases on observation, that the mapping $ \alpha \mapsto \beta_\alpha$ is somehow similar to the Fourier transform. 
+\begin{lemma}\label{lemma:alpha fourier}
+    Let $\alpha$ be piecewise continuous weight function, such that $\alpha \in L^1\left([0, \infty)\right)$. Let $\hat{\alpha}: \R \rightarrow \R$ denote its symmetric extension, i.e., $\hat{\alpha}(-t) := \alpha(t)$ for all $t\in \R_+$. Then, for all $s\in \R$:
+    \begin{equation*}
+        \beta_\alpha (s) = \sqrt{\frac{\pi}{2}} \F\left[\hat{\alpha}\right] (s),
+    \end{equation*}
+    where $\mathcal{F}$ denotes the Fourier transform and $\beta_\alpha$ denotes the filter function  defined in \eqref{eq:cont filter function}.
+\end{lemma}
+\begin{proof}
+    Obviously, if $\alpha \in L^1\left([0, \infty)\right)$, then $\hat{\alpha} \in L^1\left(\R\right)$. From \eqref{eq:cont filter function} follows:
+    \begin{align*}
+        \beta_\alpha (s) &= \int_0^\infty \alpha(t) \cos(s t) \,dt = \frac{1}{2}\int_{-\infty}^\infty \hat{\alpha}(t) \cos(s t) \,dt + \frac{\i}{2} \underbrace{\int_{-\infty}^\infty \hat{\alpha}(t) \sin(-st) \,dt}_{=0} \\&= \frac{1}{2} \int_{-\infty}^{\infty} \hat{\alpha}(t) e^{-\i st} \, dt = \sqrt{\frac{\pi}{2}} \F\left[\hat{\alpha}\right] (s).
+    \end{align*}
+    The sine-integral is 0, since $\hat{\alpha}$ is an even function and $t \mapsto \sin(-st)$ is an odd function. 
+\end{proof}
+
+This motivates the choice of the function $\alpha$ as truncated inverse Fourier transform. As goal function to be filter function $\beta_\alpha$ we choose symmetrical indicator function of the region of interest: $\chi_{\left[-\omega_{\max}, -\omega_{\min}\right]\cup\left[\omega_{\min}, \omega_{\max}\right]}$. Thanks to the symmetry of this function, its inverse Fourier transform is real-valued.
+
+\begin{theorem}
+    Truncation of the scaled inverse Fourier transform of the symmetric indicator function $\chi_{\left[-\omega_{\max}, -\omega_{\min}\right]\cup\left[\omega_{\min}, \omega_{\max}\right]}$ to a compact interval $[0, T]$, $T>0$, leads to following weight function:
+    \begin{equation}\label{eq:alpha fourier}
+        \alpha(t) = \begin{cases}
+            \frac{2\left(\omega_{\max} - \omega_{\min}\right)}{\pi}, \quad & t = 0, \\
+            \frac{4}{\pi t} \sin\left(\frac{t}{2}\left(\omega_{\max}-\omega_{\min} \right)\right)\cos\left(\frac{t}{2}\left(\omega_{\max}+\omega_{\min} \right)\right), \quad & t \in (0, T], \\
+            0, \quad & \text{else.}
+        \end{cases}
+    \end{equation}
+\end{theorem}
+\begin{proof}
+    Following Lemma \ref{lemma:alpha fourier} we compute:
+    \begin{align*}
+        \sqrt{\frac{2}{\pi}} \F^{-1}\left[\chi_{\left[-\omega_{\max}, -\omega_{\min}\right]\cup\left[\omega_{\min}, \omega_{\max}\right]}\right](t) &= \frac{1}{\pi} \int_{-\infty}^\infty \chi_{\left[\omega_{\min}, \omega_{\max}\right]} e^{\i st} \, ds \\ 
+        & = \frac{1}{\pi} \left( \int_{-\omega_{\max}}^{-\omega_{\min}} \cos(st) \, ds + \int_{\omega_{\min}}^{\omega_{\max}} \cos(st) \, ds\right) \\ &+ \frac{\i}{\pi} \underbrace{\left(\int_{-\omega_{\max}}^{-\omega_{\min}} \sin(st) \, ds + \int_{\omega_{\min}}^{\omega_{\max}} \sin(st) \, ds \right)}_{=0} \\
+        &= \frac{2}{\pi}\int_{\omega_{\min}}^{\omega_{\max}} \cos(st) \, ds \\
+        &= \frac{2}{\pi t} \left(\sin\left(t\omega_{\max}\right) - \sin\left(t\omega_{\min}\right)\right) \\
+        &= \frac{4}{\pi t} \sin\left(\frac{t}{2}\left(\omega_{\max}-\omega_{\min} \right)\right)\cos\left(\frac{t}{2}\left(\omega_{\max}+\omega_{\min} \right)\right).
+    \end{align*}
+    Obtained function is real-valued, but does not have compact support. Therefore we truncate it to finite interval $(0, T]$ and set $\alpha|_{(T, \infty)} := 0$. Since the limit from the right as $t\rightarrow 0^+$ is finite, we can right-continuously in 0 extend the function to interval $[0, \infty)$. This leads to representation \eqref{eq:alpha fourier}.
+\end{proof}
+
+
+
+
+
+
+
+
+
+
 
 \bibliographystyle{alpha} 
 %\bibliographystyle{abbrv}
