@@ -56,6 +56,7 @@
 
 \def\revision#1{{\color{red}#1}}
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -643,9 +644,9 @@ The chosen time-step $\tau$ should fulfill the CFL condition (see Lemma \ref{lem
 \label{chapter:function}
 For the full functionality of the Krylov eigenvalue solver based on filtered time-domain we need appropriate weight function $\alpha$. First section of this chapter follows choice in \cite{nannen}. In subsequent sections we discuss other numerical methods of selection of the weight function.
 
-The whole spectrum of eigenvalues $\omega^2$ of the discrete approximation \eqref{eq:matrix form} of the negative Laplacian eigenvalue problem is included in some interval $\left[0, \omega_\e^2\right]$. We search eigenvalues in given region of interest $\left[\omega_{\min}^2, \omega_{\max}^2\right]$. Deployed Krylov eigenvalue solver (Algorithm \ref{alg:Krylov pro}) allows us to compute eigenvalues $\omega^2$, such that absolute value of the discrete filter function $|\dff(\omega)|$ is maximal. 
+The whole spectrum of eigenvalues $\omega^2$ of the discrete approximation \eqref{eq:matrix form} of the negative Laplacian eigenvalue problem is included in some interval $\left[0, \omega_\e^2\right]$. We search eigenvalues in given region of interest $\left[\omega_{\min}^2, \omega_{\max}^2\right]$. Deployed Krylov eigenvalue solver (Algorithm \ref{alg:Krylov pro}) allows us to compute eigenvalues $\omega^2$, such that absolute value of the discrete filter function $\left|\dff(\omega)\right|$ is maximal. 
 
-Therefore our goal is to construct such weight function $\alpha$, that the filter function $|\beta_\alpha|$ \eqref{eq:cont filter function} or its discrete equivalent $|\dff|$ \eqref{eq:dff} takes on larger values, if $\omega \in \left[\omega_{\min}, \omega_{\max} \right]$ and is close to 0 otherwise. Of course, we can require this only in the controlled interval $\left[0, \omega_\e\right]$, since, according to Lemma \ref{lemma:dff}, $\dff$ is a polynomial. Moreover, we require, that the function $\alpha$ is piecewise continuous and compactly supported (see Definition \ref{def:pi_alpha}).
+Therefore our goal is to construct such weight function $\alpha$, that the filter function $\left|\beta_\alpha\right|$ \eqref{eq:cont filter function} or its discrete equivalent $\left|\dff\right|$ \eqref{eq:dff} takes on larger values, if $\omega \in \left[\omega_{\min}, \omega_{\max} \right]$ and is close to 0 otherwise. Of course, we can require this only in the controlled interval $\left[0, \omega_\e\right]$, since, according to Lemma \ref{lemma:dff}, $\dff$ is a polynomial. Moreover, we require, that the function $\alpha$ is piecewise continuous and compactly supported (see Definition \ref{def:pi_alpha}).
 
 \section{Inverse Fourier transform method}
 In this section we follow choice in \cite{nannen}. First presented method of selecting weight function bases on observation, that the mapping $ \alpha \mapsto \beta_\alpha$ is somehow similar to the Fourier transform. 
@@ -692,8 +693,26 @@ Since the discretization \eqref{eq:dff} of the filter function $\beta_\alpha$ tr
 
 Computational costs of the Krylov eigenvalue solver depend on number of time-steps $L=T/\tau$. CFL condition (see Lemma \ref{lemma:cfl}) allows us to choose time-step maximal as $\tau = 2/\omega_{\e}$. 
 
-For the first example, we choose setup in \cite[section 3.1.2]{nannen}: $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying end-times $T$ and target intervals $\left[\omega_{\min}, \omega_{\max}\right]$.
+For the first two examples, we choose setup in \cite[section 3.1.2]{nannen}: $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying end-times $T$ and target intervals $\left[\omega_{\min}, \omega_{\max}\right]$. Results are presented in the Figures \ref{fig:fourier1} and \ref{fig:fourier2}. In each Figure the first plot presents whole controlled interval $\left[0, \omega_\e\right]$, second plot behaviour of the discrete filter function in region of interest in comparison to target indicator function and third plot behaviour at the end of controlled interval in $\left[\omega_\e-0.05, \omega_\e\right]$.
 
+We can observe, that for small values of $L$ the discrete filter function $\dff$ at the end of controlled interval (for $\omega \approx \omega_\e$) may exceed its values in target interval, what is unacceptable. Numerical experiments showed, that increasing number of time-steps $L$ (and thus increasing degree of polynomial $\dff$) causes better behaviour in both target interval and neighbourhood of $\omega_\e$ and solves this issue. However, increasing $L$ is undesirable, since it increases computational costs of the Algorithm.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_1.png}
+    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_2.png}
+    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_3.png}
+    \caption{Plots of function $\left|\dff(\omega) \right|$ with weight function $\alpha$ obtained by truncated inverse Fourier transform \eqref{eq:alpha fourier}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [3, 6]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps $L$. }
+    \label{fig:fourier1}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_4.png}
+    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_5.png}
+    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_6.png}
+    \caption{Plots of function $\left|\dff(\omega) \right|$ with weight function $\alpha$ obtained by truncated inverse Fourier transform \eqref{eq:alpha fourier}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps $L$. }
+    \label{fig:fourier2}
+\end{figure}
 
 
 
