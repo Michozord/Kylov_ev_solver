@@ -28,7 +28,8 @@ def compute_alpha(om_end: float, L: int, K: int, tau: float, target: Callable) -
     
 if __name__ == "__main__":
     om_min, om_max = 12, 14
-    target = indicator(om_min, om_max)
+    # target = indicator(om_min, om_max)
+    target = gauss(13)
     tau = 0.0056
     om_end= 2/tau
     L = 1000
