@@ -562,7 +562,7 @@ This linear difference problem has unique solution, which will be needed later i
     \end{equation*}
     Therefore, representation \eqref{eq:q explicit} holds. If $\tau < 2/\omega$, then $\Re(c(\omega)) < 0$, and \eqref{eq:q explicit} remains bounded as $l\rightarrow \infty$. 
     
-    Otherwise, if $\tau \geq 2/\omega$, then the roots of the characteristic equation are real:
+    Otherwise, if $\tau > 2/\omega$, then the roots of the characteristic equation are real:
     \begin{equation*}
         c(\omega) = 1 - \frac{\tau^2 \omega^2}{2} \pm \sqrt{\left(1 - \frac{\tau^2 \omega^2}{2}\right)^2 -1 }.
     \end{equation*}
@@ -688,7 +688,11 @@ This motivates the choice of the function $\alpha$ as truncated inverse Fourier 
     Obtained function is real-valued, but does not have compact support. Therefore we truncate it to finite interval $(0, T]$ and set $\alpha|_{(T, \infty)} := 0$. Since the limit from the right as $t\rightarrow 0^+$ is finite, we can right-continuously in 0 extend the function to interval $[0, \infty)$. This leads to representation \eqref{eq:alpha fourier}.
 \end{proof}
 
+Since the discretization \eqref{eq:dff} of the filter function $\beta_\alpha$ truncates time-interval, we truncate weight function $\alpha$ to the same time $T>0$, as assumed in $\dff$. Of course, replacing exact improper integral in definition of $\beta_\alpha$ \eqref{eq:cont filter function} by quadrature rule on finite time-interval impacts the function and therefore the discrete filter function $\dff$ can not be exact assumed target indicator function $\chi_{\left[\omega_{\min}, \omega_{\max}\right]}$. However, for our purposes it is sufficient, if $\dff$ takes on larger values in region of interest $\left[\omega_{\min}, \omega_{\max}\right]$ and is close 0 otherwise. 
 
+Computational costs of the Krylov eigenvalue solver depend on number of time-steps $L=T/\tau$. CFL condition (see Lemma \ref{lemma:cfl}) allows us to choose time-step maximal as $\tau = 2/\omega_{\e}$. 
+
+For the first example, we choose setup in \cite[section 3.1.2]{nannen}: $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying end-times $T$ and target intervals $\left[\omega_{\min}, \omega_{\max}\right]$.
 
 
 
