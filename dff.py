@@ -6,6 +6,7 @@ Created on Fri Apr 19 17:08:07 2024
 """
 
 from matplotlib import pyplot as plt
+import matplotlib.style as style
 import numpy as np
 from typing import Callable, Optional, Union
 from types import FunctionType
@@ -64,16 +65,32 @@ def plot_nodes(nodes: np.array, target: Callable, ax: plt.axis):
     ax.plot(nodes, list(map(target, nodes)), "x", color = "black")
 
 
-def prepare_plot(start: float, end: float, title: Optional[str]="", 
-                 xlabel: Optional[str]=r"$\omega$", ylabel: Optional[str]=r"$|\beta(\omega)|$") -> plt.axis:
-    fig, ax = plt.subplots()
-    plt.xlim(start, end)
-    plt.ylim(-0.5, 2)
-    plt.grid()
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    return ax    
+def prepare_plots(*ranges, title: Optional[str]="", xlabel: Optional[str]=r"$\omega$", 
+                 ylabel: Optional[str]=r"$|\tilde{\beta}_{\alpha}(\omega)|$",
+                 fontsize: Optional[int]=None) -> Union[plt.axis, tuple[plt.axis]]:
+    style.use("classic")
+    if fontsize:
+        plt.rcParams.update({'font.size': fontsize, 'lines.linewidth': 1.5})
+    
+    if int(len(ranges))%2 != 0:
+        raise ValueError(f"{len(ranges)} starts/ends provided. For last plot there is no end value!")
+    
+    axes = tuple()
+    for start, end in [(ranges[i], ranges[i + 1]) for i in range(0, len(ranges), 2)]:
+        fig = plt.figure(facecolor="white")
+        ax = plt.subplot()
+        ax.set_xlim(start, end)
+        ax.set_ylim(-0.5, 1.5)
+        plt.grid()
+        axes += (ax,)
+        plt.title(title)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        
+    if len(axes) == 1:
+        return axes[0]
+    else:
+        return axes
     
 if __name__ == "__main__":
     omegas = np.linspace(0, 10, num=11)
