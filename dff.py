@@ -61,14 +61,15 @@ def plot_beta(alpha: Union[Callable, np.array], L: int, tau: float, start: float
         ax.plot(plot_mesh, vals, label=label)
     return Q 
 
-def plot_nodes(nodes: np.array, target: Callable, ax: plt.axis):
-    ax.plot(nodes, list(map(target, nodes)), "x", color = "black")
+def plot_nodes(nodes: np.array, target: Callable, ax: plt.axis, label: Optional[str]="", color: Optional[str]="black"):
+    ax.plot(nodes, list(map(target, nodes)), "X", color = color, label=label, markersize=12)
 
 
 def prepare_plots(*ranges, title: Optional[str]="", xlabel: Optional[str]=r"$\omega$", 
                  ylabel: Optional[str]=r"$|\tilde{\beta}_{\alpha}(\omega)|$",
-                 fontsize: Optional[int]=None) -> Union[plt.axis, tuple[plt.axis]]:
+                 fontsize: Optional[int]=None, set_y_lim: Optional[bool]=True) -> Union[plt.axis, tuple[plt.axis]]:
     style.use("classic")
+    plt.rcParams["axes.formatter.offset_threshold"] = 5
     if fontsize:
         plt.rcParams.update({'font.size': fontsize, 'lines.linewidth': 1.5})
     
@@ -80,7 +81,8 @@ def prepare_plots(*ranges, title: Optional[str]="", xlabel: Optional[str]=r"$\om
         fig = plt.figure(facecolor="white")
         ax = plt.subplot()
         ax.set_xlim(start, end)
-        ax.set_ylim(-0.5, 1.5)
+        if set_y_lim:
+            ax.set_ylim(-0.5, 1.5)
         plt.grid()
         axes += (ax,)
         plt.title(title)

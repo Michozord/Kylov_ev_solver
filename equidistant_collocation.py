@@ -12,6 +12,7 @@ def compute_alpha(om_end: float, L: int, K: int, tau: float, target: Callable) -
     Q = q_eval_mat(mesh, L, tau, cheb=False)
     rhs = 1/tau * np.array(list(map(target, mesh)))
     if K==L:
+        print(f"cond(Q) = {np.linalg.cond(Q)}, det(Q) = {np.linalg.det(Q)}")
         alpha = np.linalg.solve(Q, rhs)
         return alpha
     else:
@@ -26,8 +27,8 @@ if __name__ == "__main__":
     om_end= 2/tau
     L = 200
     title = r"Equidistant collocation, T = " + str(L * tau)[0:7] + r", $\omega_{end}$ = " + str(om_end)[0:7] + ", L = " + str(L) + f", target intervall ({om_min}, {om_max})"
-    ax1 = prepare_plot(0, om_end, title=title)
-    ax2 = prepare_plot(om_end-0.5, om_end, title=title)
+    ax1 = prepare_plots(0, om_end, title=title)
+    ax2 = prepare_plots(om_end-0.5, om_end, title=title)
     
     alpha = compute_alpha(om_end, L, L, tau, target)
     Q1 = plot_beta(alpha, L, tau, 0, om_end, ax1, label=f"colloc K={L} knots")

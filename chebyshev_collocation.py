@@ -34,8 +34,8 @@ if __name__ == "__main__":
     om_end= 2/tau
     L = 1000
     title = r"Chebyshev collocation, T = " + str(L * tau)[0:7] + r", $\omega_{end}$ = " + str(om_end)[0:7] + ", L = " + str(L) + f", target intervall ({om_min}, {om_max})"
-    ax = prepare_plot(0, om_end, title=title)
-    ax2 = prepare_plot(om_end-0.2, om_end, title=title)
+    ax = prepare_plots(0, om_end, title=title)
+    ax2 = prepare_plots(om_end-0.2, om_end, title=title)
     
     alpha = compute_alpha(om_end, L, L, tau, target)
     Q1 = plot_beta(alpha, L, tau, 0, om_end, ax, label=f"colloc K={L} knots", cheb=True)
