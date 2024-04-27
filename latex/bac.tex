@@ -743,7 +743,19 @@ This problem is equivalent to linear system of equations:
 with matrix $Q$ from Definition \ref{def:evaluation matrix}.
 
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{latex//images//equi_coll/Figure_1.png}
+    \caption{Plot of function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation \eqref{eq:alpha eq coll}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [39, 45]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in nodes. }
+    \label{fig:eq coll beta}
+\end{figure}
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{latex//images//equi_coll/Figure_2.png}
+    \caption{Condition number of the evaluation matrix $Q$ (matrix norm induced by euclidean norm) depending on number of collocation nodes $L$.}
+    \label{fig:eq coll cond}
+\end{figure}
 
 
 \bibliographystyle{alpha} 
