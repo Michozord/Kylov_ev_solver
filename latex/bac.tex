@@ -31,6 +31,7 @@
 \renewcommand{\Im}{\mathfrak{Im}}
 \renewcommand{\Re}{\mathfrak{Re}}
 \newcommand{\dff}{\Tilde{\beta}_\alpha}
+\newcommand{\dffv}{\Tilde{\beta}_{\Vec{\alpha}}}
 \newcommand{\bigO}{\mathcal{O}}
 \newcommand{\F}{\mathcal{F}}
 \newcommand{\e}{\mathrm{end}}
@@ -714,8 +715,32 @@ We can observe, that for small values of $L$ the discrete filter function $\dff$
     \label{fig:fourier2}
 \end{figure}
 
+\section{Collocation method}\label{section:collocation}
+The definitions of the discrete operator $C$ for Krylov iteration \eqref{eq:C operator} and of the discrete filter function $\dff$ \eqref{eq:dff} for fixed time-step $\tau$ and number of time-steps $L$ does not require the values of the weight function in the whole domain, but only in $\tau l$ for $l=0, \dots, L-1$. Thus we can reduce the problem to find a vector $\Vec{\alpha} \in \R^L$, such that $\Vec{\alpha}_l = \alpha(\tau l)$ for all $l=0, \dots, L-1$.
 
+Following definition is analogous to the previous definition of the discrete filter function.
 
+\begin{definition}
+    Let $\tau > 0$ be the time-step, $L\in \N$ be the number of time-steps and let $q_l(\omega)$ be defined for all $l \in \N$ and $\omega \in \R$ by \eqref{eq:q def}. Let $\Vec{\alpha}\in\R^L$ be a weight vector. Then the discrete function $\dffv: [0, \infty) \rightarrow \R$ is defined as:
+    \begin{equation}\label{eq:dffv}
+        \dffv (\omega) := \tau \left(q_0(\omega), \dots, q_{L-1}(\omega)\right) \Vec{\alpha}. 
+    \end{equation}
+\end{definition}
+
+As target function we take again indicator $\chi_{\left[\omega_{\min}, \omega_{\max}\right]}$. We select $L$ nodes in the controlled interval, in simplest setting equidistant, and formulate our problem as a polynomial collocation problem with $\left\{q_l : l=0, \dots, L-1\right\}$ basis of the space of polynomials up to degree $L-1$ in $\omega^2$.
+\begin{definition}\label{def:evaluation matrix}
+    For given number of time-steps $L\in \N$ and $K\in \N$ collocation nodes $ 0 = \omega_0 < \dots < \omega_{K-1}$ we define the evaluation matrix $Q \in \R^{K\times L}$ as $Q_{kl} := q_l\left(\omega_k\right)$ for all $k=0, \dots, K-1$ and $l=0, \dots, L-1$. 
+\end{definition}
+
+Let $\tau>0$ be the time-step and $L\in \N$ be the number of time-steps and $\left[\omega_{\min}, \omega_{\max}\right]$ be the target interval. Selecting $L$ equidistant collocation nodes $\omega_l = l\omega_\e/ (L-1)$ for $l=0, \dots, L-1$ in controlled interval $\left[0, \omega_{\e}\right]$ leads to collocation problem to find $\Vec{\alpha} \in \R^L$, such that:
+\begin{equation*}
+    \forall k = 0, \dots, L-1: \quad \dffv\left(\omega_k\right) = \chi_{\left[\omega_{\min}, \omega_{\max}\right]}(\omega_k).
+\end{equation*}
+This problem is equivalent to linear system of equations:
+\begin{equation}\label{eq:alpha eq coll}
+    \tau Q \Vec{\alpha} = \left(\chi_{\left[\omega_{\min}, \omega_{\max}\right]}(\omega_k) \right)_{k=0}^{L-1}
+\end{equation}
+with matrix $Q$ from Definition \ref{def:evaluation matrix}.
 
 
 
