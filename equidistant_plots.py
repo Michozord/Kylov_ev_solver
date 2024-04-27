@@ -12,10 +12,10 @@ from equidistant_collocation import compute_alpha
 tau = 0.0056
 om_end = 2/tau
 
-om_min, om_max = 39, 45
+om_min, om_max = 37, 45
 chi = indicator(om_min, om_max)
-# title = r"Equidistant collocation $[\omega_{\min}, \omega_{\max}] = "+ f"[{om_min}, {om_max}]$"
-title = ""
+title = r"Equidistant collocation $[\omega_{\min}, \omega_{\max}] = "+ f"[{om_min}, {om_max}]$"
+# title = ""
 ax = prepare_plots(0, om_end, title=title, fontsize=22, ylabel=r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$")
 for L in (10, 25):
     T = tau * L 
@@ -26,6 +26,7 @@ for L in (10, 25):
 
     plot_nodes(np.linspace(0, om_end, num=L), chi, ax, label="", color=c)
 
+ax.plot(x:=np.linspace(0, om_end, num=10000), list(map(chi, x)), "--", color="black", label=r"$\chi_{[\omega_{\min}, \omega_{\max}]}$")
 ax.legend()
 
 

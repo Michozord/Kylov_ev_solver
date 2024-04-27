@@ -14,8 +14,8 @@ om_end = 2/tau
 
 for om_min, om_max in [(3, 6), (12, 14)]:
     chi = indicator(om_min, om_max)
-    title = r"Inverse Fourier transform method, $[\omega_{\min}, \omega_{\max}] = [" + str(om_min) + ", " + str(om_max) + "]$"
-    # title = ""
+    # title = r"Inverse Fourier transform method, $[\omega_{\min}, \omega_{\max}] = [" + str(om_min) + ", " + str(om_max) + "]$"
+    title = ""
     ax, ax2, ax3 = prepare_plots(0, om_end, 0, 40, om_end-0.05, om_end, title=title, fontsize=22)
 
     for L in (50, 100, 500, 1000):
