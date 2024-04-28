@@ -499,15 +499,19 @@ In numerical method, we replace the integral in the definition of $\Pi_\alpha$ b
     \begin{align}\label{eq:fd for wave eq}
     \begin{split}
         y_{l+1}(r) &:= -\tau^2M^{-1}S y_l(r) + 2y_l(r) - y_{l-1}(r) \quad \text{ for } l \in \N, \\
-        y_{-1}(r) &:= y_0(r) := r.
+        y_0(r) &:= r, \quad y_1(r) := r - \frac{\tau^2}{2}M^{-1}Sr
     \end{split}
     \end{align}
 \end{prop}
 \begin{proof}
     For initial values, we have $y(0; r) = r = y_0(r)$. By Taylor expansion:
     \begin{equation*}
-        y(-\tau, r) = y(0; r) - \tau \underbrace{\dot{y}(0; r)}_{=0} + \bigO(\tau^2) = r + \bigO(\tau^2) = y_{-1}(r) + \bigO(\tau^2).
+        y(\tau; r) = y(0; r) + \tau \dot{y}(0; r) + \frac{\tau^2}{2} \ddot{y}(0; r) + \bigO(\tau^3) .
     \end{equation*} 
+    $y(\cdot; r)$ is a solution to \eqref{eq:discr wave equation}, thus $y(0; r) = r$, $\dot{y}(0; r) = 0$ and $\ddot{y}(0; r) = -M^{-1}Sy(0; r) = -M^{-1}Sr$. We get:
+    \begin{equation*}
+        y(\tau; r) = r - \frac{\tau^2}{2} M^{-1}Sr + \bigO(\tau^3) = y_{1}(r) + \bigO(\tau^3).
+    \end{equation*}
     Replacing the second time derivative in \eqref{eq:discr wave equation} by finite difference leads to:
     \begin{align*}
         y(\tau(l+1); r) &- 2 y(\tau l; r) + y(\tau(l-1); r) = -\tau^2 M^{-1}S y(\tau l; r) + \bigO(\tau^4), \\
@@ -533,7 +537,7 @@ with $q_l(\omega)$ being the solution to the following recursion:
 \begin{align}\label{eq:q def}
     \begin{split}
         q_{l+1}(\omega) &:= (2-\tau^2\omega^2) q_l(\omega) - q_{l-1}(\omega) \quad \text{ for } l \in \N,\\
-        q_{-1}(\omega) &:= q_0(\omega) := 1.
+        q_0(\omega) &:= 1, \quad q_1(\omega) := 1 - \frac{\tau^2\omega^2}{2} 
     \end{split}
 \end{align}
 This linear difference problem has unique solution, which will be needed later in Lemma \ref{lemma:dff}. Therefore, we analyze the behavior of the solution as $l$ tends to infinity.
@@ -541,7 +545,7 @@ This linear difference problem has unique solution, which will be needed later i
 \begin{lemma}[Courant--Friedrichs--Lewy condition for $q_l$]\label{lemma:cfl}
     For a given $\tau > 0$ and $\omega > 0$, the unique solution to \eqref{eq:q def} is:
     \begin{equation}\label{eq:q explicit}
-        q_l(\omega) =  \frac{c(\omega)-1}{2\i \Im(c(\omega))} c(\omega)^l + \frac{1 - \overline{c(\omega)}}{2\i \Im(c(\omega))}  \overline{c(\omega)}^l,
+        q_l(\omega) =  \frac{1}{2}\left( c(\omega)^l + \overline{c(\omega)}^l\right),
     \end{equation}
     where 
     \begin{equation*}
@@ -558,10 +562,8 @@ This linear difference problem has unique solution, which will be needed later i
     \begin{equation*}
         c(\omega) = 1 - \frac{\tau^2 \omega^2}{2} + \i \sqrt{1 - \left(1 - \frac{\tau^2 \omega^2}{2}\right)^2} \quad \text{ and } \quad \overline{c(\omega)} = 1 - \frac{\tau^2 \omega^2}{2} - \i \sqrt{1 - \left(1 - \frac{\tau^2 \omega^2}{2}\right)^2}.
     \end{equation*}
-     Obviously, $|c(\omega)|=1$. Linearity of the recursion implies that the unique solution is given by $q_l(\omega) = C_1 c(\omega)^l + C_2 \overline{c(\omega)}^l$. From the initial values, we obtain a system of two equations for $C_1$ and $C_2$ with the solution:
-    \begin{equation*}
-        C_1 = \frac{c(\omega)-1}{2\i \Im(c(\omega))} \quad \text{ and } \quad C_2 = \frac{1 - \overline{c(\omega)}}{2\i \Im(c(\omega))}.
-    \end{equation*}
+     Obviously, $|c(\omega)|=1$. Linearity of the recursion implies that the unique solution is given by $q_l(\omega) = C_1 c(\omega)^l + C_2 \overline{c(\omega)}^l$. From the initial values, we obtain a system of two equations for $C_1$ and $C_2$ with the solution $C_1 = C_2 = 1/2$.
+
     Therefore, representation \eqref{eq:q explicit} holds. If $\tau < 2/\omega$, then $\Re(c(\omega)) < 0$, and \eqref{eq:q explicit} remains bounded as $l\rightarrow \infty$. 
     
     Otherwise, if $\tau > 2/\omega$, then the roots of the characteristic equation are real:
@@ -569,6 +571,41 @@ This linear difference problem has unique solution, which will be needed later i
         c(\omega) = 1 - \frac{\tau^2 \omega^2}{2} \pm \sqrt{\left(1 - \frac{\tau^2 \omega^2}{2}\right)^2 -1 }.
     \end{equation*}
     One of the roots is smaller than $-1$, so the solution to the linear difference equation cannot be bounded as $l\rightarrow\infty$.
+\end{proof}
+
+We recall the recursive definition of Chebyshev polynomials on interval $[-1, 1]$ \cite[p. 23]{numericsAB} and observe connection between Chebyshev polynomials mapped to the interval $[0, 4/\tau^2]$ and $q_l(\omega)$.
+
+\begin{definition}[Chebyshev polynomials]\label{def:chebyshev polynomials}
+    For all $l\in \N$ the Chebyshev polynomials $T_l: [-1, 1] \rightarrow \R$ are defined as:
+    \begin{equation*}
+        T_0(x) := 1, \quad T_1(x) := x, \quad T_l(x) := 2xT_l(x) - T_{l-1}(x) \text{ for } l \geqslant 2.
+    \end{equation*}
+\end{definition}
+
+\begin{lemma}\label{lemma:q chebyshev}
+    Let $\tau > 0$. For $l\in \N$ let $\hat{T}_l : [0, 4/\tau^2] \rightarrow \R $ denote the $l$-th Chebyshev polynomial on $[0, 4/\tau^2]$, i.e., $\hat{T}_l := T_l \circ \Psi$ with affine mapping 
+    \begin{equation*}
+        \Psi: \begin{cases}\left[0, \frac{4}{\tau^2}\right] &\rightarrow [-1, 1]\\ x &\mapsto \frac{\tau^2 x}{2} - 1\end{cases}
+    \end{equation*}
+    and $T_l$ Chebyshev polynomials from Definition \ref{def:chebyshev polynomials}. Then for all $l\in \N$ and $q_l$ defined in \eqref{eq:q def} holds: 
+    \begin{equation*}
+        q_l(\omega) = (-1)^l \Hat{T_l}(\omega^2) \text{ for all } \omega \in \left[0, \frac{2}{\tau}\right].
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    From the definition of $\Hat{T_l}$ follows recursion:
+    \begin{equation}\label{eq:recursion proof cheb}
+        \Hat{T_0}(x) \equiv 1, \quad \Hat{T_1}(x) = \frac{\tau^2}{2}x - 1, \quad \Hat{T_l}(x) = 2\left(\frac{\tau^2}{2}x - 1\right)\Hat{T_l}(x) - \Hat{T}_{l-1}(x) \text{ for } l \geqslant 2.
+    \end{equation}
+    We prove the claim by induction. Case $l=0$ is trivial. For $l=1$ we have:
+    \begin{equation*}
+        \Hat{T}_1(\omega^2) = \frac{\tau^2\omega^2}{2} - 1 = -q_1(\omega).
+    \end{equation*}
+    In the induction step, note that from \eqref{eq:recursion proof cheb} follows:
+    \begin{align*}
+        \Hat{T}_{l+1}(\omega^2) &= \left(\tau^2 \omega^2 -2\right) \Hat{T}_l(\omega^2) - T_{l-1}(\omega^2) \\ &= \left(\tau^2 \omega^2 -2\right) (-1)^l q_l(\omega) - (-1)^{l-1} q_{l-1}(\omega) \\ &= (-1)^{l+1} \left( \left(2-\tau^2\omega^2\right)q_l(\omega) - q_{l-1}(\omega)\right) = (-1)^{l+1} q_{l+1}(\omega).
+    \end{align*}
+    This concludes the proof.
 \end{proof}
 
 The matrix $M^{-1}S$ has spectral decomposition $M^{-1}S = V\mathrm{diag}(\omega_1^2, \dots, \omega_N^2)V^T$, thus there exists its square root $\sqrt{M^{-1}S} = V\mathrm{diag}(\omega_1, \dots, \omega_N)V^T$. 
@@ -694,24 +731,22 @@ Since the discretization \eqref{eq:dff} of the filter function $\beta_\alpha$ tr
 
 Computational costs of the Krylov eigenvalue solver depend on number of time-steps $L=T/\tau$. CFL condition (see Lemma \ref{lemma:cfl}) allows us to choose time-step maximal as $\tau = 2/\omega_{\e}$. 
 
-We choose setup in \cite[section 3.1.2]{nannen}: $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying end-times $T$ and target intervals $\left[\omega_{\min}, \omega_{\max}\right]$. Results are presented in the Figures \ref{fig:fourier1} and \ref{fig:fourier2}. In each Figure the first plot presents whole controlled interval $\left[0, \omega_\e\right]$, second plot behaviour of the discrete filter function in region of interest in comparison to target indicator function and third plot behaviour at the end of controlled interval in $\left[\omega_\e-0.05, \omega_\e\right]$.
+We choose setup in \cite[section 3.1.2]{nannen}: $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying end-times $T$ and target intervals $\left[\omega_{\min}, \omega_{\max}\right]$. Results are presented in the Figures \ref{fig:fourier1} and \ref{fig:fourier2}. In each Figure the first plot presents whole controlled interval $\left[0, \omega_\e\right]$ and second plot behaviour of the discrete filter function in region of interest in comparison to target indicator function.
 
 We can observe, that for small values of $L$ the discrete filter function $\dff$ at the end of controlled interval (for $\omega \approx \omega_\e$) may exceed its values in target interval, what is unacceptable. Numerical experiments showed, that increasing number of time-steps $L$ (and thus increasing degree of polynomial $\dff$) causes better behaviour in both target interval and neighbourhood of $\omega_\e$ and solves this issue. However, increasing $L$ is undesirable, since it increases computational costs of the Algorithm.
 
 % TODO: Positioning of these figures
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_1.png}
     \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_2.png}
-    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_3.png}
     \caption{Plots of function $\left|\dff(\omega) \right|$ with weight function $\alpha$ obtained by truncated inverse Fourier transform \eqref{eq:alpha fourier}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [3, 6]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps $L$. }
     \label{fig:fourier1}
 \end{figure}
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_4.png}
     \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_5.png}
-    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_6.png}
     \caption{Plots of function $\left|\dff(\omega) \right|$ with weight function $\alpha$ obtained by truncated inverse Fourier transform \eqref{eq:alpha fourier}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps $L$. }
     \label{fig:fourier2}
 \end{figure}
