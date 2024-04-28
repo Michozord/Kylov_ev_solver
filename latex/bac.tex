@@ -8,6 +8,7 @@
 \usepackage{color}
 \usepackage{amsmath,amsthm,amssymb,amsfonts}
 \usepackage{graphicx}
+\usepackage{tikz}
 \usepackage{psfrag}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
@@ -262,7 +263,7 @@ The first algorithm provides an approximation of an eigenvector corresponding to
     \end{algorithmic}
 \end{algorithm}
 \begin{theorem}\label{theorem:power iteration}
-Let $A \in \R^{N \times N}$ be a diagonalizable matrix with eigenvalues $\mu_1, \dots, \mu_N$, such that $|\mu_1| > |\mu_2| \geq |\mu_j|$ for all $j = 3,\dots,N$. Let $(v_1, \dots, v_N)$ denote a basis of $\R^N$, such that for all $j=1, \dots N$, $v_j$ is a normed eigenvector to eigenvalue $\mu_j$. Let $v = \sum_{j=1}^N c_j v_j \in \R^N$ be a start vector, such that $c_1 \neq 0$. Then for all $i \in \N$, holds the error estimation for the eigenspace:
+Let $A \in \R^{N \times N}$ be a diagonalizable matrix with eigenvalues $\mu_1, \dots, \mu_N$, such that $|\mu_1| > |\mu_2| \geqslant |\mu_j|$ for all $j = 3,\dots,N$. Let $(v_1, \dots, v_N)$ denote a basis of $\R^N$, such that for all $j=1, \dots N$, $v_j$ is a normed eigenvector to eigenvalue $\mu_j$. Let $v = \sum_{j=1}^N c_j v_j \in \R^N$ be a start vector, such that $c_1 \neq 0$. Then for all $i \in \N$, holds the error estimation for the eigenspace:
 \begin{equation*}
         \left\| v^{(i)} - \frac{\mu_1^i c_1}{|\mu_1^i c_1|} v_1 \right\|_2 = \bigO\left( \left|\frac{\mu_2}{\mu_1}\right|^i\right) \text{ for } i \rightarrow \infty.
 \end{equation*}
@@ -573,17 +574,17 @@ This linear difference problem has unique solution, which will be needed later i
     One of the roots is smaller than $-1$, so the solution to the linear difference equation cannot be bounded as $l\rightarrow\infty$.
 \end{proof}
 
-We recall the recursive definition of Chebyshev polynomials on interval $[-1, 1]$ \cite[p. 23]{numericsAB} and observe connection between Chebyshev polynomials mapped to the interval $[0, 4/\tau^2]$ and $q_l(\omega)$.
+We recall the recursive definition of Chebyshev polynomials on the interval $[-1, 1]$ \cite[p. 23]{numericsAB} and observe connection between Chebyshev polynomials mapped to the interval $[0, 4/\tau^2]$ and $q_l(\omega)$.
 
 \begin{definition}[Chebyshev polynomials]\label{def:chebyshev polynomials}
-    For all $l\in \N$ the Chebyshev polynomials $T_l: [-1, 1] \rightarrow \R$ are defined as:
+    For all $l\in \N$, the Chebyshev polynomials $T_l: [-1, 1] \rightarrow \R$ are defined as:
     \begin{equation*}
         T_0(x) := 1, \quad T_1(x) := x, \quad T_l(x) := 2xT_l(x) - T_{l-1}(x) \text{ for } l \geqslant 2.
     \end{equation*}
 \end{definition}
 
 \begin{lemma}\label{lemma:q chebyshev}
-    Let $\tau > 0$. For $l\in \N$ let $\hat{T}_l : [0, 4/\tau^2] \rightarrow \R $ denote the $l$-th Chebyshev polynomial on $[0, 4/\tau^2]$, i.e., $\hat{T}_l := T_l \circ \Psi$ with affine mapping 
+    Let $\tau > 0$. For $l\in \N$, let $\hat{T}_l : [0, 4/\tau^2] \rightarrow \R $ denote the $l$-th Chebyshev polynomial on $[0, 4/\tau^2]$, i.e., $\hat{T}_l := T_l \circ \Psi$ with affine mapping 
     \begin{equation*}
         \Psi: \begin{cases}\left[0, \frac{4}{\tau^2}\right] &\rightarrow [-1, 1]\\ x &\mapsto \frac{\tau^2 x}{2} - 1\end{cases}
     \end{equation*}
@@ -597,11 +598,11 @@ We recall the recursive definition of Chebyshev polynomials on interval $[-1, 1]
     \begin{equation}\label{eq:recursion proof cheb}
         \Hat{T_0}(x) \equiv 1, \quad \Hat{T_1}(x) = \frac{\tau^2}{2}x - 1, \quad \Hat{T_l}(x) = 2\left(\frac{\tau^2}{2}x - 1\right)\Hat{T_l}(x) - \Hat{T}_{l-1}(x) \text{ for } l \geqslant 2.
     \end{equation}
-    We prove the claim by induction. Case $l=0$ is trivial. For $l=1$ we have:
+    We prove the claim by induction. The case $l=0$ is trivial. For $l=1$, we have:
     \begin{equation*}
         \Hat{T}_1(\omega^2) = \frac{\tau^2\omega^2}{2} - 1 = -q_1(\omega).
     \end{equation*}
-    In the induction step, note that from \eqref{eq:recursion proof cheb} follows:
+    In the induction step from \eqref{eq:recursion proof cheb} follows:
     \begin{align*}
         \Hat{T}_{l+1}(\omega^2) &= \left(\tau^2 \omega^2 -2\right) \Hat{T}_l(\omega^2) - T_{l-1}(\omega^2) \\ &= \left(\tau^2 \omega^2 -2\right) (-1)^l q_l(\omega) - (-1)^{l-1} q_{l-1}(\omega) \\ &= (-1)^{l+1} \left( \left(2-\tau^2\omega^2\right)q_l(\omega) - q_{l-1}(\omega)\right) = (-1)^{l+1} q_{l+1}(\omega).
     \end{align*}
@@ -736,17 +737,17 @@ We choose setup in \cite[section 3.1.2]{nannen}: $\tau = 0.0056$, $\omega_\e = 2
 We can observe, that for small values of $L$ the discrete filter function $\dff$ at the end of controlled interval (for $\omega \approx \omega_\e$) may exceed its values in target interval, what is unacceptable. Numerical experiments showed, that increasing number of time-steps $L$ (and thus increasing degree of polynomial $\dff$) causes better behaviour in both target interval and neighbourhood of $\omega_\e$ and solves this issue. However, increasing $L$ is undesirable, since it increases computational costs of the Algorithm.
 
 % TODO: Positioning of these figures
-\begin{figure}[h]
+\begin{figure}
     \centering
-    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_1.png}
-    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_2.png}
+    \includegraphics[width=1\linewidth]{latex//images//fourier/Figure_1.png}
+    \includegraphics[width=1\linewidth]{latex//images//fourier/Figure_2.png}
     \caption{Plots of function $\left|\dff(\omega) \right|$ with weight function $\alpha$ obtained by truncated inverse Fourier transform \eqref{eq:alpha fourier}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [3, 6]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps $L$. }
     \label{fig:fourier1}
 \end{figure}
-\begin{figure}[h]
+\begin{figure}
     \centering
-    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_4.png}
-    \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_5.png}
+    \includegraphics[width=1\linewidth]{latex//images//fourier/Figure_4.png}
+    \includegraphics[width=1\linewidth]{latex//images//fourier/Figure_5.png}
     \caption{Plots of function $\left|\dff(\omega) \right|$ with weight function $\alpha$ obtained by truncated inverse Fourier transform \eqref{eq:alpha fourier}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps $L$. }
     \label{fig:fourier2}
 \end{figure}
@@ -780,9 +781,9 @@ with matrix $Q$ from Definition \ref{def:evaluation matrix}.
 
 As example we choose same parameters as in the previous section. Plots of obtained discrete filter functions for two values of $L = 10 $ and $L=25$ are in the Figure \ref{fig:eq coll beta}. We solve the system of linear equations \eqref{eq:alpha eq coll} with \texttt{numpy.linalg.solve()} function in Python. 
 
-\begin{figure}
+\begin{figure}[h]
     \centering
-    \includegraphics[width=0.75\linewidth]{latex//images//equi_coll/Figure_1.png}
+    \includegraphics[width=1\linewidth]{latex//images//equi_coll/Figure_1.png}
     \caption{Plot of function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation \eqref{eq:alpha eq coll}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [39, 45]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. }
     \label{fig:eq coll beta}
 \end{figure}
@@ -791,10 +792,36 @@ By small number of collocation knots, intervals between nodes are large and we c
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.75\linewidth]{latex//images//equi_coll/Figure_2.png}
+    \includegraphics[width=1\linewidth]{latex//images//equi_coll/Figure_2.png}
     \caption{Condition number of the evaluation matrix $Q$ (matrix norm induced by euclidean norm) depending on number of collocation nodes $L$.}
     \label{fig:eq coll cond}
 \end{figure}
+
+% TODO: Improve this intro to Chebyshev nodes
+Because collocation with equidistant nodes does not produce desired results, we try to replace them. Lemma \ref{lemma:q chebyshev} implies, that functions $q_l(\omega)$ are polynomials in $\omega^2$. Next proposition shows, that natural choice are Chebyshev nodes in $\omega^2$.
+
+\begin{prop}[Chebyshev nodes] \label{def:chebyshev nodes}
+    For $L\in\N$ Chebyshev nodes on interval $(-1, 1)$ are:
+    \begin{equation*}
+        t_l := \cos\left(\frac{2l+1}{2L}\pi\right) \text{ for } l = 0, \dots, L-1.
+    \end{equation*}
+    \begin{enumerate}
+        \item Chebyshev polynomial $T_L$ (see Definition \ref{def:chebyshev polynomials}) has $L$ roots in interval $(-1, 1)$. These are exact the Chebyshev nodes.
+        \item For $f \in C^{L}\left([a,b]\right)$, arbitrary collocation nodes $x_0, \dots, x_{L-1} \in [a,b]$ and Lagrange collocation polynomial $p\in \mathcal{P}_{L-1}$ such that $p(x_l) = f(x_l)$ for all $l=0, \dots, L-1$ there holds error estimation:
+        \begin{equation*}
+            \|f-p\|_\infty \leqslant \frac{\|f^{(L+1)}\|}{(L+1)!} \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-x_l\right|.
+        \end{equation*}
+        \item Affine transformation $\Phi: [-1, 1] \rightarrow [a,b]$, $\Phi(x) := \left(a+b+x(b-a)\right)/2$ maps Chebyshev nodes $t_0, \dots, t_{L-1}$ onto $\Phi(t_0), \dots, \Phi(t_{L-1}) \in [a,b]$. Those nodes minimize product from the error estimation, i.e.,
+        \begin{equation*}
+            \min_{(x_0, \dots, x_{L-1})\in [a,b]^L}  \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-x_l\right| =  \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-\Phi(t_l)\right| = \left(\frac{b-a}{2}\right)^{L} 2^{1-L}.
+        \end{equation*}
+    \end{enumerate}
+\end{prop}
+\begin{proof}
+    We refer to \cite[p. 23--24]{numericsAB}.
+\end{proof}
+
+For fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \omega_{L-1} \in \left[0, 2/\tau\right]$, such that $\omega_0^2, \dots, \omega_{L-1}^2$ are Chebyshev nodes in interval $\left[0, 4/\tau^2\right]$.
 
 
 \bibliographystyle{alpha} 
