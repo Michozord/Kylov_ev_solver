@@ -694,10 +694,11 @@ Since the discretization \eqref{eq:dff} of the filter function $\beta_\alpha$ tr
 
 Computational costs of the Krylov eigenvalue solver depend on number of time-steps $L=T/\tau$. CFL condition (see Lemma \ref{lemma:cfl}) allows us to choose time-step maximal as $\tau = 2/\omega_{\e}$. 
 
-For the first two examples, we choose setup in \cite[section 3.1.2]{nannen}: $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying end-times $T$ and target intervals $\left[\omega_{\min}, \omega_{\max}\right]$. Results are presented in the Figures \ref{fig:fourier1} and \ref{fig:fourier2}. In each Figure the first plot presents whole controlled interval $\left[0, \omega_\e\right]$, second plot behaviour of the discrete filter function in region of interest in comparison to target indicator function and third plot behaviour at the end of controlled interval in $\left[\omega_\e-0.05, \omega_\e\right]$.
+We choose setup in \cite[section 3.1.2]{nannen}: $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying end-times $T$ and target intervals $\left[\omega_{\min}, \omega_{\max}\right]$. Results are presented in the Figures \ref{fig:fourier1} and \ref{fig:fourier2}. In each Figure the first plot presents whole controlled interval $\left[0, \omega_\e\right]$, second plot behaviour of the discrete filter function in region of interest in comparison to target indicator function and third plot behaviour at the end of controlled interval in $\left[\omega_\e-0.05, \omega_\e\right]$.
 
 We can observe, that for small values of $L$ the discrete filter function $\dff$ at the end of controlled interval (for $\omega \approx \omega_\e$) may exceed its values in target interval, what is unacceptable. Numerical experiments showed, that increasing number of time-steps $L$ (and thus increasing degree of polynomial $\dff$) causes better behaviour in both target interval and neighbourhood of $\omega_\e$ and solves this issue. However, increasing $L$ is undesirable, since it increases computational costs of the Algorithm.
 
+% TODO: Positioning of these figures
 \begin{figure}
     \centering
     \includegraphics[width=0.75\linewidth]{latex//images//fourier/Figure_1.png}
@@ -722,9 +723,9 @@ Following definition is analogous to the previous definition of the discrete fil
 
 \begin{definition}
     Let $\tau > 0$ be the time-step, $L\in \N$ be the number of time-steps and let $q_l(\omega)$ be defined for all $l \in \N$ and $\omega \in \R$ by \eqref{eq:q def}. Let $\Vec{\alpha}\in\R^L$ be a weight vector. Then the discrete function $\dffv: [0, \infty) \rightarrow \R$ is defined as:
-    \begin{equation}\label{eq:dffv}
+    \begin{equation*}\label{eq:dffv}
         \dffv (\omega) := \tau \left(q_0(\omega), \dots, q_{L-1}(\omega)\right) \Vec{\alpha}. 
-    \end{equation}
+    \end{equation*}
 \end{definition}
 
 As target function we take again indicator $\chi_{\left[\omega_{\min}, \omega_{\max}\right]}$. We select $L$ nodes in the controlled interval, in simplest setting equidistant, and formulate our problem as a polynomial collocation problem with $\left\{q_l : l=0, \dots, L-1\right\}$ basis of the space of polynomials up to degree $L-1$ in $\omega^2$.
@@ -738,17 +739,20 @@ Let $\tau>0$ be the time-step and $L\in \N$ be the number of time-steps and $\le
 \end{equation*}
 This problem is equivalent to linear system of equations:
 \begin{equation}\label{eq:alpha eq coll}
-    \tau Q \Vec{\alpha} = \left(\chi_{\left[\omega_{\min}, \omega_{\max}\right]}(\omega_k) \right)_{k=0}^{L-1}
+     Q \Vec{\alpha} = \frac{1}{\tau} \left(\chi_{\left[\omega_{\min}, \omega_{\max}\right]}(\omega_k) \right)_{k=0}^{L-1}
 \end{equation}
 with matrix $Q$ from Definition \ref{def:evaluation matrix}.
 
+As example we choose same parameters as in the previous section. Plots of obtained discrete filter functions for two values of $L = 10 $ and $L=25$ are in the Figure \ref{fig:eq coll beta}. We solve the system of linear equations \eqref{eq:alpha eq coll} with \texttt{numpy.linalg.solve()} function in Python. 
 
 \begin{figure}
     \centering
     \includegraphics[width=0.75\linewidth]{latex//images//equi_coll/Figure_1.png}
-    \caption{Plot of function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation \eqref{eq:alpha eq coll}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [39, 45]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in nodes. }
+    \caption{Plot of function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation \eqref{eq:alpha eq coll}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [39, 45]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. }
     \label{fig:eq coll beta}
 \end{figure}
+
+By small number of collocation knots, intervals between nodes are large and we can observe strong oscillation of the polynomial for larger values of $\omega$. Increasing number of nodes does not improve the behaviour for two reasons. Firstly, this increases degree of the polynomial, what compounds the problem despite shorter intervals between nodes. Secondly, higher values of $L$ rapidly worsen conditioning of the matrix $Q$. Figure \ref{fig:eq coll cond} presents $\mathrm{cond}(Q) := \|Q\|_2 \|Q^{-1}\|_2$ (where $\| \cdot \|_2$ denotes induced matrix norm by the euclidean norm) depending on size of the problem $L$.
 
 \begin{figure}
     \centering
