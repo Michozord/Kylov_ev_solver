@@ -7,6 +7,7 @@ Created on Sat Apr 27 17:42:46 2024
 
 from dff import * 
 from equidistant_collocation import compute_alpha
+from chebyshev_collocation import chebyshev_nodes
 
 
 tau = 0.0056
@@ -14,8 +15,8 @@ om_end = 2/tau
 
 om_min, om_max = 37, 45
 chi = indicator(om_min, om_max)
-title = r"Equidistant collocation $[\omega_{\min}, \omega_{\max}] = "+ f"[{om_min}, {om_max}]$"
-# title = ""
+# title = r"Equidistant collocation $[\omega_{\min}, \omega_{\max}] = "+ f"[{om_min}, {om_max}]$"
+title = ""
 ax = prepare_plots(0, om_end, title=title, fontsize=22, ylabel=r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$")
 for L in (10, 25):
     T = tau * L 
@@ -31,13 +32,14 @@ ax.legend()
 
 
 L_max = 100
-# title = "cond(Q) equidistant collocation"
-title = ""
+title = "cond(Q) equidistant collocation"
+# title = ""
 ax2 = prepare_plots(5, L_max, title=title, xlabel="$L$", ylabel=r"$\mathrm{cond}(Q)$", set_y_lim=False, fontsize=22)
 Ls = range(5, L_max+1, 5)
 conds = []
 for L in Ls:
     Q = q_eval_mat(np.linspace(0, om_end, num=L), L, tau)
+    # Q = q_eval_mat(chebyshev_nodes(0, om_end, L), L, tau)
     conds.append(np.linalg.cond(Q))
 ax2.semilogy(Ls, conds, "r")
 

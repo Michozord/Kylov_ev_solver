@@ -47,7 +47,7 @@ def q_eval_mat(omegas: np.array, L: int, tau: float, cheb: Optional[bool] = Fals
         return Q
         
 def plot_beta(alpha: Union[Callable, np.array], L: int, tau: float, start: float, 
-              end: float, ax: plt.axis, cheb: Optional[bool] = False, label: Optional[str] = "", 
+              end: float, ax: plt.axis, cheb: Optional[bool] = True, label: Optional[str] = "", 
               color: Optional[str]="", num: Optional[int] = 10000, Q: Optional[np.array] = None) -> np.array:
     if isinstance(alpha, FunctionType):
         alpha = np.array(list(map(lambda l: alpha(tau*l), range(L))))
@@ -62,16 +62,16 @@ def plot_beta(alpha: Union[Callable, np.array], L: int, tau: float, start: float
     return Q 
 
 def plot_nodes(nodes: np.array, target: Callable, ax: plt.axis, label: Optional[str]="", color: Optional[str]="black"):
-    ax.plot(nodes, list(map(target, nodes)), "X", color = color, label=label, markersize=12)
+    ax.plot(nodes, list(map(target, nodes)), "x", color = color, label=label, markersize=12)
 
 
 def prepare_plots(*ranges, title: Optional[str]="", xlabel: Optional[str]=r"$\omega$", 
                  ylabel: Optional[str]=r"$|\tilde{\beta}_{\alpha}(\omega)|$",
                  fontsize: Optional[int]=None, set_y_lim: Optional[bool]=True) -> Union[plt.axis, tuple[plt.axis]]:
     style.use("classic")
-    plt.rcParams["axes.formatter.offset_threshold"] = 5
+    plt.rcParams.update({'axes.formatter.offset_threshold': 5, 'lines.linewidth': 1.5})
     if fontsize:
-        plt.rcParams.update({'font.size': fontsize, 'lines.linewidth': 1.5})
+        plt.rcParams.update({'font.size': fontsize})
     
     if int(len(ranges))%2 != 0:
         raise ValueError(f"{len(ranges)} starts/ends provided. For last plot there is no end value!")

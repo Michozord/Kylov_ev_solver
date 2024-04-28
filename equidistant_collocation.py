@@ -9,7 +9,7 @@ from dff import *
 
 def compute_alpha(om_end: float, L: int, K: int, tau: float, target: Callable) -> np.array:
     mesh = np.linspace(0, om_end, num=K)
-    Q = q_eval_mat(mesh, L, tau, cheb=False)
+    Q = q_eval_mat(mesh, L, tau, cheb=True)
     rhs = 1/tau * np.array(list(map(target, mesh)))
     if K==L:
         print(f"cond(Q) = {np.linalg.cond(Q)}, det(Q) = {np.linalg.det(Q)}")
