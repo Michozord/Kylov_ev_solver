@@ -28,7 +28,7 @@ def fourier_indicator(om_min: float, om_max: float, T: float) -> Callable:
             return 0
     return alpha
 
-def q_eval_mat(omegas: np.array, L: int, tau: float, cheb: Optional[bool] = False) -> np.array:
+def q_eval_mat(omegas: np.array, L: int, tau: float, cheb: Optional[bool] = True) -> np.array:
     K = len(omegas)
     tau2 = tau*tau
     omegas2 = omegas*omegas
@@ -61,8 +61,8 @@ def plot_beta(alpha: Union[Callable, np.array], L: int, tau: float, start: float
         ax.plot(plot_mesh, vals, label=label)
     return Q 
 
-def plot_nodes(nodes: np.array, target: Callable, ax: plt.axis, label: Optional[str]="", color: Optional[str]="black"):
-    ax.plot(nodes, list(map(target, nodes)), "x", color = color, label=label, markersize=12)
+def plot_nodes(nodes: np.array, target: Callable, ax: plt.axis, label: Optional[str]="", color: Optional[str]="black", crosses: Optional[str]="x", size: Optional[int]=12):
+    ax.plot(nodes, list(map(target, nodes)), crosses, color = color, label=label, markersize=size)
 
 
 def prepare_plots(*ranges, title: Optional[str]="", xlabel: Optional[str]=r"$\omega$", 

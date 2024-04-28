@@ -25,7 +25,7 @@ for L in (10, 25):
     plot_beta(alpha, L, tau, 0, om_end, ax, label=f"$L = {L}, T = {str(T)[0:5]}$")
     c = "blue" if L==10 else "green"
 
-    plot_nodes(np.linspace(0, om_end, num=L), chi, ax, label="", color=c)
+    plot_nodes(np.linspace(0, om_end, num=L), chi, ax, label="", color=c, crosses="X")
 
 ax.plot(x:=np.linspace(0, om_end, num=10000), list(map(chi, x)), "--", color="black", label=r"$\chi_{[\omega_{\min}, \omega_{\max}]}$")
 ax.legend()
