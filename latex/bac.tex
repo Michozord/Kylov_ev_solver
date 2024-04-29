@@ -736,6 +736,8 @@ We choose setup in \cite[section 3.1.2]{nannen}: $\tau = 0.0056$, $\omega_\e = 2
 
 We can observe, that for small values of $L$ the discrete filter function $\dff$ at the end of controlled interval (for $\omega \approx \omega_\e$) may exceed its values in target interval, what is unacceptable. Numerical experiments showed, that increasing number of time-steps $L$ (and thus increasing degree of polynomial $\dff$) causes better behaviour in both target interval and neighbourhood of $\omega_\e$ and solves this issue. However, increasing $L$ is undesirable, since it increases computational costs of the Algorithm.
 
+It's worth noticing, that presented method can be extended for target functions another as indicator. Arbitrary target function on interval $[0, \infty)$ can be symmetrically extended to whole real domain. This always yields real-valued inverse Fourier transform. Truncation of this function to interval $[0, T]$ fulfills requirements set on weight function. 
+
 % TODO: Positioning of these figures
 \begin{figure}
     \centering
@@ -821,7 +823,7 @@ Because collocation with equidistant nodes does not produce desired results, we 
     We refer to \cite[p. 23--24]{numericsAB}.
 \end{proof}
 
-For fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \omega_{L-1} \in \left[0, 2/\tau\right]$, such that $\omega_0^2, \dots, \omega_{L-1}^2$ are Chebyshev nodes in interval $\left[0, 4/\tau^2\right]$.
+For fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \omega_{L-1} \in \left[0, 2/\tau\right]$, such that $\omega_0^2, \dots, \omega_{L-1}^2$ are Chebyshev nodes in interval $\left[0, 4/\tau^2\right]$. For 
 
 
 \bibliographystyle{alpha} 
