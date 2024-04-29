@@ -810,9 +810,9 @@ Because collocation with equidistant nodes does not produce desired results, we 
     \begin{enumerate}
         \item Chebyshev polynomial $T_L$ (see Definition \ref{def:chebyshev polynomials}) has $L$ roots in interval $(-1, 1)$. These are exact the Chebyshev nodes.
         \item For $f \in C^{L}\left([a,b]\right)$, arbitrary collocation nodes $x_0, \dots, x_{L-1} \in [a,b]$ and Lagrange collocation polynomial $p\in \mathcal{P}_{L-1}$ such that $p(x_l) = f(x_l)$ for all $l=0, \dots, L-1$ there holds error estimation:
-        \begin{equation*}
+        \begin{equation}\label{eq:lagrange error est}
             \|f-p\|_\infty \leqslant \frac{\|f^{(L+1)}\|}{(L+1)!} \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-x_l\right|.
-        \end{equation*}
+        \end{equation}
         \item Affine transformation $\Phi: [-1, 1] \rightarrow [a,b]$, $\Phi(x) := \left(a+b+x(b-a)\right)/2$ maps Chebyshev nodes $t_0, \dots, t_{L-1}$ onto $\Phi(t_0), \dots, \Phi(t_{L-1}) \in [a,b]$. Those nodes minimize product from the error estimation, i.e.,
         \begin{equation*}
             \min_{(x_0, \dots, x_{L-1})\in [a,b]^L}  \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-x_l\right| =  \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-\Phi(t_l)\right| = \left(\frac{b-a}{2}\right)^{L} 2^{1-L}.
@@ -823,7 +823,39 @@ Because collocation with equidistant nodes does not produce desired results, we 
     We refer to \cite[p. 23--24]{numericsAB}.
 \end{proof}
 
-For fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \omega_{L-1} \in \left[0, 2/\tau\right]$, such that $\omega_0^2, \dots, \omega_{L-1}^2$ are Chebyshev nodes in interval $\left[0, 4/\tau^2\right]$. For 
+For fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \omega_{L-1} \in \left[0, 2/\tau\right]$, such that $\omega_0^2, \dots, \omega_{L-1}^2$ are Chebyshev nodes in interval $\left[0, 4/\tau^2\right]$ and solve linear system of equations \eqref{eq:alpha eq coll}. Figures \ref{fig:cheb coll 1} and \ref{fig:cheb coll 2} show obtained discrete filter functions $\left|\dffv\right|$ for different numbers of time-steps $L$ and target intervals $\left[\omega_{\min}, \omega_{\max} \right]$. We compare behaviour of obtained discrete filter function with target function and method using inverse Fourier transformation \eqref{eq:alpha fourier}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_1.png}
+    \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_2.png}
+    \caption{Plot of function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. Yellow curve represents discrete filter function obtained by inverse Fourier transform of indicator truncated to end-time $T=2.8$.}
+    \label{fig:cheb coll 1}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_3.png}
+    \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_4.png}
+    \caption{Plot of function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [122, 130]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator truncated to end-time $T=2.8$.}
+    \label{fig:cheb coll 2}
+\end{figure}
+
+Error estimation for Lagrange interpolation \eqref{eq:lagrange error est}, which was our motivation to replace equidistant nodes by Chebyshev ones, demands $L$-times continuously differentiable function, what is by indicator function not the case. Therefore in the third example we change our target function to a $C^\infty$ function, Gaussian peak $g(\omega) = \exp\left(-(\omega-\omega_{\mathrm{mid}})^2\right)$. Results are presented in the Figure \ref{fig:cheb coll cont ex}. Again we compare obtained discrete filter function to one produced with truncated inverse Fourier transform in a similar way to derivation of \eqref{eq:alpha fourier}. 
+
+A remarkable advantage of collocation in Chebyshev nodes is good conditioning of the collocation matrix $Q$. The condition number for Chebyshev nodes is, in contrast to equidistant nodes, independent from size of the problem $L$. Furthermore, obtained discrete filter function does not oscillate strongly between collocation knots, also for uncontinuous target function, like indicator.  
+
+Following \cite{nannen} we assume, that sought eigenvalues of the negative Laplace operator are closer to 0 than to the end of the controlled interval $\omega_\e$. Chebyshev nodes in $\omega^2$ have highest density in the upper area of the interval $[0, \omega_\e]$. Thus, especially by lower numbers of collocation knots and small target interval, the whole interval $\left[\omega_{\min}, \omega_{\max} \right]$ may be contained between two consecutive nodes. This sets right hand side of the collocation problem \eqref{eq:alpha eq coll} to 0 and in result we get $\Vec{\alpha}=0$ and $\dffv \equiv 0$. Exactly this problem we can observe in Figure \ref{fig:cheb coll 1} by $L=100$. In this particular example $ 8.4142\approx\omega_1 < \omega_{\min} = 12  <  14 = \omega_{\max}  < \omega_2 \approx 14.0213 $. Also small shift of the target interval does not impact discrete filter function at all, if the change in $\omega_{\min}$ and $\omega_{\max}$ does not exceed distance to the nearest nodes. Similar problem we can observe by Gaussian peak as target function for $L=100$ in the Figure \ref{fig:cheb coll cont ex}. 
+
+Obviously, with increasing $L$ decreases distances between nodes, which solves this issue. This is undesired, since we want to choose $L$ possibly small due to complexity of the Algorithm. Another possibility would be to increase the number of collocation nodes $K$ by the same number of basis functions $L$. This would lead to a $K\times L$ evaluation matrix with $K>L$ and a least squares problem instead of a linear system of equations.
+
+\begin{figure} % TODO: replace x with omega in legend
+    \centering
+    \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_5.png}
+    \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_6.png}
+    \caption{Plot of function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. Target function $g(\omega) = \exp\left(-(\omega-4)^2\right)$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator truncated to end-time $T=2.8$.}
+    \label{fig:cheb coll cont ex}
+\end{figure}
 
 
 \bibliographystyle{alpha} 
