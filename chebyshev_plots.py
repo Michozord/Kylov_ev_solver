@@ -69,9 +69,42 @@ alpha_four = fourier_indicator(om_min, om_max, L*tau)
 plot_beta(alpha_four, L, tau, 110, 150, ax4, label=f"IFT, $T={T}$", color="y")
 
 
+
+tau = 0.0056
+om_end = 2/tau
+om_mid = 4
+g = gauss(om_mid)
+
+
+# title = r"Chebyshev collocation $e^{-(x- " + str(om_mid) +r")^2}$"
+title = ""
+ax5, ax6 = prepare_plots(0, om_end, 0, 40, title=title, fontsize=22, ylabel=r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$")
+for L in (100, 250, 500):
+    T = L*tau
+    alpha = compute_alpha(om_end, L, L, tau, g)
+    label = f"$L = {L}, T = {str(T)[0:5]}$"
+    plot_beta(alpha, L, tau, 0, om_end, ax5, label=label)
+    plot_beta(alpha, L, tau, 0, 40, ax6, label=label)
+    
+# plot_nodes(chebyshev_nodes(0, om_end, 250), chi, ax3, label="", color="g", crosses="X")
+plot_nodes(chebyshev_nodes(0, om_end, 250), g, ax6, label="", color="g", crosses="X") 
+# plot_nodes(chebyshev_nodes(0, om_end, 500), chi, ax3, label="", color="r", crosses="X")
+plot_nodes(chebyshev_nodes(0, om_end, 500), g, ax6, label="", color="r", crosses="X") 
+plot_nodes(chebyshev_nodes(0, om_end, 100), g, ax6, label="", color="b", crosses="X")  
+ax5.plot(x:=np.linspace(0, om_end, num=10000), list(map(g, x)), "--", color="black", label=r"$e^{-(x- " + str(om_mid) +r")^2}$")
+ax6.plot(x:=np.linspace(0, 40, num=1000), list(map(g, x)), "--", color="black", label=r"$e^{-(x- " + str(om_mid) +r")^2}$")
+
+L=500
+alpha_four = fourier_gauss(om_mid, L*tau)
+# plot_beta(alpha_four, L, tau, 0, om_end, ax5, label=f"IFT, $T={T}$", color="y")
+plot_beta(alpha_four, L, tau, 0, 40, ax6, label=f"IFT, $T={T}$", color="y")
+
+
 ax1.legend()
 ax2.legend()
 ax3.legend()
 ax4.legend()
+ax5.legend()
+ax6.legend()
 plt.show()
     

@@ -28,6 +28,22 @@ def fourier_indicator(om_min: float, om_max: float, T: float) -> Callable:
             return 0
     return alpha
 
+
+def fourier_gauss(om_mid: float, T: float) -> Callable:
+    g = gauss(om_mid)
+    def alpha(t: float) -> float:
+        if t > T or t < 0:
+            return 0
+        h = 0.001
+        quad_mesh = np.linspace(0, 100, num=int(100/h))
+        vals = list(map(lambda x: g(x) * np.cos(t*x), quad_mesh))
+        vals[0] *= 0.5
+        vals[-1] *= 0.5
+        return 2/np.pi * h * sum(vals)
+
+    return alpha
+
+
 def q_eval_mat(omegas: np.array, L: int, tau: float, cheb: Optional[bool] = True) -> np.array:
     K = len(omegas)
     tau2 = tau*tau
