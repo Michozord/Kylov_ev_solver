@@ -857,6 +857,31 @@ Obviously, with increasing $L$ decreases distances between nodes, which solves t
     \label{fig:cheb coll cont ex}
 \end{figure}
 
+\section{Least squares method and minimization of $L^2$ norm}
+We start this section with idea to increase the number of collocation knots, but with fixed number $L$ of time-steps (and thus fixed polynomial degree) to avoid raising computational costs of the Algorithm. Obviously, obtained system of equations is (in general) not solvable, so we use linear least squares fitting. Then we switch to another approach -- we try to find $\Vec{\alpha}$, that minimizes $L^2$ norm of the difference between corresponding discrete filter function and target function. Finally, Theorem \ref{theorem:lsq converges to l2} will show connection between those two methods.
+
+
+\begin{definition}[Least squares method]\label{def:least sq}
+    Let $\tau>0$ denote the time-step and $L \in \N$ number of time-steps. For given nodes $\omega_0, \dots, \omega_{K-1} \in [0, \omega_\e]$ with $K>L$ let $Q\in\R^{K\times L}$ denote the evaluation matrix from Definition \ref{def:evaluation matrix}. For piecewise continuous target function $\gamma : [0, \omega_\e] \rightarrow \R$ we search for $\Vec{\alpha} \in \R^{L}$, such that:
+    \begin{equation}\label{eq:least sq}
+        \| Q\vec{\alpha} - c \|_2 = \min_{x\in \R^L} \| Qx - c \|_2,
+    \end{equation}
+    where $c := 1/\tau \left(\gamma(\omega_0), \dots, \gamma(\omega_{K-1})\right)^T$.
+\end{definition}
+
+Note, that Definition \ref{def:least sq} is just modification of the collocation problem \eqref{eq:alpha eq coll} for the case $K>L$.
+
+\begin{prop}[Normal equation]
+    Problem stated in Definition \ref{def:least sq} is well-defined, i.e., has at least one solution. Vector $\Vec{\alpha} \in \R^{L}$ solves \eqref{eq:least sq} if and only if it solves the normal equation:
+    \begin{equation}\label{eq:normal eq}
+        Q^T Q \Vec{\alpha} = Q^T c.
+    \end{equation}
+    Is the rank of the matrix $Q$ full, this solution is unique.
+\end{prop}
+\begin{proof}
+    We refer to \cite[p. 103]{Praetorius}.
+\end{proof}
+
 
 \bibliographystyle{alpha} 
 %\bibliographystyle{abbrv}
