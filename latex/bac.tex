@@ -761,9 +761,9 @@ Following definition is analogous to the previous definition of the discrete fil
 
 \begin{definition}
     Let $\tau > 0$ be the time-step, $L\in \N$ be the number of time-steps and let $q_l(\omega)$ be defined for all $l \in \N$ and $\omega \in \R$ by \eqref{eq:q def}. Let $\Vec{\alpha}\in\R^L$ be a weight vector. Then the discrete function $\dffv: [0, \infty) \rightarrow \R$ is defined as:
-    \begin{equation*}\label{eq:dffv}
+    \begin{equation}\label{eq:dffv}
         \dffv (\omega) := \tau \left(q_0(\omega), \dots, q_{L-1}(\omega)\right) \Vec{\alpha}. 
-    \end{equation*}
+    \end{equation}
 \end{definition}
 
 As target function we take again indicator $\chi_{\left[\omega_{\min}, \omega_{\max}\right]}$. We select $L$ nodes in the controlled interval, in simplest setting equidistant, and formulate our problem as a polynomial collocation problem with $\left\{q_l : l=0, \dots, L-1\right\}$ basis of the space of polynomials up to degree $L-1$ in $\omega^2$.
@@ -813,9 +813,9 @@ Because collocation with equidistant nodes does not produce desired results, we 
         \begin{equation}\label{eq:lagrange error est}
             \|f-p\|_\infty \leqslant \frac{\|f^{(L+1)}\|}{(L+1)!} \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-x_l\right|.
         \end{equation}
-        \item Affine transformation $\Phi: [-1, 1] \rightarrow [a,b]$, $\Phi(x) := \left(a+b+x(b-a)\right)/2$ maps Chebyshev nodes $t_0, \dots, t_{L-1}$ onto $\Phi(t_0), \dots, \Phi(t_{L-1}) \in [a,b]$. Those nodes minimize product from the error estimation, i.e.,
+        \item Affine transformation $\Psi: [-1, 1] \rightarrow [a,b]$, $\Psi(x) := \left(a+b+x(b-a)\right)/2$ maps Chebyshev nodes $t_0, \dots, t_{L-1}$ onto $\Psi(t_0), \dots, \Psi(t_{L-1}) \in [a,b]$. Those nodes minimize product from the error estimation, i.e.,
         \begin{equation*}
-            \min_{(x_0, \dots, x_{L-1})\in [a,b]^L}  \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-x_l\right| =  \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-\Phi(t_l)\right| = \left(\frac{b-a}{2}\right)^{L} 2^{1-L}.
+            \min_{(x_0, \dots, x_{L-1})\in [a,b]^L}  \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-x_l\right| =  \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-\Psi(t_l)\right| = \left(\frac{b-a}{2}\right)^{L} 2^{1-L}.
         \end{equation*}
     \end{enumerate}
 \end{prop}
@@ -881,6 +881,85 @@ Note, that Definition \ref{def:least sq} is just modification of the collocation
 \begin{proof}
     We refer to \cite[p. 103]{Praetorius}.
 \end{proof}
+
+Another approach would be to define for fixed number of time-steps $L$ and time-step $\tau>0$ an operator $\Phi: \R^L \rightarrow \R$, as a $L^2$ norm on the controlled interval of the difference between goal function $\gamma$ and corresponding to $\Vec{\alpha} \in \R^L$ discrete filter function. In our method we will try to determine global minimum of this continuous operator.
+
+\begin{definition}[$L^2$ scalar product and norm]
+    For given controlled interval $[0, \omega_\e]$ we define the $L^2$ scalar product as: $\langle \cdot, \cdot \rangle : L^2\left([0, \omega_\e]\right) \times L^2\left([0, \omega_\e]\right) \rightarrow \R$, 
+    \begin{equation*}
+        \langle f, g\rangle := \int_0^{\omega_\e} f(x)g(x) \, dx.
+    \end{equation*}
+    The induced $L^2$ norm is $\| \cdot \|_{L^2}: L^2\left([0, \omega_\e]\right)  \rightarrow \R_{\geqslant 0}$, $\|f\|_{L^2} := \sqrt{\langle f, f \rangle}$.
+
+\end{definition}
+\begin{definition}[Operator $\Phi$]\label{def:Phi}
+    Let $[0, \omega_\e]$ be given controlled interval, $\tau > 0$ time-step and $L$ number of time-steps. For given piecewise continuous (and thus $L^2$) goal function $\gamma : [0, \omega_\e] \rightarrow \R$ we define operator $\Phi :\R^L \rightarrow \R $ by:
+    \begin{align*}
+        \Phi\left(v\right) := \left\| \Tilde{\beta_v} - \gamma \right\|_{L^2}^2 = \int_0^{\omega_\e} \left(\Tilde{\beta_v}(x) - \gamma(x) \right)^2 \, dx
+    \end{align*}
+    with $\Tilde{\beta_v}$ discrete filter function defined in \eqref{eq:dffv}.
+\end{definition} 
+
+Since defined operator $\Phi$ mimics squared $L^2$ distance between target function and obtained filter function, our goal is to minimize its value. Following theorem proves, that it is possible without high computational costs. 
+
+\begin{theorem}
+    Operator $\Phi$ from Definition \ref{def:Phi} is continuous differentiable. It has exactly one global minimum $\Vec{\alpha} \in \R^L$, which is solution to the liner system of equations:
+    \begin{equation}\label{eq:l2 matrix cont}
+        X \Vec{\alpha} = \frac{1}{\tau} d
+    \end{equation}
+    with matrix $X\in \R^{L\times L}$, $X_{ij} := \langle q_i, q_j \rangle$ for all $i, j = 0, \dots, L-1$ and vector $d \in \R^L$, $d_j := \langle q_j, \gamma\rangle$ for all $j = 0, \dots, L-1$.
+\end{theorem}
+\begin{proof}
+    Regularity of the function $\Phi$ follows from its definition. From \eqref{eq:dffv} we get the representation: 
+    \begin{equation*}
+        \Tilde{\beta_v} (x) = \tau \sum_{l=0}^{L-1} q_l(x) v_l.
+    \end{equation*}
+    We compute partial derivatives of $\Phi$:
+    \begin{align*}
+        \frac{\partial \Phi}{\partial v_i}(v) &= \frac{\partial}{\partial v_i} \int_0^{\omega_\e} \left(\tau \sum_{l=0}^{L-1} q_l(x) v_l - \gamma(x) \right)^2 \, dx \\ &= 2 \int_0^{\omega_\e} \left(\tau \sum_{l=0}^{L-1} q_l(x) v_l - \gamma(x) \right)\tau q_i(x) \, dx \\ &= 2 \tau \left(\left(\sum_{l=0}^{L-1} \tau v_l \int_0^{\omega_\e} q_l(x) q_i(x) \, dx \right) - \int_0^{\omega_\e} q_i(x)\gamma(x) \, dx \right) \\ &= 2\tau \left( \left( \tau\sum_{l=0}^{L-1} v_l \langle q_l, q_i\rangle \right) - \langle q_i, \gamma\rangle \right).
+    \end{align*}
+    Therefore gradient $\nabla\Phi(\Vec{\alpha})$ vanishes if and only if:
+    \begin{equation*}
+        \forall i = 0, \dots, L-1: \quad  \tau\sum_{l=0}^{L-1} \langle q_l, q_i\rangle \Vec{\alpha}_l = \langle q_i, \gamma \rangle,
+    \end{equation*}
+    what is equivalent to \eqref{eq:l2 matrix cont}.
+    
+ In next step we compute second partial derivatives:
+    \begin{align*}
+        \frac{\partial^2 \Phi}{\partial v_i \partial v_j}(v) = 2\tau \frac{\partial}{\partial v_j }  \left( \left( \tau\sum_{l=0}^{L-1} v_l \langle q_l, q_i\rangle \right) - \langle q_i, \gamma\rangle \right) = 2\tau^2 \langle q_i, q_j \rangle
+    \end{align*}
+    and the Hessian matrix:
+    \begin{equation*}
+        \nabla^2 \Phi(v) = 2 \tau^2 X.
+    \end{equation*}
+    Let consider $B:=\left(q_0|_{[0, \omega_\e]}, \dots, q_{L-1}|_{[0, \omega_\e]}\right)$ and $U := \mathrm{span}(B) \subset L^2\left([0, \omega_\e]\right)$. $U$ is an $L$-dimensional Hilbert space with restricted $L^2$ scalar product $\langle \cdot, \cdot \rangle_U = \langle \cdot , \cdot \rangle|_{U^2}$. The representation matrix of this scalar product with respect to the basis $B$ is $X$. Therefore $X$ is positive-definite and especially $\nabla^2\Phi(\Vec{\alpha})$ is also positive-definite. This concludes, that $\Vec{\alpha}$ is the unique minimum of $\Phi$. 
+\end{proof}
+
+We still miss evaluation of the matrix $X$ and vector $d$ from \eqref{eq:l2 matrix cont} to make $L^2$ minimization method fully functional. Analytical computation of the integrals is here out of reach and we replace them by midpoint rule with $K$ subintervals:
+\begin{equation*}
+    \langle f, g \rangle = \int_0^{\omega_\e} f(\omega) g(\omega) \, d\omega \approx h \sum_{k=0}^{K-1} f(\omega_k)g(\omega_k), 
+\end{equation*}
+where $h := \omega_\e/K$ is the quadrature step-size and $\omega_k := (k+1/2)h$ for $k = 0, \dots, K-1$ are quadrature nodes. With $X_h$ and $d_h$ we denote so obtained approximations of matrix $X$ and vector $d$.
+
+\begin{definition}\label{def:Xh}
+    Let $K$ be given number of quadrature nodes on interval $[0, \omega_\e]$, $h := \omega_\e/K$ and $\omega_k := (k+1/2)h$ for all $k = 0, \dots, K-1$. For given number of time-steps $L$ and goal function $\gamma$ we define:
+    \begin{equation*}
+        X_h := \left(h\sum_{k=0}^{K-1} q_i(\omega_k)q_j(\omega_k)\right)_{i,j = 0}^{L-1} \in \R^{L\times L} \text{ and } d_h := \left(h\sum_{k=0}^{K-1} q_i(\omega_k)\gamma(\omega_k) \right)_{i=0}^{L-1} \in \R^L.
+    \end{equation*}
+\end{definition}
+
+    
+\begin{lemma}
+    For given $h$, $K$, $L$ and $\tau$ let $Q \in \R^{K\times L}$ be the evaluation matrix on quadrature nodes $\omega_k = (k+1/2)h$ for $k = 0, \dots, K-1$ (see Definition \ref{def:evaluation matrix}). Let $c := 1/\tau \left(\gamma(\omega_0), \dots, \gamma(\omega_{K-1})\right)^T$ as in Definition \ref{def:least sq}.
+    Then for $X_h$ and $d_h$ from Definition \ref{def:Xh} holds: 
+    \begin{equation*}
+        h Q^T Q = X_h \quad \text{ and } \quad h Q^Tc = d_h.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    ........
+\end{proof}
+
 
 
 \bibliographystyle{alpha} 
