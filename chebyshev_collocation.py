@@ -32,7 +32,10 @@ def compute_alpha(om_end: float, L: int, K: int, tau: float, target: Callable) -
         # alpha = np.linalg.lstsq(Q, rhs)[0]
         return alpha
     else:
-        alpha = np.linalg.lstsq(Q, rhs)[0]
+        # alpha = np.linalg.lstsq(Q, rhs)[0]
+        QTQ = np.transpose(Q) @ Q
+        print(f"cond(QTQ) = {np.linalg.cond(QTQ)}, det(QTQ) = {np.linalg.det(QTQ)}")
+        alpha = np.linalg.solve(QTQ, np.transpose(Q) @ rhs)
         return alpha
     
     

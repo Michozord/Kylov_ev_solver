@@ -91,8 +91,8 @@ plot_nodes(chebyshev_nodes(0, om_end, 250), g, ax6, label="", color="g", crosses
 # plot_nodes(chebyshev_nodes(0, om_end, 500), chi, ax3, label="", color="r", crosses="X")
 plot_nodes(chebyshev_nodes(0, om_end, 500), g, ax6, label="", color="r", crosses="X") 
 plot_nodes(chebyshev_nodes(0, om_end, 100), g, ax6, label="", color="b", crosses="X")  
-ax5.plot(x:=np.linspace(0, om_end, num=10000), list(map(g, x)), "--", color="black", label=r"$e^{-(x- " + str(om_mid) +r")^2}$")
-ax6.plot(x:=np.linspace(0, 40, num=1000), list(map(g, x)), "--", color="black", label=r"$e^{-(x- " + str(om_mid) +r")^2}$")
+ax5.plot(x:=np.linspace(0, om_end, num=10000), list(map(g, x)), "--", color="black", label=r"$e^{-(\omega- " + str(om_mid) +r")^2}$")
+ax6.plot(x:=np.linspace(0, 40, num=1000), list(map(g, x)), "--", color="black", label=r"$e^{-(\omega- " + str(om_mid) +r")^2}$")
 
 L=500
 alpha_four = fourier_gauss(om_mid, L*tau)
