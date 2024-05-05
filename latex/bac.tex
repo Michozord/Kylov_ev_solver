@@ -996,6 +996,14 @@ As first example, we use least squares method with Chebyshev nodes. We recall Fi
 
 Introducing larger number of nodes $K$ with fixed number of time-steps $L$ results in better accuracy of the obtained discrete filter function to goal function and does not affect performance of the eigenvalue solver. Furthermore, thanks to use of Chebyshev nodes, condition number of the matrix in the normal equation $\mathrm{cond}(Q^TQ)$ remains constant despite increasing number of nodes or time-steps, see Figure \ref{fig:least sq cond}.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{latex//images//cheb_least_sq/Figure_3.png}
+    \caption{Condition number of matrix $Q^TQ$ (matrix norm induced by euclidean norm) depending on size of the matrix $L$ and different number and distribution of nodes. Number of Chebyshev nodes in the example is equal to number of equidistant nodes for $h=0.2$. }
+    \label{fig:least sq cond}
+\end{figure}
+
+
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{latex//images//cheb_least_sq/Figure_1.png}
@@ -1005,6 +1013,8 @@ Introducing larger number of nodes $K$ with fixed number of time-steps $L$ resul
 \end{figure}
 
 In next two examples we use $L^2$ minimization with midpoint quadrature rule with fixed quadrature step $h=0.05$, equidistant nodes $\omega_k = (k+1/2)h$ for $k=0,\dots, K-1$, $K:= \lfloor\omega_\e/h\rfloor$. Figure \ref{fig:l2 ex1} presents results for target interval $\left[\omega_{\min}^2, \omega_{\max}^2\right] = [12, 14]$ and Figure \ref{fig:l2 ex2} presents results for target interval $\left[\omega_{\min}^2, \omega_{\max}^2\right] = [122, 130]$. 
+
+In both cases behaviour of the discrete filter function in the neighbourhood of target interval is satisfying. However, by larger size of the problem (number of time-steps) we can observe undesired oscillation of the function $\dffv$ at the end of the controlled interval. This is because of increase of the condition number of the matrix $X_h = hQ^TQ$ as $L$ gets larger. Note, that $\mathrm{cond}(X_h) = \mathrm{cond}(Q^TQ)$. Figure \ref{fig:least sq cond} shows, that by equidistant nodes (which are quadrature knots in case of $L^2$ minimization and midpoint quadrature), the problem gets bad conditioned, if its size is too large. However, higher exactness of the quadrature slows down this effect. In Figure \ref{fig:l2 ex2} we can observe, that the values of discrete filter function (red plot, with $L=200$ and $h=0.05$) explode as $\omega \lessapprox \omega_\e$. Use of quadrature with $h=0.001$ (light blue plot) solves this issue despite the same value of $L$.
 
 \begin{figure}
     \centering
@@ -1020,16 +1030,11 @@ In next two examples we use $L^2$ minimization with midpoint quadrature rule wit
     \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_4.png}
     \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_5.png}
     \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_6.png}
-    \caption{Function $\left|\dffv\right|$ with vector $\Vec{\alpha}$ obtained by $L^2$ minimization method with midpoint quadrature, $h=0.05$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [122, 130]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$, varying number of time-steps $L$. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator with end-time $T = 0.279$.}
+    \caption{Function $\left|\dffv\right|$ with vector $\Vec{\alpha}$ obtained by $L^2$ minimization method with midpoint quadrature, $h=0.05$ (for blue, red and green curves) and $h=0.001$ (for light blue curve). Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [122, 130]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$, varying number of time-steps $L$. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator with end-time $T = 0.279$.}
     \label{fig:l2 ex2}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=1\linewidth]{latex//images//cheb_least_sq/Figure_3.png}
-    \caption{Condition number of matrix $Q^TQ$ (matrix norm induced by euclidean norm) depending on size of the matrix $L$ and different number and distribution of nodes. Number of Chebyshev nodes in the example is equal to number of equidistant nodes for $h=0.2$. }
-    \label{fig:least sq cond}
-\end{figure}
+
 
 \bibliographystyle{alpha} 
 %\bibliographystyle{abbrv}
