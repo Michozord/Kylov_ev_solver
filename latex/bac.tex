@@ -684,14 +684,14 @@ The chosen time-step $\tau$ should fulfill the CFL condition (see Lemma \ref{lem
 \label{chapter:function}
 For the full functionality of the Krylov eigenvalue solver based on filtered time-domain we need appropriate weight function $\alpha$. First section of this chapter follows choice in \cite{nannen}. In subsequent sections we discuss other numerical methods of selection of the weight function.
 
-The whole spectrum of eigenvalues $\omega^2$ of the discrete approximation \eqref{eq:matrix form} of the negative Laplacian eigenvalue problem is included in some interval $\left[0, \omega_\e^2\right]$. We search eigenvalues in given region of interest $\left[\omega_{\min}^2, \omega_{\max}^2\right]$. Deployed Krylov eigenvalue solver (Algorithm \ref{alg:Krylov pro}) allows us to compute eigenvalues $\omega^2$, such that absolute value of the discrete filter function $\left|\dff(\omega)\right|$ is maximal. 
+The whole spectrum of eigenvalues $\omega^2$ of the discrete approximation \eqref{eq:matrix form} of the negative Laplacian eigenvalue problem is included in some interval $\left[0, \omega_\e^2\right]$. We search eigenvalues in given region of interest $\left[\omega_{\min}^2, \omega_{\max}^2\right] \subset \left[0, \omega_\e^2\right]$. Deployed Krylov eigenvalue solver (Algorithm \ref{alg:Krylov pro}) allows us to compute eigenvalues $\omega^2$, such that absolute value of the discrete filter function $\left|\dff(\omega)\right|$ is maximal. 
 
 Therefore our goal is to construct such weight function $\alpha$, that the filter function $\left|\beta_\alpha\right|$ \eqref{eq:cont filter function} or its discrete equivalent $\left|\dff\right|$ \eqref{eq:dff} takes on larger values, if $\omega \in \left[\omega_{\min}, \omega_{\max} \right]$ and is close to 0 otherwise. Of course, we can require this only in the controlled interval $\left[0, \omega_\e\right]$, since, according to Lemma \ref{lemma:dff}, $\dff$ is a polynomial. Moreover, we require, that the function $\alpha$ is piecewise continuous and compactly supported (see Definition \ref{def:pi_alpha}).
 
 \section{Inverse Fourier transform method}
 In this section we follow choice in \cite{nannen}. First presented method of selecting weight function bases on observation, that the mapping $ \alpha \mapsto \beta_\alpha$ is somehow similar to the Fourier transform. 
 \begin{lemma}\label{lemma:alpha fourier}
-    Let $\alpha$ be piecewise continuous weight function, such that $\alpha \in L^1\left([0, \infty)\right)$. Let $\hat{\alpha}: \R \rightarrow \R$ denote its symmetric extension, i.e., $\hat{\alpha}(-t) := \alpha(t)$ for all $t\in \R_+$. Then, for all $s\in \R$:
+    Let $\alpha$ be piecewise continuous weight function with compact support and $\alpha \in L^1\left( [0, \infty) \right)$. Let $\hat{\alpha}: \R \rightarrow \R$ denote its symmetric extension, i.e., $\hat{\alpha}(-t) := \alpha(t)$ for all $t\in \R_+$. Then, for all $s\in \R$:
     \begin{equation*}
         \beta_\alpha (s) = \sqrt{\frac{\pi}{2}} \F\left[\hat{\alpha}\right] (s),
     \end{equation*}
@@ -702,7 +702,7 @@ In this section we follow choice in \cite{nannen}. First presented method of sel
     \begin{align*}
         \beta_\alpha (s) &= \int_0^\infty \alpha(t) \cos(s t) \,dt = \frac{1}{2}\int_{-\infty}^\infty \hat{\alpha}(t) \cos(s t) \,dt + \frac{\i}{2} \underbrace{\int_{-\infty}^\infty \hat{\alpha}(t) \sin(-st) \,dt}_{=0} \\&= \frac{1}{2} \int_{-\infty}^{\infty} \hat{\alpha}(t) e^{-\i st} \, dt = \sqrt{\frac{\pi}{2}} \F\left[\hat{\alpha}\right] (s).
     \end{align*}
-    The sine-integral is 0, since $\hat{\alpha}$ is an even function and $t \mapsto \sin(-st)$ is an odd function. 
+    The sine-integral is 0, since $\hat{\alpha}$ is an even function and $t \mapsto \sin(-st)$ is an odd function. This proves desired identity.
 \end{proof}
 
 This motivates the choice of the function $\alpha$ as truncated inverse Fourier transform. As goal function to be filter function $\beta_\alpha$ we choose symmetrical indicator function of the region of interest: $\chi_{\left[-\omega_{\max}, -\omega_{\min}\right]\cup\left[\omega_{\min}, \omega_{\max}\right]}$. Thanks to the symmetry of this function, its inverse Fourier transform is real-valued.
@@ -737,7 +737,7 @@ We choose setup in \cite[section 3.1.2]{nannen}: $\tau = 0.0056$, $\omega_\e = 2
 
 We can observe, that for small values of $L$ the discrete filter function $\dff$ at the end of controlled interval (for $\omega \approx \omega_\e$) may exceed its values in target interval, what is unacceptable. Numerical experiments showed, that increasing number of time-steps $L$ (and thus increasing degree of polynomial $\dff$) causes better behaviour in both target interval and neighbourhood of $\omega_\e$ and solves this issue. However, increasing $L$ is undesirable, since it increases computational costs of the Algorithm.
 
-It's worth noticing, that presented method can be extended for target functions another as indicator. Arbitrary target function on interval $[0, \infty)$ can be symmetrically extended to whole real domain. This always yields real-valued inverse Fourier transform. Truncation of this function to interval $[0, T]$ fulfills requirements set on weight function. 
+It's worth noticing, that presented method can be extended for target functions another as indicator. Arbitrary target function $\gamma$ on interval $[0, \infty)$ can be symmetrically extended to whole real domain. This always yields real-valued inverse Fourier transform. Truncation of this function to interval $[0, T]$ fulfills requirements set on weight function. 
 
 % TODO: Positioning of these figures
 \begin{figure}
@@ -756,42 +756,42 @@ It's worth noticing, that presented method can be extended for target functions 
 \end{figure}
 
 \section{Collocation method}\label{section:collocation}
-The definitions of the discrete operator $C$ for Krylov iteration \eqref{eq:C operator} and of the discrete filter function $\dff$ \eqref{eq:dff} for fixed time-step $\tau$ and number of time-steps $L$ does not require the values of the weight function in the whole domain, but only in $\tau l$ for $l=0, \dots, L-1$. Thus we can reduce the problem to find a vector $\Vec{\alpha} \in \R^L$, such that $\Vec{\alpha}_l = \alpha(\tau l)$ for all $l=0, \dots, L-1$.
+The definitions of the discrete operator $C$ for Krylov iteration \eqref{eq:C operator} and of the discrete filter function $\dff$ \eqref{eq:dff} for fixed time-step $\tau$ and number of time-steps $L$ does not require the values of the weight function in the whole domain, but only in $\tau l$ for $l=0, \dots, L-1$. Thus we can reduce the problem to find a vector $\Vec{\alpha} \in \R^L$, such that $\Vec{\alpha}_l$ represents value $\alpha(\tau l)$ for all $l=0, \dots, L-1$.
 
-Following definition is analogous to the previous definition of the discrete filter function.
-
-\begin{definition}
-    Let $\tau > 0$ be the time-step, $L\in \N$ be the number of time-steps and let $q_l(\omega)$ be defined for all $l \in \N$ and $\omega \in \R$ by \eqref{eq:q def}. Let $\Vec{\alpha}\in\R^L$ be a weight vector. Then the discrete function $\dffv: [0, \infty) \rightarrow \R$ is defined as:
+\begin{definition}\label{def:dffv}
+    Let $\tau > 0$ be the time-step, $L\in \N$ be the number of time-steps and let $q_l(\omega)$ be defined for all $l \in \N$ and $\omega \in \R$ by \eqref{eq:q def}. Let $\Vec{\alpha}\in\R^L$ be a weight vector. Then the discrete filter function $\dffv: [0, \infty) \rightarrow \R$ is defined as:
     \begin{equation}\label{eq:dffv}
         \dffv (\omega) := \tau \left(q_0(\omega), \dots, q_{L-1}(\omega)\right) \Vec{\alpha}. 
     \end{equation}
 \end{definition}
 
-As target function we take again indicator $\chi_{\left[\omega_{\min}, \omega_{\max}\right]}$. We select $L$ nodes in the controlled interval, in simplest setting equidistant, and formulate our problem as a polynomial collocation problem with $\left\{q_l : l=0, \dots, L-1\right\}$ basis of the space of polynomials up to degree $L-1$ in $\omega^2$.
+Note, that for given weight function $\alpha: \left[0, \omega_\e\right] \rightarrow \R$ and vector $\Vec{\alpha} = \left(\alpha(\tau l)\right)_{l=0}^{L-1}$, definition of $\dff$ in Lemma \ref{lemma:dff} is equivalent to Definition \ref{def:dffv}, i.e., $\dff = \dffv$. 
+
+We fix arbitrary target function $\gamma$, that fulfill our requirements for discrete filter function in controlled interval. We select $L$ nodes in the controlled interval, in simplest setting equidistant, and formulate our problem as a polynomial collocation problem with $\left\{q_l : l=0, \dots, L-1\right\}$ basis of the space of polynomials up to degree $L-1$ in $\omega^2$.
 \begin{definition}\label{def:evaluation matrix}
-    For given number of time-steps $L\in \N$ and $K\in \N$ collocation nodes $ 0 = \omega_0 < \dots < \omega_{K-1}$ we define the evaluation matrix $Q \in \R^{K\times L}$ as $Q_{kl} := q_l\left(\omega_k\right)$ for all $k=0, \dots, K-1$ and $l=0, \dots, L-1$. 
+    For given number of time-steps $L\in \N$ and $K\in \N$ collocation nodes $ 0 \leqslant \omega_0 < \dots < \omega_{K-1} \leqslant \omega_\e$ we define the evaluation matrix $Q \in \R^{K\times L}$ as $Q_{kl} := q_l\left(\omega_k\right)$ for all $k=0, \dots, K-1$ and $l=0, \dots, L-1$. 
 \end{definition}
 
-Let $\tau>0$ be the time-step and $L\in \N$ be the number of time-steps and $\left[\omega_{\min}, \omega_{\max}\right]$ be the target interval. Selecting $L$ equidistant collocation nodes $\omega_l = l\omega_\e/ (L-1)$ for $l=0, \dots, L-1$ in controlled interval $\left[0, \omega_{\e}\right]$ leads to collocation problem to find $\Vec{\alpha} \in \R^L$, such that:
+Let $\tau>0$ be the time-step, $L\in \N$ be the number of time-steps and $\left[\omega_{\min}, \omega_{\max}\right]$ denote the target interval. Selecting $L$ equidistant collocation nodes $\omega_l = l\omega_\e/ (L-1)$, $l=0, \dots, L-1$ in controlled interval $\left[0, \omega_{\e}\right]$ leads to collocation problem to find $\Vec{\alpha} \in \R^L$, such that:
 \begin{equation*}
-    \forall k = 0, \dots, L-1: \quad \dffv\left(\omega_k\right) = \chi_{\left[\omega_{\min}, \omega_{\max}\right]}(\omega_k).
+    \forall k = 0, \dots, L-1: \quad \dffv\left(\omega_k\right) = \gamma(\omega_k).
 \end{equation*}
 This problem is equivalent to linear system of equations:
 \begin{equation}\label{eq:alpha eq coll}
-     Q \Vec{\alpha} = \frac{1}{\tau} \left(\chi_{\left[\omega_{\min}, \omega_{\max}\right]}(\omega_k) \right)_{k=0}^{L-1}
+     Q \Vec{\alpha} = \frac{1}{\tau} \left(\gamma(\omega_k) \right)_{k=0}^{L-1}
 \end{equation}
 with matrix $Q$ from Definition \ref{def:evaluation matrix}.
 
-As example we choose same parameters as in the previous section. Plots of obtained discrete filter functions for two values of $L = 10 $ and $L=25$ are in the Figure \ref{fig:eq coll beta}. We solve the system of linear equations \eqref{eq:alpha eq coll} with \texttt{numpy.linalg.solve()} function in Python. 
+As example we choose same parameters as in the previous section, especially target function as indicator of the target interval $\gamma = \chi_{\left[\omega_{\min}, \omega_{\max}\right]}$. Plots of obtained discrete filter functions for two values of $L = 10 $ and $L=25$ are in the Figure \ref{fig:eq coll beta}. We solve the system of linear equations \eqref{eq:alpha eq coll} with \texttt{numpy.linalg.solve()} function in Python. 
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{latex//images//equi_coll/Figure_1.png}
-    \caption{Plot of function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation \eqref{eq:alpha eq coll}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [39, 45]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. }
+    \caption{Function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation \eqref{eq:alpha eq coll}. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [39, 45]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. }
     \label{fig:eq coll beta}
 \end{figure}
 
-By small number of collocation knots, intervals between nodes are large and we can observe strong oscillation of the polynomial for larger values of $\omega$. Increasing number of nodes does not improve the behaviour for two reasons. Firstly, this increases degree of the polynomial, what compounds the problem despite shorter intervals between nodes. Secondly, higher values of $L$ rapidly worsen conditioning of the matrix $Q$. Figure \ref{fig:eq coll cond} presents $\mathrm{cond}(Q) := \|Q\|_2 \|Q^{-1}\|_2$ (where $\| \cdot \|_2$ denotes induced matrix norm by the euclidean norm) depending on size of the problem $L$.
+By small number of collocation knots, intervals between nodes are large and we can observe strong oscillation of the polynomial, especially for larger values of $\omega$. Increasing number of nodes does not improve the behaviour for two reasons. Firstly, this increases degree of the polynomial, what compounds the problem despite shorter intervals between nodes. Secondly, higher values of $L$ rapidly worsen conditioning of the matrix $Q$. Figure \ref{fig:eq coll cond} presents $\mathrm{cond}(Q) := \|Q\|_2 \|Q^{-1}\|_2$ (where $\| \cdot \|_2$ denotes induced matrix norm by the euclidean norm) depending on size of the problem $L$.
 
 \begin{figure}
     \centering
@@ -800,8 +800,7 @@ By small number of collocation knots, intervals between nodes are large and we c
     \label{fig:eq coll cond}
 \end{figure}
 
-% TODO: Improve this intro to Chebyshev nodes
-Because collocation with equidistant nodes does not produce desired results, we try to replace them. Lemma \ref{lemma:q chebyshev} implies, that functions $q_l(\omega)$ are polynomials in $\omega^2$. Next proposition shows, that natural choice are Chebyshev nodes in $\omega^2$.
+Because equidistant nodes in collocation method does not produce desired results, we try to replace them. From Lemma \ref{lemma:q chebyshev} we know, that functions $q_l(\omega)$ are polynomials in $\omega^2$. Next proposition shows, that natural choice are Chebyshev nodes in $\omega^2$.
 
 \begin{prop}[Chebyshev nodes] \label{def:chebyshev nodes}
     For $L\in\N$ Chebyshev nodes on interval $(-1, 1)$ are:
@@ -812,7 +811,7 @@ Because collocation with equidistant nodes does not produce desired results, we 
         \item Chebyshev polynomial $T_L$ (see Definition \ref{def:chebyshev polynomials}) has $L$ roots in interval $(-1, 1)$. These are exact the Chebyshev nodes.
         \item For $f \in C^{L}\left([a,b]\right)$, arbitrary collocation nodes $x_0, \dots, x_{L-1} \in [a,b]$ and Lagrange collocation polynomial $p\in \mathcal{P}_{L-1}$ such that $p(x_l) = f(x_l)$ for all $l=0, \dots, L-1$ there holds error estimation:
         \begin{equation}\label{eq:lagrange error est}
-            \|f-p\|_\infty \leqslant \frac{\|f^{(L+1)}\|}{(L+1)!} \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-x_l\right|.
+            \|f-p\|_\infty \leqslant \frac{\|f^{(L+1)}\|_\infty}{(L+1)!} \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-x_l\right|.
         \end{equation}
         \item Affine transformation $\Psi: [-1, 1] \rightarrow [a,b]$, $\Psi(x) := \left(a+b+x(b-a)\right)/2$ maps Chebyshev nodes $t_0, \dots, t_{L-1}$ onto $\Psi(t_0), \dots, \Psi(t_{L-1}) \in [a,b]$. Those nodes minimize product from the error estimation, i.e.,
         \begin{equation*}
@@ -824,13 +823,13 @@ Because collocation with equidistant nodes does not produce desired results, we 
     We refer to \cite[p. 23--24]{numericsAB}.
 \end{proof}
 
-For fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \omega_{L-1} \in \left[0, 2/\tau\right]$, such that $\omega_0^2, \dots, \omega_{L-1}^2$ are Chebyshev nodes in interval $\left[0, 4/\tau^2\right]$ and solve linear system of equations \eqref{eq:alpha eq coll}. Figures \ref{fig:cheb coll 1} and \ref{fig:cheb coll 2} show obtained discrete filter functions $\left|\dffv\right|$ for different numbers of time-steps $L$ and target intervals $\left[\omega_{\min}, \omega_{\max} \right]$. We compare behaviour of obtained discrete filter function with target function and method using inverse Fourier transformation \eqref{eq:alpha fourier}.
+For fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \omega_{L-1} \in \left[0, 2/\tau\right]$, such that $\omega_0^2, \dots, \omega_{L-1}^2$ are Chebyshev nodes in interval $\left[0, 4/\tau^2\right]$, and solve linear system of equations \eqref{eq:alpha eq coll}. Figures \ref{fig:cheb coll 1} and \ref{fig:cheb coll 2} show obtained discrete filter functions $\left|\dffv\right|$ for different numbers of time-steps $L$ and target intervals $\left[\omega_{\min}, \omega_{\max} \right]$. We compare behaviour of obtained discrete filter function with target function and inverse Fourier transformation \eqref{eq:alpha fourier} method.
 
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_1.png}
     \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_2.png}
-    \caption{Plot of function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. Yellow curve represents discrete filter function obtained by inverse Fourier transform of indicator truncated to end-time $T=2.8$.}
+    \caption{Function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. Yellow curve represents discrete filter function obtained by inverse Fourier transform of indicator truncated to end-time $T=2.8$.}
     \label{fig:cheb coll 1}
 \end{figure}
 
@@ -838,28 +837,28 @@ For fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \ome
     \centering
     \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_3.png}
     \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_4.png}
-    \caption{Plot of function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [122, 130]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator truncated to end-time $T=2.8$.}
+    \caption{Function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [122, 130]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator truncated to end-time $T=2.8$.}
     \label{fig:cheb coll 2}
 \end{figure}
 
-Error estimation for Lagrange interpolation \eqref{eq:lagrange error est}, which was our motivation to replace equidistant nodes by Chebyshev ones, demands $L$-times continuously differentiable function, what is by indicator function not the case. Therefore in the third example we change our target function to a $C^\infty$ function, Gaussian peak $g(\omega) = \exp\left(-(\omega-\omega_{\mathrm{mid}})^2\right)$. Results are presented in the Figure \ref{fig:cheb coll cont ex}. Again we compare obtained discrete filter function to one produced with truncated inverse Fourier transform in a similar way to derivation of \eqref{eq:alpha fourier}. 
+Error estimation for Lagrange interpolation \eqref{eq:lagrange error est}, which was our motivation to replace equidistant nodes by Chebyshev ones, demands $L$-times continuously differentiable function, what is by indicator function not the case. Therefore in the third example we change our target function to a $C^\infty$ function, Gaussian peak $g(\omega) = \exp\left(-(\omega-\omega_{\mathrm{mid}})^2\right)$ with $\omega_{\mathrm{mid}}$ in the middle of the region if interest. Results are presented in the Figure \ref{fig:cheb coll cont ex}. Again we compare obtained discrete filter function to one produced with truncated inverse Fourier transform in a similar way to derivation of \eqref{eq:alpha fourier}. 
 
 A remarkable advantage of collocation in Chebyshev nodes is good conditioning of the collocation matrix $Q$. The condition number for Chebyshev nodes is, in contrast to equidistant nodes, independent from size of the problem $L$. Furthermore, obtained discrete filter function does not oscillate strongly between collocation knots, also for uncontinuous target function, like indicator.  
 
-Following \cite{nannen} we assume, that sought eigenvalues of the negative Laplace operator are closer to 0 than to the end of the controlled interval $\omega_\e$. Chebyshev nodes in $\omega^2$ have highest density in the upper area of the interval $[0, \omega_\e]$. Thus, especially by lower numbers of collocation knots and small target interval, the whole interval $\left[\omega_{\min}, \omega_{\max} \right]$ may be contained between two consecutive nodes. This sets right hand side of the collocation problem \eqref{eq:alpha eq coll} to 0 and in result we get $\Vec{\alpha}=0$ and $\dffv \equiv 0$. Exactly this problem we can observe in Figure \ref{fig:cheb coll 1} by $L=100$. In this particular example $ 8.4142\approx\omega_1 < \omega_{\min} = 12  <  14 = \omega_{\max}  < \omega_2 \approx 14.0213 $. Also small shift of the target interval does not impact discrete filter function at all, if the change in $\omega_{\min}$ and $\omega_{\max}$ does not exceed distance to the nearest nodes. Similar problem we can observe by Gaussian peak as target function for $L=100$ in the Figure \ref{fig:cheb coll cont ex}. 
+Following \cite{nannen} we assume, that sought eigenvalues of the negative Laplace operator are closer to 0 than to the end of the controlled interval $\omega_\e$. Chebyshev nodes in $\omega^2$ have highest density in the upper area of the interval $[0, \omega_\e]$. Thus, especially by lower numbers of collocation knots and small target interval, the whole interval $\left[\omega_{\min}, \omega_{\max} \right]$ may be contained between two consecutive nodes. This sets right hand side of the collocation problem \eqref{eq:alpha eq coll} to 0 and in result we get $\Vec{\alpha}=0$ and $\dffv \equiv 0$. Exactly this problem we can observe in Figure \ref{fig:cheb coll 1} by $L=100$. In this particular example $ 8.4142\approx\omega_1 < \omega_{\min} = 12  <  14 = \omega_{\max}  < \omega_2 \approx 14.0213 $. Also small shift of the target interval does not impact discrete filter function at all, if the change in $\omega_{\min}$ and $\omega_{\max}$ does not exceed distance to the nearest nodes. Similar problem we can observe by $C^\infty$ target function for $L=100$ in the Figure \ref{fig:cheb coll cont ex}. 
 
-Obviously, with increasing $L$ decreases distances between nodes, which solves this issue. This is undesired, since we want to choose $L$ possibly small due to complexity of the Algorithm. Another possibility would be to increase the number of collocation nodes $K$ by the same number of basis functions $L$. This would lead to a $K\times L$ evaluation matrix with $K>L$ and a least squares problem instead of a linear system of equations.
+Obviously, with increasing $L$ decreases distances between nodes, which solves this issue. However, this is undesired, since we want to choose $L$ possibly small due to complexity of the Algorithm. Another possibility would be to increase the number of collocation nodes $K$ by the same number of basis functions $L$. This would lead to a $K\times L$ evaluation matrix with $K>L$ and a least squares problem instead of a linear system of equations.
 
-\begin{figure} % TODO: replace x with omega in legend
+\begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_5.png}
     \includegraphics[width=1\linewidth]{latex//images//cheb_coll/Figure_6.png}
-    \caption{Plot of function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. Target function $g(\omega) = \exp\left(-(\omega-4)^2\right)$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator truncated to end-time $T=2.8$.}
+    \caption{Function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. Target function $g(\omega) = \exp\left(-(\omega-4)^2\right)$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$ and varying number of time-steps and collocation nodes $L$. Crosses represent values of the target function in knots. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator truncated to end-time $T=2.8$.}
     \label{fig:cheb coll cont ex}
 \end{figure}
 
 \section{Least squares method and minimization of $L^2$ norm}
-We start this section with idea to increase the number of collocation knots, but with fixed number $L$ of time-steps (and thus fixed polynomial degree) to avoid raising computational costs of the Algorithm. Obviously, obtained system of equations is (in general) not solvable, so we use linear least squares fitting. Then we switch to another approach -- we try to find $\Vec{\alpha}$, that minimizes $L^2$ norm of the difference between corresponding discrete filter function and target function. Finally, Theorem \ref{theorem:lsq converges to l2} will show connection between those two methods.
+We start this section with idea to fix  number $L$ of time-steps (and thus fixed polynomial degree) to avoid raising computational costs of the Algorithm, but simultaneously increase the number of collocation knots. Obviously, obtained system of equations is (in general) not solvable, so we use linear least squares fitting. Then we switch to another approach -- we try to find $\Vec{\alpha}$, that minimizes the $L^2$ norm of the difference between corresponding discrete filter function and target function $\gamma$. Finally, Theorem \ref{theorem:lsq converges to l2} will show connection between those two methods.
 
 
 \begin{definition}[Least squares method]\label{def:least sq}
@@ -870,7 +869,7 @@ We start this section with idea to increase the number of collocation knots, but
     where $c := 1/\tau \left(\gamma(\omega_0), \dots, \gamma(\omega_{K-1})\right)^T$.
 \end{definition}
 
-Note, that Definition \ref{def:least sq} is just modification of the collocation problem \eqref{eq:alpha eq coll} for the case $K>L$.
+Note, that the problem stated in Definition \ref{def:least sq} is just modification of the collocation problem \eqref{eq:alpha eq coll} for the case $K>L$.
 
 \begin{prop}[Normal equation]\label{prop:normal eq}
     Problem stated in Definition \ref{def:least sq} is well-defined, i.e., has at least one solution. Vector $\Vec{\alpha} \in \R^{L}$ solves \eqref{eq:least sq} if and only if it solves the normal equation:
@@ -904,7 +903,7 @@ Another approach would be to define for fixed number of time-steps $L$ and time-
 Since defined operator $\Phi$ mimics squared $L^2$ distance between target function and obtained filter function, our goal is to minimize its value. Following theorem proves, that it is possible without high computational costs. 
 
 \begin{theorem}
-    Operator $\Phi$ from Definition \ref{def:Phi} is continuous differentiable. It has exactly one global minimum $\Vec{\alpha} \in \R^L$, which is solution to the liner system of equations:
+    Operator $\Phi$ from Definition \ref{def:Phi} is continuous differentiable. It has exactly one global minimum $\Vec{\alpha} \in \R^L$, which is solution to the linear system of equations:
     \begin{equation}\label{eq:l2 matrix cont}
         X \Vec{\alpha} = d
     \end{equation}
@@ -919,7 +918,7 @@ Since defined operator $\Phi$ mimics squared $L^2$ distance between target funct
     \begin{align*}
         \frac{\partial \Phi}{\partial v_i}(v) &= \frac{\partial}{\partial v_i} \int_0^{\omega_\e} \left(\tau \sum_{l=0}^{L-1} q_l(x) v_l - \gamma(x) \right)^2 \, dx \\ &= 2 \int_0^{\omega_\e} \left(\tau \sum_{l=0}^{L-1} q_l(x) v_l - \gamma(x) \right)\tau q_i(x) \, dx \\ &= 2 \tau \left(\left(\sum_{l=0}^{L-1} \tau v_l \int_0^{\omega_\e} q_l(x) q_i(x) \, dx \right) - \int_0^{\omega_\e} q_i(x)\gamma(x) \, dx \right) \\ &= 2\tau \left( \left( \tau\sum_{l=0}^{L-1} v_l \langle q_l, q_i\rangle \right) - \langle q_i, \gamma\rangle \right).
     \end{align*}
-    Therefore gradient $\nabla\Phi(\Vec{\alpha})$ vanishes if and only if:
+    Therefore gradient $\nabla\Phi$ vanishes in $\Vec{\alpha}$ if and only if:
     \begin{equation*}
         \forall i = 0, \dots, L-1: \quad  \tau\sum_{l=0}^{L-1} \langle q_l, q_i\rangle \Vec{\alpha}_l = \langle q_i, \gamma \rangle,
     \end{equation*}
@@ -927,16 +926,17 @@ Since defined operator $\Phi$ mimics squared $L^2$ distance between target funct
     
  In next step we compute second partial derivatives:
     \begin{align*}
-        \frac{\partial^2 \Phi}{\partial v_i \partial v_j}(v) = 2\tau \frac{\partial}{\partial v_j }  \left( \left( \tau\sum_{l=0}^{L-1} v_l \langle q_l, q_i\rangle \right) - \langle q_i, \gamma\rangle \right) = 2\tau^2 \langle q_i, q_j \rangle
+        \frac{\partial^2 \Phi}{\partial v_i \partial v_j}(v) = 2\tau \frac{\partial}{\partial v_j }  \left( \left( \tau\sum_{l=0}^{L-1} v_l \langle q_l, q_i\rangle \right) - \langle q_i, \gamma\rangle \right) = 2\tau^2 \langle q_i, q_j \rangle.
     \end{align*}
-    and the Hessian matrix:
+    Thus the Hessian matrix is:
     \begin{equation*}
         \nabla^2 \Phi(v) = 2 \tau^2 X.
     \end{equation*}
+    
     Let consider $B:=\left(q_0|_{[0, \omega_\e]}, \dots, q_{L-1}|_{[0, \omega_\e]}\right)$ and $U := \mathrm{span}(B) \subset L^2\left([0, \omega_\e]\right)$. $U$ is an $L$-dimensional Hilbert space with restricted $L^2$ scalar product $\langle \cdot, \cdot \rangle_U = \langle \cdot , \cdot \rangle|_{U^2}$. The representation matrix of this scalar product with respect to the basis $B$ is $X$. Therefore $X$ is positive-definite and especially $\nabla^2\Phi(\Vec{\alpha})$ is also positive-definite. This concludes, that $\Vec{\alpha}$ is the unique minimum of $\Phi$. 
 \end{proof}
 
-We still miss evaluation of the matrix $X$ and vector $d$ from \eqref{eq:l2 matrix cont} to make $L^2$ minimization method fully functional. Analytical computation of the integrals is here out of reach and we replace them by midpoint rule with $K$ subintervals:
+We still miss practical evaluation of the matrix $X$ and vector $d$ from \eqref{eq:l2 matrix cont} to make $L^2$ minimization method fully functional. Analytical computation of the integrals is here out of reach, so we replace them by midpoint rule with $K$ subintervals:
 \begin{equation*}
     \langle f, g \rangle = \int_0^{\omega_\e} f(\omega) g(\omega) \, d\omega \approx h \sum_{k=0}^{K-1} f(\omega_k)g(\omega_k), 
 \end{equation*}
@@ -951,7 +951,7 @@ where $h := \omega_\e/K$ is the quadrature step-size and $\omega_k := (k+1/2)h$ 
 
     
 \begin{lemma}\label{lemma:QTQ}
-    For given $h$, $K$, $L$ and $\tau$ let $Q \in \R^{K\times L}$ be the evaluation matrix on quadrature nodes $\omega_k = (k+1/2)h$ for $k = 0, \dots, K-1$ (see Definition \ref{def:evaluation matrix}). Let $c := 1/\tau \left(\gamma(\omega_0), \dots, \gamma(\omega_{K-1})\right)^T$ as in Definition \ref{def:least sq}.
+    For given $h$ and $K$ let $Q \in \R^{K\times L}$ be the evaluation matrix on quadrature nodes $\omega_k = (k+1/2)h$ for $k = 0, \dots, K-1$ (see Definition \ref{def:evaluation matrix}). Let $c := 1/\tau \left(\gamma(\omega_0), \dots, \gamma(\omega_{K-1})\right)^T$ as in Definition \ref{def:least sq}.
     Then for $X_h$ and $d_h$ from Definition \ref{def:Xh} holds: 
     \begin{equation*}\label{eq:link QTQ=X}
         h Q^T Q = X_h \quad \text{ and } \quad h Q^Tc = d_h.
@@ -976,7 +976,7 @@ We will implement the $L^2$ minimization using introduced approximation of the i
 
 \end{theorem}
 \begin{proof}
-    For every $h>0$ and $K>L$ let $Q_K$ be the evaluation matrix (see Definition \ref{def:evaluation matrix}) in knots $\Delta_h$. $\Vec{\alpha}_h$ is a solution to the normal equation: 
+    For every $h>0$ and $K>L$ let $Q_K$ be the evaluation matrix (see Definition \ref{def:evaluation matrix}) in knots $\Delta_h$. According to Proposition \ref{prop:normal eq}, $\Vec{\alpha}_h$ solves the normal equation: 
     \begin{equation*}
         Q^T Q \Vec{\alpha}_h = Q^Tc,
     \end{equation*}
@@ -984,22 +984,22 @@ We will implement the $L^2$ minimization using introduced approximation of the i
     \begin{equation*}
         hQ^T Q \Vec{\alpha}_h = hQ^Tc.
     \end{equation*}
-    Also from Lemma \ref{lemma:QTQ} follows, that $\Vec{\alpha}_h$ solves:
+    Thus from Lemma \ref{lemma:QTQ} follows, that $\Vec{\alpha}_h$ solves:
     \begin{equation}\label{eq:alpha_h eq}
         X_h \Vec{\alpha}_h = d_h.
     \end{equation}
     
-    Since $\gamma$ is piecewise continuous function on compact interval and $q_l$ ($l = 0, \dots, L-1$) are polynomials, midpoint quadrature rule converges to the exact integral, as $h$ tends to 0. Therefore $\lim_{h\rightarrow 0} X_h = X$ and $\lim_{h\rightarrow 0} d_h = d$. From \eqref{eq:alpha_h eq} and continuity of the matrix inversion, we conclude $\lim_{h\rightarrow 0} \Vec{\alpha}_h = \Vec{\alpha}$.
+    Since $\gamma$ is piecewise continuous function on compact interval and $q_l$ ($l = 0, \dots, L-1$) are polynomials, midpoint quadratures converge to the exact integrals, as $h$ tends to 0. Therefore $\lim_{h\rightarrow 0} X_h = X$ and $\lim_{h\rightarrow 0} d_h = d$. From \eqref{eq:alpha_h eq} and continuity of the matrix inversion, we conclude $\lim_{h\rightarrow 0} \Vec{\alpha}_h = \Vec{\alpha}$.
 \end{proof}
 
-As first example, we use least squares method with Chebyshev nodes. We recall Figure \ref{fig:cheb coll 1}, where $L=100$ time-steps and the same number of collocation knots produced constant zero discrete filter function, because the whole target interval $\left[\omega_{\min}, \omega_{\max}\right]$ was contained between tho collocation nodes. We use the same setting: $L=100$, $\tau = 0.0056$, $\omega_\e = 2/\tau$ and $\left[\omega_{\min}, \omega_{\max}\right] = [12, 14]$, but least squares method instead of collocation and varying number of knots. Results are presented in the Figure \ref{fig:cheb least sq}. 
+As first example, we use the least squares method with Chebyshev nodes. We recall Figure \ref{fig:cheb coll 1}, where $L=100$ time-steps and the same number of collocation knots produced constant zero discrete filter function, because the whole target interval $\left[\omega_{\min}, \omega_{\max}\right]$ was contained between two collocation nodes. We use the same setting: $L=100$, $\tau = 0.0056$, $\omega_\e = 2/\tau$ and $\left[\omega_{\min}, \omega_{\max}\right] = [12, 14]$, but the linear least squares method  and varying number of knots instead of collocation. Results are presented in Figure \ref{fig:cheb least sq} compared with goal function and the inverse Fourier method.
 
-Introducing larger number of nodes $K$ with fixed number of time-steps $L$ results in better accuracy of the obtained discrete filter function to goal function and does not affect performance of the eigenvalue solver. Furthermore, thanks to use of Chebyshev nodes, condition number of the matrix in the normal equation $\mathrm{cond}(Q^TQ)$ remains constant despite increasing number of nodes or time-steps, see Figure \ref{fig:least sq cond}.
+Introducing larger number of nodes $K$ with fixed number of time-steps $L$ yields better accuracy of the obtained discrete filter function to goal function and does not affect performance of the eigenvalue solver. Furthermore, thanks to use of Chebyshev nodes, condition number of the matrix in the normal equation $\mathrm{cond}(Q^TQ)$ remains constant despite increasing number of nodes or time-steps, see Figure \ref{fig:least sq cond}.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{latex//images//cheb_least_sq/Figure_3.png}
-    \caption{Condition number of matrix $Q^TQ$ (matrix norm induced by euclidean norm) depending on size of the matrix $L$ and different number and distribution of nodes. Number of Chebyshev nodes in the example is equal to number of equidistant nodes for $h=0.2$. }
+    \caption{Condition number of matrix $Q^TQ$ (matrix norm induced by the euclidean norm) depending on size of the matrix $L$ and different number and distribution of nodes. Number of Chebyshev nodes is equal to number of equidistant nodes for $h=0.2$. }
     \label{fig:least sq cond}
 \end{figure}
 
@@ -1008,11 +1008,11 @@ Introducing larger number of nodes $K$ with fixed number of time-steps $L$ resul
     \centering
     \includegraphics[width=1\linewidth]{latex//images//cheb_least_sq/Figure_1.png}
     \includegraphics[width=1\linewidth]{latex//images//cheb_least_sq/Figure_2.png}
-    \caption{Function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by least squares method in Chebyshev nodes in $\omega^2$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$, fixed number of time-steps $L=100$ and varying number of nodes $K$. Crosses represent values of the target function in Chebyshev nodes for $K=200$. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator truncated to end-time $T=L\tau = 0.56$.}
+    \caption{Function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by least squares method with Chebyshev nodes in $\omega^2$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$, fixed number of time-steps $L=100$ and varying number of nodes $K$. Crosses represent values of the target function in Chebyshev nodes for $K=200$. Yellow curve is the discrete filter function obtained by the inverse Fourier transform of indicator truncated to end-time $T=L\tau = 0.56$.}
     \label{fig:cheb least sq}
 \end{figure}
 
-In next two examples we use $L^2$ minimization with midpoint quadrature rule with fixed quadrature step $h=0.05$, equidistant nodes $\omega_k = (k+1/2)h$ for $k=0,\dots, K-1$, $K:= \lfloor\omega_\e/h\rfloor$. Figure \ref{fig:l2 ex1} presents results for target interval $\left[\omega_{\min}^2, \omega_{\max}^2\right] = [12, 14]$ and Figure \ref{fig:l2 ex2} presents results for target interval $\left[\omega_{\min}^2, \omega_{\max}^2\right] = [122, 130]$. 
+In next two examples we use $L^2$ minimization with midpoint quadrature rule, equidistant nodes $\omega_k = (k+1/2)h$ for $k=0,\dots, K-1$, $K:= \lfloor\omega_\e/h\rfloor$. Figure \ref{fig:l2 ex1} presents results for target interval $\left[\omega_{\min}^2, \omega_{\max}^2\right] = [12, 14]$ and Figure \ref{fig:l2 ex2} presents results for target interval $\left[\omega_{\min}^2, \omega_{\max}^2\right] = [122, 130]$. 
 
 In both cases behaviour of the discrete filter function in the neighbourhood of target interval is satisfying. However, by larger size of the problem (number of time-steps) we can observe undesired oscillation of the function $\dffv$ at the end of the controlled interval. This is because of increase of the condition number of the matrix $X_h = hQ^TQ$ as $L$ gets larger. Note, that $\mathrm{cond}(X_h) = \mathrm{cond}(Q^TQ)$. Figure \ref{fig:least sq cond} shows, that by equidistant nodes (which are quadrature knots in case of $L^2$ minimization and midpoint quadrature), the problem gets bad conditioned, if its size is too large. However, higher exactness of the quadrature slows down this effect. In Figure \ref{fig:l2 ex2} we can observe, that the values of discrete filter function (red plot, with $L=200$ and $h=0.05$) explode as $\omega \lessapprox \omega_\e$. Use of quadrature with $h=0.001$ (light blue plot) solves this issue despite the same value of $L$.
 
