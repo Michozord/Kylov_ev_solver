@@ -992,6 +992,44 @@ We will implement the $L^2$ minimization using introduced approximation of the i
     Since $\gamma$ is piecewise continuous function on compact interval and $q_l$ ($l = 0, \dots, L-1$) are polynomials, midpoint quadrature rule converges to the exact integral, as $h$ tends to 0. Therefore $\lim_{h\rightarrow 0} X_h = X$ and $\lim_{h\rightarrow 0} d_h = d$. From \eqref{eq:alpha_h eq} and continuity of the matrix inversion, we conclude $\lim_{h\rightarrow 0} \Vec{\alpha}_h = \Vec{\alpha}$.
 \end{proof}
 
+As first example, we use least squares method with Chebyshev nodes. We recall Figure \ref{fig:cheb coll 1}, where $L=100$ time-steps and the same number of collocation knots produced constant zero discrete filter function, because the whole target interval $\left[\omega_{\min}, \omega_{\max}\right]$ was contained between tho collocation nodes. We use the same setting: $L=100$, $\tau = 0.0056$, $\omega_\e = 2/\tau$ and $\left[\omega_{\min}, \omega_{\max}\right] = [12, 14]$, but least squares method instead of collocation and varying number of knots. Results are presented in the Figure \ref{fig:cheb least sq}. 
+
+Introducing larger number of nodes $K$ with fixed number of time-steps $L$ results in better accuracy of the obtained discrete filter function to goal function and does not affect performance of the eigenvalue solver. Furthermore, thanks to use of Chebyshev nodes, condition number of the matrix in the normal equation $\mathrm{cond}(Q^TQ)$ remains constant despite increasing number of nodes or time-steps, see Figure \ref{fig:least sq cond}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{latex//images//cheb_least_sq/Figure_1.png}
+    \includegraphics[width=1\linewidth]{latex//images//cheb_least_sq/Figure_2.png}
+    \caption{Function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by least squares method in Chebyshev nodes in $\omega^2$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$, fixed number of time-steps $L=100$ and varying number of nodes $K$. Crosses represent values of the target function in Chebyshev nodes for $K=200$. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator truncated to end-time $T=L\tau = 0.56$.}
+    \label{fig:cheb least sq}
+\end{figure}
+
+In next two examples we use $L^2$ minimization with midpoint quadrature rule with fixed quadrature step $h=0.05$, equidistant nodes $\omega_k = (k+1/2)h$ for $k=0,\dots, K-1$, $K:= \lfloor\omega_\e/h\rfloor$. Figure \ref{fig:l2 ex1} presents results for target interval $\left[\omega_{\min}^2, \omega_{\max}^2\right] = [12, 14]$ and Figure \ref{fig:l2 ex2} presents results for target interval $\left[\omega_{\min}^2, \omega_{\max}^2\right] = [122, 130]$. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_1.png}
+    \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_2.png}
+    \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_3.png}
+    \caption{Function $\left|\dffv\right|$ with vector $\Vec{\alpha}$ obtained by $L^2$ minimization method with midpoint quadrature, $h=0.05$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$, varying number of time-steps $L$. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator with end-time $T = 0.279$.}
+    \label{fig:l2 ex1}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_4.png}
+    \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_5.png}
+    \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_6.png}
+    \caption{Function $\left|\dffv\right|$ with vector $\Vec{\alpha}$ obtained by $L^2$ minimization method with midpoint quadrature, $h=0.05$. Target interval $\left[\omega_{\min}, \omega_{\max} \right] = [122, 130]$, time-step $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$, varying number of time-steps $L$. Yellow curve is discrete filter function obtained by inverse Fourier transform of indicator with end-time $T = 0.279$.}
+    \label{fig:l2 ex2}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{latex//images//cheb_least_sq/Figure_3.png}
+    \caption{Condition number of matrix $Q^TQ$ (matrix norm induced by euclidean norm) depending on size of the matrix $L$ and different number and distribution of nodes. Number of Chebyshev nodes in the example is equal to number of equidistant nodes for $h=0.2$. }
+    \label{fig:least sq cond}
+\end{figure}
 
 \bibliographystyle{alpha} 
 %\bibliographystyle{abbrv}
