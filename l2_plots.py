@@ -72,31 +72,39 @@ plot_beta(alpha_four, L, tau, om_end-0.5, om_end, ax6, label=f"IFT, $T={str(T)[0
 
 ax1.legend()
 ax2.legend()
-ax3.legend()
+ax3.legend(loc="upper left")
 ax4.legend()
 ax5.legend()
-ax6.legend()
+ax6.legend(loc="upper left")
 
 
-# L_max = 500
-# title = r"$\mathrm{cond}(Q^TQ)& "
-# # title = ""
-# ax7 = prepare_plots(5, L_max, title=title, xlabel="$L$", ylabel=r"$\mathrm{cond}(Q^TQ)$", set_y_lim=False, fontsize=22)
-# Ls = range(10, L_max+1, 10)
-# K = 5
-# conds = []
-# conds_cheb = []
-# for L in Ls:
-#     mesh = np.linspace(0, om_end - 1/K, num = int(K*om_end)) + 1/(2*K)
-#     Q = q_eval_mat(mesh, L, tau)
-#     conds.append(np.linalg.cond(Q.transpose() @ Q))
-#     mesh = chebyshev_nodes(0, om_end, int(K*om_end))
-#     Q = q_eval_mat(mesh, L, tau)
-#     conds_cheb.append(np.linalg.cond(Q.transpose() @ Q))
+L_max = 500
+# title = r"$\mathrm{cond}(Q^TQ)$ "
+title = ""
+ax7 = prepare_plots(5, L_max, title=title, xlabel="$L$", ylabel=r"$\mathrm{cond}(Q^TQ)$", set_y_lim=False, fontsize=22)
+Ls = range(10, L_max+1, 10)
+K = 5
+K2 = 20
+conds = []
+conds_2 = []
+conds_cheb = []
+for L in Ls:
+    mesh = np.linspace(0, om_end - 1/K, num = int(K*om_end)) + 1/(2*K)
+    Q = q_eval_mat(mesh, L, tau)
     
-# ax7.semilogy(Ls, conds, "r", label="Equidistant nodes")
-# ax7.semilogy(Ls, conds_cheb, "c", label="Chebyshev nodes")
-# ax7.legend()
+    conds.append(np.linalg.cond(Q.transpose() @ Q))
+    mesh = np.linspace(0, om_end - 1/K2, num = int(K2*om_end)) + 1/(2*K2)
+    Q = q_eval_mat(mesh, L, tau)
+    conds_2.append(np.linalg.cond(Q.transpose() @ Q))
+    
+    mesh = chebyshev_nodes(0, om_end, int(K*om_end))
+    Q = q_eval_mat(mesh, L, tau)
+    conds_cheb.append(np.linalg.cond(Q.transpose() @ Q))
+    
+ax7.semilogy(Ls, conds, "r", label="Equidistant nodes, $h=0.2$")
+ax7.semilogy(Ls, conds_2, "m", label="Equidistant nodes, $h=0.05$")
+ax7.semilogy(Ls, conds_cheb, "c", label="Chebyshev nodes")
+ax7.legend(loc="lower right")
 
 
 plt.show()
