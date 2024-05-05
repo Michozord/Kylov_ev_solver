@@ -7,6 +7,7 @@
 \usepackage{ifthen}
 \usepackage{color}
 \usepackage{amsmath,amsthm,amssymb,amsfonts}
+\usepackage{mathtools}
 \usepackage{graphicx}
 \usepackage{tikz}
 \usepackage{psfrag}
@@ -871,7 +872,7 @@ We start this section with idea to increase the number of collocation knots, but
 
 Note, that Definition \ref{def:least sq} is just modification of the collocation problem \eqref{eq:alpha eq coll} for the case $K>L$.
 
-\begin{prop}[Normal equation]
+\begin{prop}[Normal equation]\label{prop:normal eq}
     Problem stated in Definition \ref{def:least sq} is well-defined, i.e., has at least one solution. Vector $\Vec{\alpha} \in \R^{L}$ solves \eqref{eq:least sq} if and only if it solves the normal equation:
     \begin{equation}\label{eq:normal eq}
         Q^T Q \Vec{\alpha} = Q^T c.
@@ -905,9 +906,9 @@ Since defined operator $\Phi$ mimics squared $L^2$ distance between target funct
 \begin{theorem}
     Operator $\Phi$ from Definition \ref{def:Phi} is continuous differentiable. It has exactly one global minimum $\Vec{\alpha} \in \R^L$, which is solution to the liner system of equations:
     \begin{equation}\label{eq:l2 matrix cont}
-        X \Vec{\alpha} = \frac{1}{\tau} d
+        X \Vec{\alpha} = d
     \end{equation}
-    with matrix $X\in \R^{L\times L}$, $X_{ij} := \langle q_i, q_j \rangle$ for all $i, j = 0, \dots, L-1$ and vector $d \in \R^L$, $d_j := \langle q_j, \gamma\rangle$ for all $j = 0, \dots, L-1$.
+    with matrix $X\in \R^{L\times L}$, $X_{ij} := \langle q_i, q_j \rangle$ for all $i, j = 0, \dots, L-1$ and vector $d \in \R^L$, $d_j := \langle q_j, \gamma\rangle/\tau$ for all $j = 0, \dots, L-1$.
 \end{theorem}
 \begin{proof}
     Regularity of the function $\Phi$ follows from its definition. From \eqref{eq:dffv} we get the representation: 
@@ -944,22 +945,52 @@ where $h := \omega_\e/K$ is the quadrature step-size and $\omega_k := (k+1/2)h$ 
 \begin{definition}\label{def:Xh}
     Let $K$ be given number of quadrature nodes on interval $[0, \omega_\e]$, $h := \omega_\e/K$ and $\omega_k := (k+1/2)h$ for all $k = 0, \dots, K-1$. For given number of time-steps $L$ and goal function $\gamma$ we define:
     \begin{equation*}
-        X_h := \left(h\sum_{k=0}^{K-1} q_i(\omega_k)q_j(\omega_k)\right)_{i,j = 0}^{L-1} \in \R^{L\times L} \text{ and } d_h := \left(h\sum_{k=0}^{K-1} q_i(\omega_k)\gamma(\omega_k) \right)_{i=0}^{L-1} \in \R^L.
+        X_h := \left(h\sum_{k=0}^{K-1} q_i(\omega_k)q_j(\omega_k)\right)_{i,j = 0}^{L-1} \in \R^{L\times L} \text{ and } d_h := \left(\frac{h}{\tau}\sum_{k=0}^{K-1} q_i(\omega_k)\gamma(\omega_k) \right)_{i=0}^{L-1} \in \R^L.
     \end{equation*}
 \end{definition}
 
     
-\begin{lemma}
+\begin{lemma}\label{lemma:QTQ}
     For given $h$, $K$, $L$ and $\tau$ let $Q \in \R^{K\times L}$ be the evaluation matrix on quadrature nodes $\omega_k = (k+1/2)h$ for $k = 0, \dots, K-1$ (see Definition \ref{def:evaluation matrix}). Let $c := 1/\tau \left(\gamma(\omega_0), \dots, \gamma(\omega_{K-1})\right)^T$ as in Definition \ref{def:least sq}.
     Then for $X_h$ and $d_h$ from Definition \ref{def:Xh} holds: 
-    \begin{equation*}
+    \begin{equation*}\label{eq:link QTQ=X}
         h Q^T Q = X_h \quad \text{ and } \quad h Q^Tc = d_h.
     \end{equation*}
 \end{lemma}
 \begin{proof}
-    ........
+    To show the first identity, let consider arbitrary $i, j = 0, \dots, L-1$. From definitions of $Q$ and $X_h$ follows:
+    \begin{equation*}
+        \left(hQ^TQ\right)_{i,j} =  h \sum_{k=0}^{K-1} Q_{k,i} Q_{k,j} = h \sum_{k=0}^{K-1} q_i(\omega_k)q_j(\omega_k) = (X_h)_{i,j}.
+    \end{equation*}
+    Similarly we show the second claim. For $i = 0, \dots, L-1$ holds:
+    \begin{equation*}
+        \left(hQ^T c\right)_i = h \sum_{k=0}^{K-1} Q_{k,i}c_k = h\sum_{k=0}^{K-1} q_i(\omega_k) \frac{\gamma(\omega_k)}{\tau} = \left(d_h\right)_i,
+    \end{equation*}
+    what concludes the proof.
 \end{proof}
 
+We will implement the $L^2$ minimization using introduced approximation of the integrals by the midpoint quadrature rule. Claim of the last Lemma simplifies preparation of the matrix $X_h$ and right hand side of the equation $d_h$ in the practice. Moreover, a remarkable consequence of this Lemma is following link between obtaining $\Vec{\alpha}$ by least squares method and normal equation \eqref{eq:normal eq} with equidistant knots and by $L^2$ minimization \eqref{eq:l2 matrix cont}. 
+
+\begin{theorem}[Least squares method with equidistant knots converges to $L^2$ minimization]\label{theorem:lsq converges to l2}
+    Let $\tau>0$ be the time-step, $L$ number of time-steps and $[0, \omega_\e]$ controlled interval. Let $\gamma$ be a piecewise continuous target function. For all $h>0$ let $K := \lfloor \omega_\e/h\rfloor $ denote the number of equidistant knots: $ \Delta_h := \{\omega_k := (k+1/2)h : \quad k=0, \dots, K-1\}$. With $\Vec{\alpha}_h$ we denote solution to the normal equation (see Proposition \ref{prop:normal eq}) with knots $\Delta_h$. Let $\Vec{\alpha}$ denote the solution to $L^2$ minimization \eqref{eq:l2 matrix cont}. Then $\lim_{h\rightarrow 0} \Vec{\alpha}_h = \Vec{\alpha}$.
+
+\end{theorem}
+\begin{proof}
+    For every $h>0$ and $K>L$ let $Q_K$ be the evaluation matrix (see Definition \ref{def:evaluation matrix}) in knots $\Delta_h$. $\Vec{\alpha}_h$ is a solution to the normal equation: 
+    \begin{equation*}
+        Q^T Q \Vec{\alpha}_h = Q^Tc,
+    \end{equation*}
+    with $c:= 1/\tau \left(\gamma(\omega_0), \dots, \gamma(\omega_{K-1})\right)^T$, or, equivalently:
+    \begin{equation*}
+        hQ^T Q \Vec{\alpha}_h = hQ^Tc.
+    \end{equation*}
+    Also from Lemma \ref{lemma:QTQ} follows, that $\Vec{\alpha}_h$ solves:
+    \begin{equation}\label{eq:alpha_h eq}
+        X_h \Vec{\alpha}_h = d_h.
+    \end{equation}
+    
+    Since $\gamma$ is piecewise continuous function on compact interval and $q_l$ ($l = 0, \dots, L-1$) are polynomials, midpoint quadrature rule converges to the exact integral, as $h$ tends to 0. Therefore $\lim_{h\rightarrow 0} X_h = X$ and $\lim_{h\rightarrow 0} d_h = d$. From \eqref{eq:alpha_h eq} and continuity of the matrix inversion, we conclude $\lim_{h\rightarrow 0} \Vec{\alpha}_h = \Vec{\alpha}$.
+\end{proof}
 
 
 \bibliographystyle{alpha} 
