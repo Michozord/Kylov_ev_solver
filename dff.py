@@ -83,7 +83,8 @@ def plot_nodes(nodes: np.array, target: Callable, ax: plt.axis, label: Optional[
 
 def prepare_plots(*ranges, title: Optional[str]="", xlabel: Optional[str]=r"$\omega$", 
                  ylabel: Optional[str]=r"$|\tilde{\beta}_{\alpha}(\omega)|$",
-                 fontsize: Optional[int]=None, set_y_lim: Optional[bool]=True) -> Union[plt.axis, tuple[plt.axis]]:
+                 fontsize: Optional[int]=None, set_y_lim: Optional[bool]=True,
+                 twin: Optional[bool]=False, twin_ylabel: Optional[str] = r"$\sigma(\omega)$") -> Union[plt.axis, tuple[plt.axis]]:
     style.use("classic")
     plt.rcParams.update({'axes.formatter.offset_threshold': 5, 'lines.linewidth': 1.5})
     if fontsize:
@@ -100,10 +101,16 @@ def prepare_plots(*ranges, title: Optional[str]="", xlabel: Optional[str]=r"$\om
         if set_y_lim:
             ax.set_ylim(-0.5, 1.5)
         plt.grid()
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
         axes += (ax,)
         plt.title(title)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
+        if twin:
+            axt = ax.twinx()
+            axt.set_ylabel(twin_ylabel)
+            axes += (axt,)
+            fig.tight_layout()
+
         
     if len(axes) == 1:
         return axes[0]
