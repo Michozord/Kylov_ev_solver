@@ -656,11 +656,11 @@ Now that we have constructed the operator $C$ meeting our requirements, we can r
         \State \textbf{Input: } weight function $\alpha$, start vector $r$ with $\|r\|_2 = 1$, $M^{-1}$, $S$, dimension $m$ of the Krylov space, time-step $\tau$, number of time-steps $L$
         \State $b_0 \gets r$
         \For{$k = 1, \dots, m-1$}\Comment{Krylov loop}
-            \State $y_{-1}, y_{0} \gets r$
-            \State $b_k \gets \tau \alpha(0) r$
-            \For{$l = 1, \dots L-1$}\Comment{Time-stepping in each Krylov step}
+            \State $y_{0} \gets b_{k-1}$, $y_1 \gets b_{k-1} - \frac{\tau^2}{2}M^{-1}Sb_{k-1}$
+            \State $b_k \gets \tau \alpha(0) y_0 + \tau\alpha(\tau)y_1$ \Comment{First two summands in \eqref{eq:C operator}}
+            \For{$l = 2, \dots L-1$}\Comment{Time-stepping in each Krylov step}
                 \State $y_l \gets -\tau^2 M^{-1}S y_{l-1} + 2y_{l-1} - y_{l-2}$ \Comment{$y_l$ represents $y_l(r)$ from \eqref{eq:fd for wave eq}}
-                \State $b_k \gets b_k + \tau \alpha(\tau l)y_l$ \Comment{Computation of \eqref{eq:C operator}}
+                \State $b_k \gets b_k + \tau \alpha(\tau l)y_l$ \Comment{Computation of $b_{k-1}\mapsto b_k := Cb_{k-1}$}
             \EndFor
             \State $b_k \gets b_k - \sum_{i=0}^{k-1}(b_i^Tb_k)b_i$ \Comment{Gram-Schmidt orthogonalization}
             \If{$\|b_k\|_2 \neq 0$}
@@ -1019,7 +1019,7 @@ In both cases, the behavior of the discrete filter function in the neighborhood 
     \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_1.png}
     \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_2.png}
     \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_3.png}
-    \caption{Plots of the function $\left|\dffv\right|$ with the vector $\Vec{\alpha}$ obtained by the $L^2$ minimization method with midpoint quadrature. Here, $h=0.05$, the target interval is $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, the time-step is $\tau = 0.0056$, and $\omega_\e = 2/\tau \approx 357.14$. We vary the number of time-steps $L$. The yellow curve represents the discrete filter function obtained by the inverse Fourier transform of the indicator with end-time $T = 0.279$.}
+    \caption{Plots of the function $\left|\dffv\right|$ with the vector $\Vec{\alpha}$ obtained by the $L^2$ minimization method with midpoint quadrature, $h=0.05$. The target interval is $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, the time-step is $\tau = 0.0056$, and $\omega_\e = 2/\tau \approx 357.14$. We vary the number of time-steps $L$. The yellow curve represents the discrete filter function obtained by the inverse Fourier transform of the indicator with end-time $T = 0.279$.}
     \label{fig:l2 ex1}
 \end{figure}
 
@@ -1028,7 +1028,7 @@ In both cases, the behavior of the discrete filter function in the neighborhood 
     \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_4.png}
     \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_5.png}
     \includegraphics[width=0.75\linewidth]{latex//images//l2_minim/Figure_6.png}
-    \caption{Plots of the function $\left|\dffv\right|$ with the vector $\Vec{\alpha}$ obtained by the $L^2$ minimization method with midpoint quadrature. Here, $h=0.05$ for the blue, red, and green curves, and $h=0.001$ for the light blue curve. The target interval is $\left[\omega_{\min}, \omega_{\max} \right] = [122, 130]$, the time-step is $\tau = 0.0056$, and $\omega_\e = 2/\tau \approx 357.14$. We vary the number of time-steps $L$. The yellow curve represents the discrete filter function obtained by the inverse Fourier transform of the indicator with end-time $T = 0.279$.}
+    \caption{Plots of the function $\left|\dffv\right|$ with the vector $\Vec{\alpha}$ obtained by the $L^2$ minimization method with midpoint quadrature, $h=0.05$ for the blue, red, and green curves, and $h=0.001$ for the light blue curve. The target interval is $\left[\omega_{\min}, \omega_{\max} \right] = [122, 130]$, the time-step is $\tau = 0.0056$, and $\omega_\e = 2/\tau \approx 357.14$. We vary the number of time-steps $L$. The yellow curve represents the discrete filter function obtained by the inverse Fourier transform of the indicator with end-time $T = 0.279$.}
     \label{fig:l2 ex2}
 \end{figure}
 
