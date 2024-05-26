@@ -736,10 +736,6 @@ The computational costs of the Krylov eigenvalue solver depend on the number of 
 
 We choose the setup in \cite[section 3.1.2]{nannen}: $\tau = 0.0056$, $\omega_\e = 2/\tau \approx 357.14$, and varying end-times $T$ and target intervals $\left[\omega_{\min}, \omega_{\max}\right]$. Results are presented in Figures \ref{fig:fourier1} and \ref{fig:fourier2}. In each figure, the first plot presents the whole controlled interval $\left[0, \omega_\e\right]$, and the second plot shows the behavior of the discrete filter function in the region of interest compared to the target indicator function.
 
-We can observe that for small values of $L$, the discrete filter function $\dff$ at the end of the controlled interval (for $\omega \approx \omega_\e$) may exceed its values in the target interval, which is unacceptable. Numerical experiments showed that increasing the number of time steps $L$ (and thus increasing the degree of the polynomial $\dff$) causes better behavior in both the target interval and the neighborhood of $\omega_\e$ and solves this issue. However, increasing $L$ is undesirable since it increases the computational costs of the algorithm.
-
-It's worth noticing that the presented method can be extended for target functions other than the indicator. An arbitrary target function $\gamma$ on the interval $[0, \infty)$ can be symmetrically extended to the whole real domain. This always yields a real-valued inverse Fourier transform. Truncation of this function to the interval $[0, T]$ fulfills the requirements set on the weight function.
-
 \begin{figure}[h]
     % left margin: 54 pt
     % top/bottom margin: 24 pt
@@ -816,6 +812,10 @@ It's worth noticing that the presented method can be extended for target functio
 %    \label{fig:fourier2}
 %\end{figure}
 
+We can observe that for small values of $L$, the discrete filter function $\dff$ at the end of the controlled interval (for $\omega \approx \omega_\e$) may exceed its values in the target interval, which is unacceptable. Numerical experiments showed that increasing the number of time steps $L$ (and thus increasing the degree of the polynomial $\dff$) causes better behavior in both the target interval and the neighborhood of $\omega_\e$ and solves this issue. However, increasing $L$ is undesirable since it increases the computational costs of the algorithm.
+
+It's worth noticing that the presented method can be extended for target functions other than the indicator. An arbitrary target function $\gamma$ on the interval $[0, \infty)$ can be symmetrically extended to the whole real domain. This always yields a real-valued inverse Fourier transform. Truncation of this function to the interval $[0, T]$ fulfills the requirements set on the weight function.
+
 \section{Collocation method}\label{section:collocation}
 The definitions of the discrete operator $C$ for Krylov iteration \eqref{eq:C operator} and of the discrete filter function $\dff$ \eqref{eq:dff} for a fixed time-step $\tau$ and number of time-steps $L$ do not require the values of the weight function in the whole domain, but only at $\tau l$ for $l=0, \dots, L-1$. Thus, we can reduce the problem to finding a vector $\Vec{\alpha} \in \R^L$, such that $\Vec{\alpha}_l$ represents the value $\alpha(\tau l)$ for all $l=0, \dots, L-1$.
 
@@ -851,7 +851,7 @@ As an example, we choose the same parameters as in the previous section, especia
     \caption{Plots of the function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation \eqref{eq:alpha eq coll}. The target interval is $\left[\omega_{\min}, \omega_{\max} \right] = [39, 45]$, the time-step is $\tau = 0.0056$, and $\omega_\e = 2/\tau \approx 357.14$. We vary the number of time-steps and collocation nodes $L$. Crosses represent the values of the target function at the knots.}
     \label{fig:eq coll beta}
 \end{figure}
-
+\newpage
 By a small number of collocation knots, intervals between nodes are large, and we can observe strong oscillation of the polynomial, especially for larger values of $\omega$. Increasing the number of nodes does not improve the behavior for two reasons. Firstly, this increases the degree of the polynomial, which compounds the problem despite shorter intervals between nodes. Secondly, higher values of $L$ rapidly worsen the conditioning of the matrix $Q$. Figure \ref{fig:eq coll cond} presents $\mathrm{cond}(Q) := \|Q\|_2 \|Q^{-1}\|_2$ (where $\| \cdot \|_2$ denotes the induced matrix norm by the Euclidean norm) depending on the size of the problem $L$.
 
 \begin{figure}
@@ -885,7 +885,6 @@ Because equidistant nodes in the collocation method do not produce desired resul
 \end{proof}
 
 For a fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \omega_{L-1} \in \left[0, 2/\tau\right]$, such that $\omega_0^2, \dots, \omega_{L-1}^2$ are Chebyshev nodes in the interval $\left[0, 4/\tau^2\right]$, and solve the linear system of equations \eqref{eq:alpha eq coll}. Figures \ref{fig:cheb coll 1} and \ref{fig:cheb coll 2} show the obtained discrete filter functions $\left|\dffv\right|$ for different numbers of time-steps $L$ and target intervals $\left[\omega_{\min}, \omega_{\max} \right]$. We compare the behavior of the obtained discrete filter function with the target function and the inverse Fourier transformation \eqref{eq:alpha fourier} method.
-
 
 \begin{figure}[h]
     % left margin: 54 pt
@@ -959,6 +958,7 @@ For a fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \o
 %    \label{fig:cheb coll 2}
 %\end{figure}
 
+\newpage
 Error estimation for Lagrange interpolation \eqref{eq:lagrange error est}, which was our motivation to replace equidistant nodes with Chebyshev ones, demands a function $\gamma$ that is $L$-times continuously differentiable, which is not the case for the indicator function. Therefore, in the third example, we change our target function to a $C^\infty$ function, the Gaussian peak $g(\omega) = \exp\left(-(\omega-\omega_{\mathrm{mid}})^2\right)$ with $\omega_{\mathrm{mid}}$ in the middle of the region of interest. Results are presented in Figure \ref{fig:cheb coll cont ex}. Again, we compare the obtained discrete filter function to one produced with the truncated inverse Fourier transform in a similar way to the derivation of \eqref{eq:alpha fourier}.
 
 A remarkable advantage of collocation in Chebyshev nodes is the good conditioning of the collocation matrix $Q$. The condition number for Chebyshev nodes is, in contrast to equidistant nodes, independent of the size of the problem $L$. Furthermore, the obtained discrete filter function does not oscillate strongly between collocation knots, even for an uncontinuous target function like the indicator.
@@ -1286,7 +1286,11 @@ In both cases, the behavior of the discrete filter function in the neighborhood 
 %    \label{fig:l2 ex2}
 %\end{figure}
 
+\chapter{Numerical simulation}
+.......................
 
+\chapter{Conclusions}
+..............
 
 \bibliographystyle{alpha} 
 %\bibliographystyle{abbrv}
