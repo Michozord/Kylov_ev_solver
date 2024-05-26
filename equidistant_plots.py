@@ -9,6 +9,7 @@ from dff import *
 from equidistant_collocation import compute_alpha
 from chebyshev_collocation import chebyshev_nodes
 
+pltstl = PlotStyle()
 
 tau = 0.0056
 om_end = 2/tau
@@ -22,12 +23,12 @@ for L in (10, 25):
     T = tau * L 
     print(f"L = {L}")
     alpha = compute_alpha(om_end, L, L, tau, chi)
-    plot_beta(alpha, L, tau, 0, om_end, ax, label=f"$L = {L}, T = {str(T)[0:5]}$")
+    plot_beta(alpha, L, tau, 0, om_end, ax, style=pltstl.get_style(), label=f"$L = {L}, T = {str(T)[0:5]}$")
     c = "blue" if L==10 else "green"
 
     plot_nodes(np.linspace(0, om_end, num=L), chi, ax, label="", color=c, crosses="X")
 
-ax.plot(x:=np.linspace(0, om_end, num=10000), list(map(chi, x)), "--", color="black", label=r"$\chi_{[\omega_{\min}, \omega_{\max}]}$")
+ax.plot(x:=np.linspace(0, om_end, num=10000), list(map(chi, x)), linestyle=pltstl.target_style, color="black", label=r"$\chi_{[\omega_{\min}, \omega_{\max}]}$")
 ax.legend()
 
 

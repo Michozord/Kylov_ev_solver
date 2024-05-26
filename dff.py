@@ -11,6 +11,24 @@ import numpy as np
 from typing import Callable, Optional, Union
 from types import FunctionType
 
+class PlotStyle:
+    def __init__(self):
+        self.i = -1
+        self.styles = ["solid", (5, (10, 3)), (0, (5, 5)), (0, (3, 1, 1, 1))]
+        # solid, long dash with offset, dashed, densely dashdotdotted
+        
+    def get_style(self):
+        self.i = (self.i+1)%len(self.styles)
+        return self.styles[self.i]
+    
+    @property
+    def target_style(self):
+        return (0, (1, 1))
+    
+    def reset(self):
+        self.i = -1
+
+
 def indicator(om_min: float, om_max: float) -> Callable:
     chi = lambda x: 1 if x >= om_min and x <= om_max else 0
     return chi
@@ -64,7 +82,7 @@ def q_eval_mat(omegas: np.array, L: int, tau: float, cheb: Optional[bool] = True
         
 def plot_beta(alpha: Union[Callable, np.array], L: int, tau: float, start: float, 
               end: float, ax: plt.axis, cheb: Optional[bool] = True, label: Optional[str] = "", 
-              color: Optional[str]="", num: Optional[int] = 10000, Q: Optional[np.array] = None) -> np.array:
+              color: Optional[str]="", style="solid", num: Optional[int] = 10000, Q: Optional[np.array] = None) -> np.array:
     if isinstance(alpha, FunctionType):
         alpha = np.array(list(map(lambda l: alpha(tau*l), range(L))))
     plot_mesh = np.linspace(start, end, num=num)
@@ -72,9 +90,9 @@ def plot_beta(alpha: Union[Callable, np.array], L: int, tau: float, start: float
         Q = q_eval_mat(plot_mesh, L, tau, cheb=cheb)
     vals = abs(tau * Q @ alpha)
     if color:
-        ax.plot(plot_mesh, vals, label=label, color=color)
+        ax.plot(plot_mesh, vals, linestyle=style, label=label, color=color)
     else:
-        ax.plot(plot_mesh, vals, label=label)
+        ax.plot(plot_mesh, vals, linestyle=style, label=label)
     return Q 
 
 def plot_nodes(nodes: np.array, target: Callable, ax: plt.axis, label: Optional[str]="", color: Optional[str]="black", crosses: Optional[str]="x", size: Optional[int]=12):
@@ -84,7 +102,8 @@ def plot_nodes(nodes: np.array, target: Callable, ax: plt.axis, label: Optional[
 def prepare_plots(*ranges, title: Optional[str]="", xlabel: Optional[str]=r"$\omega$", 
                  ylabel: Optional[str]=r"$|\tilde{\beta}_{\alpha}(\omega)|$",
                  fontsize: Optional[int]=None, set_y_lim: Optional[bool]=True,
-                 twin: Optional[bool]=False, twin_ylabel: Optional[str] = r"$\sigma(\omega)$") -> Union[plt.axis, tuple[plt.axis]]:
+                 ymax: Optional[float]=1.2, twin: Optional[bool]=False, 
+                 twin_ylabel: Optional[str] = r"$\sigma(\omega)$") -> Union[plt.axis, tuple[plt.axis]]:
     style.use("classic")
     plt.rcParams.update({'axes.formatter.offset_threshold': 5, 'lines.linewidth': 1.5})
     if fontsize:
@@ -99,7 +118,7 @@ def prepare_plots(*ranges, title: Optional[str]="", xlabel: Optional[str]=r"$\om
         ax = plt.subplot()
         ax.set_xlim(start, end)
         if set_y_lim:
-            ax.set_ylim(-0.01, 1.5)
+            ax.set_ylim(-0.01, ymax)
         plt.grid()
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
