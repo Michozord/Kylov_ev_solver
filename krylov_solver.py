@@ -59,9 +59,9 @@ def krylov_solver(M_inv, S, r, tau, L, m_min, m_max, alpha):
     r = r.reshape((N, 1))
     B= deepcopy(r)
     for k in range(1, m_max+1):
-        y_pp = deepcopy(r)              # y_(l-2)
-        y_p = r - tau2/2 * MinvS @ r    # y_(l-1)
-        b = tau * alpha[0] * r.reshape((N,1))
+        y_pp = deepcopy(B[:,-1])              # y_(l-2)
+        y_p = y_pp - tau2/2 * MinvS @ y_pp    # y_(l-1)
+        b = tau * alpha[0] * y_pp + tau * alpha[1]* y_p
         for l in range(2, L):   # maybe check needed, idk
             y = - tau2 * MinvS @ y_p + 2 * y_p - y_pp
             b += tau * alpha[l] * y
@@ -71,7 +71,7 @@ def krylov_solver(M_inv, S, r, tau, L, m_min, m_max, alpha):
         # Gram-Schmidt:
         proj = np.zeros(b.shape)
         for i in range(k):
-            proj += ((B[:,i] @ b)[0] * B[:,i]).reshape(proj.shape)
+            proj += ((B[:,i] @ b) * B[:,i]).reshape(proj.shape)
         b -= proj
         
         if np.linalg.norm(b) < 1e-13:
@@ -82,13 +82,13 @@ def krylov_solver(M_inv, S, r, tau, L, m_min, m_max, alpha):
             break
         
         b /= np.linalg.norm(b)
-        B = np.concatenate((B, b), axis=1)
+        B = np.concatenate((B, b.reshape((N, 1))), axis=1)
 
         if k >= m_min:
+            
             A = B.transpose() @ MinvS @ B
             omega2, v = _direct_solver(A, B, MinvS)
-            if omega2 is None:
-                breakpoint()
+            if False:
                 raise RuntimeError("does not work")
             else:
                 results.append((k, omega2, v))
@@ -102,10 +102,13 @@ def _direct_solver(A, B, MinvS):
     max_index = np.argmax(eigenvalues)
     max_eigenvalue = eigenvalues[max_index]
     coord_v = eigenvectors[:, max_index]
+    lam = (coord_v @ A @ coord_v)/(coord_v @ coord_v)
     v = B @ coord_v
-    lam = _is_eigenvector(MinvS, v)
+    # lam = _is_eigenvector(MinvS, v)
     if lam is None:
-        return None, None
+        # lam = (v @ MinvS @ v)/(v @ v)
+        # breakpoint()
+        return lam, v
     else:
         return lam, v
             
@@ -118,7 +121,7 @@ def _is_eigenvector(A, v, tol=1e-6):
     unique_ratios = np.unique(ratios[non_zero_indices])
     
     # If all the non-zero ratios are the same within a tolerance, then v is an eigenvector
-    if len(unique_ratios) == 1 and (np.abs(Av - unique_ratios[0] * v) < tol).all():
+    if len(unique_ratios) == 1 and (np.linalg.norm(Av - unique_ratios[0] * v) < tol).all():
         return unique_ratios[0]
     else:
         return None
@@ -132,7 +135,7 @@ def test():
     tau = 0.0056
     L = 100
     m_min = 10
-    m_max = 40
+    m_max = 100
     alpha = fourier_indicator(12, 14, tau*L)
     r = np.random.rand(N)
     for i in range(1, N):
