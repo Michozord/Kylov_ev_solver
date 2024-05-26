@@ -23,10 +23,11 @@ def compute_alpha(om_end: float, L: int, tau: float, om_min: float, om_max: floa
 
 
 if __name__ == "__main__":
-    om_min, om_max = 212, 214
+    om_min, om_max = 12, 14
     tau = 0.0056
     om_end= 2/tau
-    L = 200
+    L = 20
+    chi = indicator(om_min, om_max)
     title = r"L2 minimization, T = " + str(L * tau)[0:7] + r", $\omega_{end}$ = " + str(om_end)[0:7] + ", L = " + str(L) + f", target intervall ({om_min}, {om_max})"
     ax = prepare_plots(0, om_end, title=title)
     ax2 = prepare_plots(om_end-0.2, om_end, title=title)
@@ -35,13 +36,15 @@ if __name__ == "__main__":
     Q1 = plot_beta(alpha, L, tau, 0, om_end, ax, label=f"quad. step {1/1000}", cheb=True)
     Q2 = plot_beta(alpha, L, tau, om_end-0.2, om_end, ax2, label=f"quad. step {1/1000}", cheb=True)
     
-    alpha = compute_alpha(om_end, L, tau, om_min, om_max)
-    plot_beta(alpha, L, tau, 0, om_end, ax, label=f"quad. step {1/20}", cheb=True, Q=Q1)
-    plot_beta(alpha, L, tau, om_end-0.2, om_end, ax2, label=f"quad. step {1/20}", cheb=True, Q=Q2)
+    # alpha = compute_alpha(om_end, L, tau, om_min, om_max, K=1000)
+    # plot_beta(alpha, L, tau, 0, om_end, ax, label=f"quad. step {1/20}", cheb=True, Q=Q1)
+    # plot_beta(alpha, L, tau, om_end-0.2, om_end, ax2, label=f"quad. step {1/20}", cheb=True, Q=Q2)
     
     alpha = fourier_indicator(om_min, om_max, L*tau)
     plot_beta(alpha, L, tau, 0, om_end, ax, label="Fourier")
     plot_beta(alpha, L, tau, om_end-0.2, om_end, ax2, label="Fourier")
+    
+    ax.plot(x:= np.linspace(0, om_end, num=10000), list(map(chi, x)), "--", color="k", label=r"$\chi$")
     
     ax.legend()
     ax2.legend()

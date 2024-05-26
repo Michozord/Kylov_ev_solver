@@ -99,7 +99,7 @@ def prepare_plots(*ranges, title: Optional[str]="", xlabel: Optional[str]=r"$\om
         ax = plt.subplot()
         ax.set_xlim(start, end)
         if set_y_lim:
-            ax.set_ylim(-0.5, 1.5)
+            ax.set_ylim(-0.01, 1.5)
         plt.grid()
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
