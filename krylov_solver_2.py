@@ -20,12 +20,13 @@ def _direct_solver(A, B, MinvS):
     lam = (coord_v @ A @ coord_v)/(coord_v @ coord_v)
     v = B @ coord_v
     # lam = _is_eigenvector(MinvS, v)
-    if lam is None:
-        # lam = (v @ MinvS @ v)/(v @ v)
-        # breakpoint()
-        return lam, v
-    else:
-        return lam, v
+    # if lam is None:
+    #     # lam = (v @ MinvS @ v)/(v @ v)
+    #     # breakpoint()
+    #     return lam, v
+    # else:
+    #     return lam, v
+    return lam, v
             
 
 def krylov_solver(M_inv, S, tau, L, m_min, m_max, alpha):
@@ -78,13 +79,17 @@ def krylov_solver(M_inv, S, tau, L, m_min, m_max, alpha):
         if k >= m_min:
             
             A = B.transpose() @ MinvS @ B
-            omega2, v = _direct_solver(A, B, MinvS)
-            if False:
-                raise RuntimeError("does not work")
-            else:
-                results.append((k, np.real(omega2), np.real(v)))
-                print(f"k = {k}:\tomega = {np.sqrt(np.real(omega2))}")
-    # breakpoint()
+            eigvals, eigvecs = np.linalg.eig(A)
+            results.append((k, np.real(eigvals), np.real(eigvecs), deepcopy(A), B @ np.real(eigvecs)))
+                        
+            
+            # omega2, v = _direct_solver(A, B, MinvS)
+            # if False:
+            #     raise RuntimeError("does not work")
+            # else:
+            #     results.append((k, np.real(omega2), np.real(v)))
+            #     print(f"k = {k}:\tomega = {np.sqrt(np.real(omega2))}")
+
     return results
 
 
@@ -112,17 +117,26 @@ def test():
     
     M_inv = np.linalg.inv(M)
     
-    tau = 0.0056
+    tau = 0.0056        # controlled intervall up to omega_end = 360
     L = 100
-    m_min = 10
-    m_max = 137
-    alpha = fourier_indicator(12, 14, tau*L)
+    m_min = 5
+    m_max = fes.ndof
+    alpha = fourier_indicator(np.sqrt(957), np.sqrt(961), tau*L)
     
     eigvals, eigvecs = np.linalg.eig(M_inv @ S)
     
     results = krylov_solver(M_inv, S, tau, L, m_min, m_max, alpha)
-    return eigvals, eigvecs, results
     
-eigvals, eigvecs, results = test()
+    E = np.zeros((fes.ndof+1, fes.ndof-m_min+1))
+    for k in range(fes.ndof-m_min+1):
+        result = results[k]
+        eigvals_sorted = np.sort(result[1])
+        E[:len(eigvals_sorted),k] = eigvals_sorted
     
+    return E, results
+    
+
+E, results = test()
+
+
 

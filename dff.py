@@ -104,8 +104,8 @@ def prepare_plots(*ranges, title: Optional[str]="", xlabel: Optional[str]=r"$\om
                  fontsize: Optional[int]=None, set_y_lim: Optional[bool]=True,
                  ymax: Optional[float]=1.2, twin: Optional[bool]=False, 
                  twin_ylabel: Optional[str] = r"$\sigma(\omega)$") -> Union[plt.axis, tuple[plt.axis]]:
-    style.use("classic")
-    plt.rcParams.update({'axes.formatter.offset_threshold': 5, 'lines.linewidth': 1.5})
+    # style.use("classic")
+    # plt.rcParams.update({'axes.formatter.offset_threshold': 5, 'lines.linewidth': 1.5})
     if fontsize:
         plt.rcParams.update({'font.size': fontsize})
     
