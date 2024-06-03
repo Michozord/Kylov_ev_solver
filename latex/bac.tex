@@ -1003,7 +1003,7 @@ Obviously, with increasing $L$, the distances between nodes decrease, which solv
 %    \label{fig:cheb coll cont ex}
 %\end{figure}
 
-\section{Least squares method and minimization of $L^2$ norm}
+\section{Least squares method and minimization of $L^2$ norm}\label{section:lsq l2}
 We start this section with the idea of fixing the number $L$ of time-steps (and thus the polynomial degree) to avoid increasing the computational costs of the algorithm, while simultaneously increasing the number of collocation knots. Obviously, the obtained system of equations is (in general) not solvable, so we use linear least squares fitting. Then we switch to another approach -- we try to find $\Vec{\alpha}$ that minimizes the $L^2$ norm of the difference between the corresponding discrete filter function and the target function $\gamma$. Finally, Theorem \ref{theorem:lsq converges to l2} will show the connection between these two methods.
 
 \begin{definition}[Least squares method]\label{def:least sq}
@@ -1286,8 +1286,25 @@ In both cases, the behavior of the discrete filter function in the neighborhood 
 %    \label{fig:l2 ex2}
 %\end{figure}
 
-\chapter{Numerical simulation}
-.......................
+\chapter{Numerical experiments}\label{chapter:experiments}
+In this chapter we apply deployed Krylov eigenvalue solver (Algorithm \ref{alg:Krylov pro}) to problem stated in Definition \ref{def:ev problem} on a two-dimensional rectangular domain. We compare convergence of the eigenvalues in and outside of the target interval for different filter functions. For space discretization, computation of matrices $M$ and $S$ and visualisation of obtained eigenfunctions we use FEM library Netgen/NGSolve in Python.
+
+We consider domain $\Omega := \left[0, \sqrt[3]{2}\right]\times\left[0, 1\right] \subset \R^2$ and fix space-discretization $\mathcal{T}$ with maximal size $h = 0.05$. As discrete solution space we choose two-dimensional first-order splines: $V_h = \left{v \in H^1(\Omega) : \quad \forall T \in \mathcal{T}, v|_T \in \mathcal{P}_1\right}$. This leads to a $N=629$-dimensional matrix eigenvalue problem. 
+
+Exact spectrum of the negative Laplace operator with Neumann boundary conditions on $\Omega$ is $ \sigma(-\Delta) = \left{\omega^2_{m,n} := \left(m^2/\sqrt[3]{4} + n^2\right)\pi^2 : \quad m, n \in \N \right}$. We expect some perturbations of the spectrum due to discretization in space, however these errors does not depend on our method. Thus, we compare convergence of eigenvalues obtained by Krylov iteration to eigenvalues of the high-dimensional matrix eigenvalue problem after triangularization. I.e., the reference spectrum $\sigma(M^{-1}S)$ contains eigenvalues of the matrix $M^{-1}S$ computed numerically by \texttt{numpy.linalg.eig()} function in Python. We also use this function as direct solver to solve $m$-dimensional projected problem.
+
+In the experiment, we select time-step $\tau = 0.0056$, what corresponds to controlled interval $[0, \omega_\e]$ with $\omega_\e = 2/\tau \approx 357.14$, that covers all resonances of the discrete problem \ref{eq:matrix form}. In each Krylov-step we perform $L=200$ time-steps. We construct the discrete filter function $\dffv$ by the least squares fitting with $K=1000$ Chebyshev nodes presented in Section \ref{section:lsq l2}. 
+
+For each eigenvalue $\omega^2_h$ in reference spectrum and Krylov iteration, we denote with $\mathrm{error}_{k}(\omega_h)$ distance between $\omega^2_h$ and closest obtained eigenvalue $\omega_{s}^{(k)}^2$ in the $k$-th iteration, i.e. $\mathrm{error}_{k}(\omega_h) := \min\left{\left|\omega_{s}^{(k)}^2 - \omega_h^2\right| : \quad \omega_{s}^{(k)}^2 \text{ result of k-th iteration}\right}$.
+
+Figures \ref{fig:simulation 1} and \ref{fig:simulation 2} present obtained resonances between 5 and 15 in first 50 Krylov iterations for two different target intervals: $\left[\omega_{\min}, \omega_{\max}\right] = [6, 8]$ and $\left[\omega_{\min}, \omega_{\max}\right] = [11, 13]$. Right vertical axis represents the step of the Krylov iteration. Vertical dotted lines are reference resonances in $\sigma(M^{-1}S)$. Plotted points are obtained resonances in each iteration. We mark them as "o", if $\mathrm{error}_{k}(\omega_h) < 10^{-5}$, otherwise as "x". The color palette also represents the distance to closest reference resonance: eigenvalues with small residuum are dark blue, while ones with larger error are depicted as yellow. Red curve (values on the right vertical axis) represents the absolute value of the discrete filter function $\dffv$. 
+
+Figure \ref{fig:errors plot} presents $\mathrm{error}_{k}(\omega_h)$ for $\omega_h^2$ perturbed by space-discretization exact eigenvalue $\omega_{m,n}^2$ and $\omega_{m,n}^2$ (todo: replace it!!!) and different target intervals. Note, that the approximation of the resonance obtained by the Krylov iteration cannot become worse, since in each iteration the algorithm enlarges the Krylov space. If an eigenvector $v$ lies in subspace spanned by $B_k$, then it also lies in the subspace spanned by $B_{k+1}$. Therefore we truncate these plots to 25 respectively 35 steps, where approached tolerance is much smaller, than tolerance resulting from the space-discretization and further iteration does not change this particular resonance.
+
+We observe much faster convergence of the method in regions, where $\left|dffv\right|$ is larger, especially in the middle of the target interval, the method yields accuracy in $\omega$ exceeding $10^{-10}$. On the other hand, resonances outside the target interval, where the filter function is closer to 0, converge much slower or seem not to converge in first 50 iterations at all. In other numerical experiments with other filter functions, we also observed strong corellation between absolute amplitude of the discrete filter function and convergence tempo of the eigenvalues.
+
+
+
 
 \chapter{Conclusions}
 ..............
