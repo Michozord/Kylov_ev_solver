@@ -116,22 +116,13 @@ Univ.Ass. Dipl.-Ing. Dr.techn. Markus Wess}\\[1ex]
 % DANKSAGUNG / ACKNOWLEDGEMENT [OPTIONAL]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter*{Danksagung} %\chapter*{Acknowledgement}
+\chapter*{Acknowledgement}
 \thispagestyle{empty}
-\selectlanguage{ngerman} %\selectlanguage{english}
+\selectlanguage{english}
 
-{\color{change}
-\begin{itemize}
-\item auf Deutsch oder Englisch
-\item Die Danksagung (engl. {\em Acknowledgement}) ist optional und kann auch entfallen. Denken Sie ggf.\ an Ihre eigenen Eltern!
+{
 
-\item Falls die Arbeit durch eine Forschungsprojekt finanziert wurde, so ist jedenfalls der Fördergeber (z.B.\ FWF oder WWTF) mit Projektnummer und Projektname zu nennen.
-\begin{itemize}
-\item siehe z.B.\ Dissertation von Michele Ruggeri:
-\item[] \href{https://publik.tuwien.ac.at/files/publik_252806.pdf}{\ttfamily https://publik.tuwien.ac.at/files/publik\_252806.pdf}
-\end{itemize}
-
-\end{itemize}
+I am deeply grateful to my supervisors, Prof. Dr. Lothar Nannen and Dr. Markus Wess, for their guidance and continuous support throughout the writing of this thesis. My appreciation also goes out to my parents and friends for their encouragement and support during my studies.
 }
 
 \cleardoublepage
@@ -185,7 +176,20 @@ Wien, am \today
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction}
 \label{chapter:introduction}
+In this thesis we consider eigenvalue problem of the negative Laplace operator on a 2- or 3-dimensional domain with Neumann boundary conditions. We compute the eigenpairs $(\omega^2, u)$ with a Krylov eigenvalue solver based on time domain solutions, following \cite{nannen}. This problem plays significant role in the theory of wave equations and physics, e.g. for computation of the acoustic resonances.
 
+We start with standard finite element method approach: we discretize the domain, fix the finite-dimensional discrete solution space and reformulate the eigenvalue problem to its weak form. This leads to the matrix eigenvalue problem to find eigenpairs $(\omega^2, v)$, such that $Sv = \omega^2Mv$, where matrices $S$ and $M$ are sparse, symmetric, and (semi-)positive definite. 
+
+Elementary numerical solvers for matrix eigenvalue problems struggle, if the size of the problem becomes large. Therefore, instead of using a direct solver, we perform Krylov iteration, project the large scale problem onto lower-dimensional Krylov space, and solve this problem using a direct solver with lower computational costs. We seek eigenvalues in some region of interest, thus we want the Krylov space to cover chiefly eigenspaces corresponding to sought eigenvectors. 
+
+As an operator for the iteration, we could use the shift-and-inverse matrix, but this would require computation of the inverse of a large matrix in each step, what is out of reach. A~remedy is to introduce operator $\Pi_\alpha$ as weighted time-integral of the solution to the semi-discrete wave equation, as well as its discrete implementable equivalent $C$, which uses a quadrature rule instead of the integral and finite difference method instead of analytical solution of the equation. 
+
+The construction of this operator requires a suitable weight function $\alpha$ or a weight vector $\vec{\alpha}$. Crucial in the method is so called filter function $\beta_\alpha$ and its discrete counterpart $\dff$, which for arbitrary weight function $\alpha$, quantifies the correspondence between eigenvalues of the original problem and eigenvalues of the operator $C$. 
+
+
+
+\newpage
+The structure of this paper is as follows. We first summarize and present 
 
 \chapter{A Krylov eigenvalue solver based on filtered time domain solutions}
 \label{chapter:ftd}
@@ -304,7 +308,7 @@ The second algorithm enables us to compute the entire spectrum of a matrix under
 
 Since our goal is to find the eigenvalues of the negative Laplace operator, we could use the QR algorithm to obtain all eigenvalues of the discrete problem. However, this is not feasible due to the high computational costs of the QR algorithm. We focus on situations where the problem on the discrete level is high-dimensional. The QR algorithm demands the computation of a QR-decomposition of an $N \times N$ matrix in each iteration, which has cubic computational complexity. Therefore, this method is out of reach for our problem. We have to deploy a method that is based on a direct solver, such as the power iteration. 
 
-\section{Krylov eigenvalue solver}
+\section{A Krylov eigenvalue solver}
 
 Now we need to make an assumption that there exists a matrix $C\in \R^{N \times N}$ such that its eigenvectors are linear combinations of eigenvectors of the discrete problem \eqref{eq:matrix form}. 
 
@@ -1309,7 +1313,7 @@ For each eigenvalue $\Tilde{\omega}^2_{m,n}$ in the reference spectrum and each 
     $L=200, T=1.12$:\\
     \includegraphics[width=0.49\linewidth]{latex//images//simulation/Figure_3.png}
     \includegraphics[width=0.49\linewidth]{latex//images//simulation/Figure_2.png}
-    \caption{Convergence of obtained resonances towards reference ones in the first 50 Krylov iterations for $L=100$ and $L=200$ time-steps per iteration. The filter function is constructed using the least squares method with 1000 Chebyshev knots, and target function $\chi_{\left[\omega_{\min}, \omega_{\max}\right]}$ with target intervals $[6,8]$ (right plots) and $ [11,13]$ (left plots).} 
+    \caption{Convergence of the obtained resonances towards the reference ones in the first 50 Krylov iterations for $L=100$ and $L=200$ time-steps per iteration. The filter function is constructed using the least squares method with 1000 Chebyshev knots, and the target function $\chi_{\left[\omega_{\min}, \omega_{\max}\right]}$ with target intervals $[6,8]$ (right plots) and $ [11,13]$ (left plots).} 
     \label{fig:simulation}
 \end{figure}
 \begin{figure}[h!]
@@ -1322,7 +1326,7 @@ For each eigenvalue $\Tilde{\omega}^2_{m,n}$ in the reference spectrum and each 
     \centering
     \includegraphics[width=0.49\linewidth]{latex//images//simulation/sim_4.png}
     \includegraphics[width=0.49\linewidth]{latex//images//simulation/sim_2.png}
-    \caption{Eigenfunctions corresponding to resonances $\omega_{1,2}$ (left plot) and $\omega_{4,2}$ (right plot) obtained after 20 steps of Krylov iteration with appropriate target intervals. Exact solutions are: $u_{m,n}(x,y) = \cos\left(m\pi x /\sqrt[3]{2}\right)\cos(n\pi y)$.}
+    \caption{Eigenfunctions corresponding to resonances $\omega_{1,2}$ (left plot) and $\omega_{4,2}$ (right plot) obtained after 20 steps of Krylov iteration with appropriate target intervals. The exact solutions are: $u_{m,n}(x,y) = \cos\left(m\pi x /\sqrt[3]{2}\right)\cos(n\pi y)$.}
     \label{fig:waves}
 \end{figure}
 
@@ -1334,26 +1338,26 @@ For further error analysis, we focus on two particular resonances: $\omega_{1,2}
 
 We observe much faster convergence of the method in regions, where $\left|\dffv\right|$ is larger. Especially, in the middle of the target interval the method with parameter $L=200$ yields accuracy in $\omega^2$ exceeding $10^{-10}$ after fewer than 30 steps. On the other hand, resonances outside the target interval, where the filter function is closer to 0, converge much slower or seem not to be captured in the first 50 iterations at all. In other numerical experiments with different filter functions, we also observed a similarly strong correlation between the absolute amplitude of the discrete filter function and the convergence rate of the eigenvalues.
 
-In carried out experiments, we reduced the size of the problem from $N=629$ to $m=20$ or $m=50$ (by $L=200$ or $L=100$ time-steps per iteration, respectively) and obtained all eigenvalues in the target intervals with precision exceeding $10^{-5}$ with respect to the reference spectrum. 
+In the carried out experiments, we reduced the size of the problem from $N=629$ to $m=20$ or $m=50$ (performing $L=200$ or $L=100$ time-steps per iteration, respectively) and obtained all eigenvalues in the target intervals with precision exceeding $10^{-5}$ relative to the reference spectrum. 
 
 
 
 \chapter{Conclusions}
-In this thesis we presented method to compute eigenvalues of the high-dimensional operators. Similarly to \cite{nannen}, we focused on the negative Laplace operator in $\R^2$ and $\R^3$, since it plays significant role in the theory of wave equations. Nevertheless, deployed algorithm can be easily reformulated for different problems, as long as the discretization matrices $S$ and $M$ are symmetric and positive (semi-)definite. 
+In this thesis, we presented a method to compute eigenvalues of the high-dimensional operators. Similar to \cite{nannen}, we focused on the negative Laplace operator in $\R^2$ and $\R^3$, since it plays a significant role in the theory of wave equations. Nevertheless, the deployed algorithm can be easily reformulated for different problems, as long as the discretization matrices $S$ and $M$ are symmetric and positive (semi-)definite. 
 
-We introduced the operator $C$ as the discrete equivalent of the weighted time-integral of the solution to the wave equation \eqref{eq:wave equation} with the weight function $\alpha$. The method projects the high-dimensional problem onto Krylov space of this operator and this way significantly reduces the dimension of the matrix eigenvalue problem to solve. 
+We introduced the operator $C$ as the discrete equivalent of the weighted time-integral of the solution to the wave equation \eqref{eq:wave equation} with the weight function $\alpha$. The method projects the high-dimensional problem onto the Krylov space of this operator, significantly reducing the dimension of the matrix eigenvalue problem to solve. 
 
-Crucial role in construction of the operator $C$ plays the weight function $\alpha$ (or the weight vector $\Vec{\alpha}$ due to replacing the integral by quadrature rule) and corresponding discrete filter function $\dff$. Lemma \ref{lemma:dff} quantified the correspondence between eigenpairs of the operator $C$ and sought eigenpairs of the negative Laplace operator. Using appropriate filter function, the method can filter out resonances outside desired region of interest, so that the solution of the projected problem consists mostly of sought eigenvalues. 
+A crucial role in the construction of the operator $C$ is played by the weight function $\alpha$ (or the weight vector $\Vec{\alpha}$ due to replacing the integral by quadrature rule) and corresponding discrete filter function $\dff$. Lemma \ref{lemma:dff} quantified the correspondence between eigenpairs of the operator $C$ and the sought eigenpairs of the negative Laplace operator. Using an appropriate filter function, the method can filter out resonances outside the desired region of interest, so that the solution of the projected problem consists mostly of the sought eigenvalues. 
 
-This thesis focuses on suitable choice of the weights. We compared different approaches of construction of the vector $\Vec{\alpha}$. As first method, we followed the choice in \cite{nannen} using scaled inverse Fourier transformation of the goal function truncated to a finite time-interval (forced by the time-stepping in each Krylov step). 
+This thesis focuses on the suitable choice of the weights. We compared different approaches to constructing of the vector $\Vec{\alpha}$. As the first method, we followed the choice in \cite{nannen}, using the scaled inverse Fourier transform of the goal function truncated to a finite time-interval (forced by the time-stepping in each Krylov step). 
 
-Since the discrete filter function $\dffv$ is a polynomial in $\omega^2$, natural approach was to select collocation nodes in the controlled interval and solve the collocation problem. Due to conditioning of the obtained linear system of equations, we used the Chebyshev knots in $\omega^2$. However, due to non-uniform distribution of the knots in the controlled interval and higher density at the end of the interval, it is impossible to precisely control the filter function, especially by lower parameter $L$, which determines degree of the polynomial (and thus number of collocation nodes), but also impacts the computation costs of the algorithm. In special cases, if no collocation node lies in the target interval, the method yields constant zero function, which is not acceptable.
+Since the discrete filter function $\dffv$ is a polynomial in $\omega^2$, a natural approach was to select collocation nodes in the controlled interval and solve the collocation problem. Due to the conditioning of the obtained linear system of equations, we used the Chebyshev knots in $\omega^2$. However, because of the non-uniform distribution of the knots in the controlled interval and higher density at the end of the interval, it is impossible to precisely control the filter function, especially with a lower parameter $L$, which determines the degree of the polynomial (and thus the number of collocation nodes), but also impacts the computation costs of the algorithm. In special cases, if no collocation node lies in the target interval, the method yields a constant zero function, which is not acceptable.
 
-Remedy to this disadvantage of the method is to employ more sample points in the controlled interval and use the least squares fitting instead of the collocation. The problem is well-conditioned independently on the degree of the polynomial by sampling in the Chebyshev knots, by other distribution of nodes the conditioning can be controlled by increasing number of nodes. Furthermore, we have proven, that the least squares method with equidistant nodes is equivalent to the fitting with respect to the $L^2$ norm (with integral replaced by the rectangle rule). In limes, by increasing number of the nodes, the solutions given by the least squares method, converge towards the $L^2$ error minimum.
+A remedy to this disadvantage of the method is to employ more sample points in the controlled interval and use the least squares fitting instead of the collocation. The problem is well-conditioned independently of the degree of the polynomial by sampling in the Chebyshev knots; with other distributions of nodes, the conditioning can be controlled by increasing the number of nodes. Furthermore, we have proven, that the least squares method with equidistant nodes is equivalent to the fitting with respect to the $L^2$ norm (with the integral replaced by the rectangle rule). In the limit, by increasing number of nodes, the solutions given by the least squares method converge towards the $L^2$ error minimum.
 
-In most cases we did not observe significant differences between presented method. By indicator function of the interval closer to 0 than to $\omega_\e$ (what is mostly the case in application) as the target function, the simplest way to construct the weight function remains the inverse Fourier transform method presented in Section \ref{section:fourier}. In some settings, this method displays undesirable behavior at the end of the controlled interval or the the peak of the function seems to be shifted from the target interval. Thus, in such cases best results yielded the least squares fitting in Chebyshev knots in $\omega^2$. It is simple to adjust number of nodes to avoid lying of the target interval between two next knots. Due to good conditioning of the problem, this method results in accurate filter function, also at the end of the controlled interval. Higher computational costs of this method are negligible, since computation of the weights is a preprocessing step and is not a part of the algorithm.
+In most cases, we did not observe significant differences between the presented methods. When the target function is the indicator function of the interval that is closer to 0 than to $\omega_\e$ (which is mostly the case in applications), the simplest way to construct the weight function remains the inverse Fourier transform method presented in Section \ref{section:fourier}. In some settings, this method displays undesirable behavior at the end of the controlled interval, or the peak of the function seems to be shifted from the target interval. Thus, in such cases, the best results were yielded by the least squares fitting in Chebyshev knots in $\omega^2$. It is simple to adjust the number of nodes to avoid having of the target interval between two adjacent knots. Due to the good conditioning of the problem, this method results in an accurate filter function, even at the end of the controlled interval. Higher computational costs of this method are negligible, since the computation of the weights is a preprocessing step and is not part of the algorithm.
 
-In carried out experiments in Chapter \ref{chapter:experiments} we computed the eigenvalues of the negative Laplace operator on the rectangular domain in $\R^2$ in two target intervals. Thanks to projection onto Krylov space obtained by appropriate filter function, we significantly reduced the size of the problem, and therefore also computational costs, without loss of exactness in the obtained eigenpairs. 
+In the experiments carried out in Chapter \ref{chapter:experiments}, we computed the eigenvalues of the negative Laplace operator on the rectangular domain in $\R^2$ in two target intervals. Thanks to the projection onto the Krylov space obtained by an appropriate filter function, we significantly reduced the size of the problem, and therefore also the computational costs, without loss of accuracy in the obtained eigenpairs. 
 
 \bibliographystyle{alpha} 
 %\bibliographystyle{abbrv}
