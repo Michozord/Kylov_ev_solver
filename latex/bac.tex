@@ -690,7 +690,7 @@ The entire spectrum of eigenvalues $\omega^2$ of the discrete approximation \eqr
 
 Consequently, our goal is to construct a weight function $\alpha$ such that the filter function $\left|\beta_\alpha\right|$ \eqref{eq:cont filter function} or its discrete equivalent $\left|\dff\right|$ \eqref{eq:dff} takes on larger values if $\omega \in \left[\omega_{\min}, \omega_{\max} \right]$ and is close to 0 otherwise. Of course, we can require this only in the controlled interval $\left[0, \omega_\e\right]$, since, according to Lemma \ref{lemma:dff}, $\dff$ is a polynomial. Moreover, we require that the function $\alpha$ is piecewise continuous and compactly supported (see Definition \ref{def:pi_alpha}).
 
-\section{Inverse Fourier transform method}
+\section{Inverse Fourier transform method}\label{section:fourier}
 In this section, we follow the choice in \cite{nannen}. The first presented method of selecting a weight function is based on the observation that the mapping $\alpha \mapsto \beta_\alpha$ is somehow similar to the Fourier transform.
 \begin{lemma}\label{lemma:alpha fourier}
     Let $\alpha$ be a piecewise continuous weight function with compact support and $\alpha \in L^1\left( [0, \infty) \right)$. Let $\hat{\alpha}: \R \rightarrow \R$ denote its symmetric extension, i.e., $\hat{\alpha}(-t) := \alpha(t)$ for all $t\in \R_+$. Then, for all $s\in \R$:
@@ -1318,6 +1318,13 @@ For each eigenvalue $\Tilde{\omega}^2_{m,n}$ in the reference spectrum and each 
     \caption{Error between perturbed eigenvalues $\Tilde{\omega}_{1,2}^2$ (left plot) and $\Tilde{\omega}_{4,2}^2$ (right plot) for target functions $\chi_{[6,8]}$ (blue line) and $\chi_{[11,13]}$ (green line). $L=200$ time-steps per iteration.}
     \label{fig:errors plot}
 \end{figure}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.49\linewidth]{latex//images//simulation/sim_4.png}
+    \includegraphics[width=0.49\linewidth]{latex//images//simulation/sim_2.png}
+    \caption{Eigenfunctions corresponding to resonances $\omega_{1,2}$ (left plot) and $\omega_{4,2}$ (right plot) obtained after 20 steps of Krylov iteration with appropriate target intervals. Exact solutions are: $u_{m,n}(x,y) = \cos\left(m\pi x /\sqrt[3]{2}\right)\cos(n\pi y)$.}
+    \label{fig:waves}
+\end{figure}
 
 Figure \ref{fig:simulation} presents the obtained resonance frequencies between 5 and 15 in the first 50 Krylov iterations for two different target intervals: $\left[\omega_{\min}, \omega_{\max}\right] = [6, 8]$ and $\left[\omega_{\min}, \omega_{\max}\right] = [11, 13]$. Furthermore, we compare results for $L=100$ and $L=200$ time-steps per iteration, which correspond to end-times $T=0.56$ and $T=1.12$, respectively. The left vertical axis represents the step of the Krylov iteration. Vertical dotted lines indicate reference resonances $\Tilde{\omega}_{m,n}$, such that $\Tilde{\omega}_{m,n}^2 \in \sigma(M^{-1}S)$. Plotted points are obtained resonances in each iteration. The color and mark of the point depend on $\mathrm{error}_{k}\left(\Tilde{\omega}_{m,n}^2\right)$: resonances with a small error are blue, and those with a larger error are yellow. Furthermore, points satisfying $\mathrm{error}_{k}\left(\Tilde{\omega}_{m,n}^2\right) < 10^{-5}$ are depicted with circles, while others are depicted with crosses. The red curve (with values on the right vertical axis) represents the absolute value of the discrete filter function $\dffv$. 
 
@@ -1327,14 +1334,8 @@ For further error analysis, we focus on two particular resonances: $\omega_{1,2}
 
 We observe much faster convergence of the method in regions, where $\left|\dffv\right|$ is larger. Especially, in the middle of the target interval the method with parameter $L=200$ yields accuracy in $\omega^2$ exceeding $10^{-10}$ after fewer than 30 steps. On the other hand, resonances outside the target interval, where the filter function is closer to 0, converge much slower or seem not to be captured in the first 50 iterations at all. In other numerical experiments with different filter functions, we also observed a similarly strong correlation between the absolute amplitude of the discrete filter function and the convergence rate of the eigenvalues.
 
+In carried out experiments, we reduced the size of the problem from $N=629$ to $m=20$ or $m=50$ (by $L=200$ or $L=100$ time-steps per iteration, respectively) and obtained all eigenvalues in the target intervals with precision exceeding $10^{-5}$ with respect to the reference spectrum. 
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.49\linewidth]{latex//images//simulation/sim_4.png}
-    \includegraphics[width=0.49\linewidth]{latex//images//simulation/sim_2.png}
-    \caption{Eigenfunctions corresponding to resonances $\omega_{1,2}$ (left plot) and $\omega_{4,2}$ (right plot) obtained after 20 steps of Krylov iteration with appropriate target intervals. Exact solutions are: $u_{m,n}(x,y) = \cos\left(m\pi x /\sqrt[3]{2}\right)\cos(n\pi y)$.}
-    \label{fig:enter-label}
-\end{figure}
 
 
 \chapter{Conclusions}
@@ -1348,7 +1349,11 @@ This thesis focuses on suitable choice of the weights. We compared different app
 
 Since the discrete filter function $\dffv$ is a polynomial in $\omega^2$, natural approach was to select collocation nodes in the controlled interval and solve the collocation problem. Due to conditioning of the obtained linear system of equations, we used the Chebyshev knots in $\omega^2$. However, due to non-uniform distribution of the knots in the controlled interval and higher density at the end of the interval, it is impossible to precisely control the filter function, especially by lower parameter $L$, which determines degree of the polynomial (and thus number of collocation nodes), but also impacts the computation costs of the algorithm. In special cases, if no collocation node lies in the target interval, the method yields constant zero function, which is not acceptable.
 
-Remedy to this disadvantage of the method is to employ more sample points in the controlled interval and use the least squares fitting instead of the collocation. 
+Remedy to this disadvantage of the method is to employ more sample points in the controlled interval and use the least squares fitting instead of the collocation. The problem is well-conditioned independently on the degree of the polynomial by sampling in the Chebyshev knots, by other distribution of nodes the conditioning can be controlled by increasing number of nodes. Furthermore, we have proven, that the least squares method with equidistant nodes is equivalent to the fitting with respect to the $L^2$ norm (with integral replaced by the rectangle rule). In limes, by increasing number of the nodes, the solutions given by the least squares method, converge towards the $L^2$ error minimum.
+
+In most cases we did not observe significant differences between presented method. By indicator function of the interval closer to 0 than to $\omega_\e$ (what is mostly the case in application) as the target function, the simplest way to construct the weight function remains the inverse Fourier transform method presented in Section \ref{section:fourier}. In some settings, this method displays undesirable behavior at the end of the controlled interval or the the peak of the function seems to be shifted from the target interval. Thus, in such cases best results yielded the least squares fitting in Chebyshev knots in $\omega^2$. It is simple to adjust number of nodes to avoid lying of the target interval between two next knots. Due to good conditioning of the problem, this method results in accurate filter function, also at the end of the controlled interval. Higher computational costs of this method are negligible, since computation of the weights is a preprocessing step and is not a part of the algorithm.
+
+In carried out experiments in Chapter \ref{chapter:experiments} we computed the eigenvalues of the negative Laplace operator on the rectangular domain in $\R^2$ in two target intervals. Thanks to projection onto Krylov space obtained by appropriate filter function, we significantly reduced the size of the problem, and therefore also computational costs, without loss of exactness in the obtained eigenpairs. 
 
 \bibliographystyle{alpha} 
 %\bibliographystyle{abbrv}
