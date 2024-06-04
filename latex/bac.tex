@@ -1338,7 +1338,17 @@ We observe much faster convergence of the method in regions, where $\left|\dffv\
 
 
 \chapter{Conclusions}
-..............
+In this thesis we presented method to compute eigenvalues of the high-dimensional operators. Similarly to \cite{nannen}, we focused on the negative Laplace operator in $\R^2$ and $\R^3$, since it plays significant role in the theory of wave equations. Nevertheless, deployed algorithm can be easily reformulated for different problems, as long as the discretization matrices $S$ and $M$ are symmetric and positive (semi-)definite. 
+
+We introduced the operator $C$ as the discrete equivalent of the weighted time-integral of the solution to the wave equation \eqref{eq:wave equation} with the weight function $\alpha$. The method projects the high-dimensional problem onto Krylov space of this operator and this way significantly reduces the dimension of the matrix eigenvalue problem to solve. 
+
+Crucial role in construction of the operator $C$ plays the weight function $\alpha$ (or the weight vector $\Vec{\alpha}$ due to replacing the integral by quadrature rule) and corresponding discrete filter function $\dff$. Lemma \ref{lemma:dff} quantified the correspondence between eigenpairs of the operator $C$ and sought eigenpairs of the negative Laplace operator. Using appropriate filter function, the method can filter out resonances outside desired region of interest, so that the solution of the projected problem consists mostly of sought eigenvalues. 
+
+This thesis focuses on suitable choice of the weights. We compared different approaches of construction of the vector $\Vec{\alpha}$. As first method, we followed the choice in \cite{nannen} using scaled inverse Fourier transformation of the goal function truncated to a finite time-interval (forced by the time-stepping in each Krylov step). 
+
+Since the discrete filter function $\dffv$ is a polynomial in $\omega^2$, natural approach was to select collocation nodes in the controlled interval and solve the collocation problem. Due to conditioning of the obtained linear system of equations, we used the Chebyshev knots in $\omega^2$. However, due to non-uniform distribution of the knots in the controlled interval and higher density at the end of the interval, it is impossible to precisely control the filter function, especially by lower parameter $L$, which determines degree of the polynomial (and thus number of collocation nodes), but also impacts the computation costs of the algorithm. In special cases, if no collocation node lies in the target interval, the method yields constant zero function, which is not acceptable.
+
+Remedy to this disadvantage of the method is to employ more sample points in the controlled interval and use the least squares fitting instead of the collocation. 
 
 \bibliographystyle{alpha} 
 %\bibliographystyle{abbrv}
