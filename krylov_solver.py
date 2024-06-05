@@ -129,6 +129,7 @@ class KrylovSolver():
     def _prepare_plot(self, start, end, title=""):
         fig = plt.figure()
         plt.rcParams.update({'mathtext.fontset' : 'cm', 'grid.color' : 'black', 'grid.linestyle' : ':'})
+        plt.rcParams.update({'font.size': 22})
         plt.title(title)
         ax1 = plt.subplot()
         ax1.grid(axis="y")
@@ -142,6 +143,10 @@ class KrylovSolver():
         fig.tight_layout()
         for omega in np.sqrt(self.true_eigvals):
             ax1.axvline(omega, linestyle=':', color='grey') # vertical lines in true eigvals
+        ax1.axvline(om42 := np.sqrt(self.closest_true_eigval(11.78**2)[1]), linestyle="-", color = "green", lw=1.5, label=r"$\omega_{4,2}$")
+        ax1.axvline(om12 := np.sqrt(self.closest_true_eigval(6.76**2)[1]), linestyle="-", color = "green", lw=1.5, label=r"$\omega_{1,2}$")
+        plt.text(om42, 1.23, r'$\tilde{\omega}_{4,2}$', color='green', fontsize=22, horizontalalignment='center')
+        plt.text(om12, 1.23, r'$\tilde{\omega}_{1,2}$', color='green', fontsize=22, horizontalalignment='center')
         return ax1, ax2
     
     
@@ -176,6 +181,7 @@ class KrylovSolver():
     
     def convergence(self, value):
         seek_eigval_index, seek_true_eigval = self.closest_true_eigval(value)
+        print("True seek eigenvalue: ", seek_true_eigval)
         
         ks, resids = [], []
         
@@ -221,31 +227,31 @@ def plot_convergence_2(*data):
         ax = axes[0]
         ax.semilogy(ks, dists, label=label, marker=mrk, linestyle=stl, markersize=15)
         ax.set_xlim((0, 25))
-        ax.set_ylabel(r"$\text{error in } {\omega_{1,1}^2}$")        # TODO: omega_??
+        ax.set_ylabel(r"$\text{error}_k (\tilde{\omega}_{1,2}^2)$")        
     for ks, dists, label, mrk in data[2:]:
         ax = axes[1]
         ax.semilogy(ks, dists, label=label, marker=mrk, linestyle=stl, markersize=15)
         ax.set_xlim((0, 35))
-        ax.set_ylabel(r"$\text{error in }{\omega_{1,1}^2}$")        # TODO: omega_??
+        ax.set_ylabel(r"$\text{error}_k (\tilde{\omega}_{4,2}^2)$")        
     
     for ax in axes:
         ax.legend(loc="lower left")
         ax.grid()
         ax.set_xlabel("$k$")
-    plt.title(r"Error in $\omega^2$ in convergence to $\approx 7^2$ and $\approx 12^2$ for different filter functions")
+    # plt.title(r"Error in $\omega^2$ in convergence to $\approx 7^2$ and $\approx 12^2$ for different filter functions")
 
 
 
 def test():
     tau = 0.0056        # controlled interval up to omega_end = 360
-    L = 200
+    L = 100
 
     om_min_1, om_max_1 = 11, 13
     om_min_2, om_max_2 = 6, 8
     # alpha1 = alpha_l2(2/tau, L, tau, om_min_1, om_max_1)
     # alpha2 = alpha_l2(2/tau, L, tau, om_min_2, om_max_2)
-    alpha1 = alpha_cheb(2/tau, L, 5*L, tau, indicator(om_min_1, om_max_1))
-    alpha2 = alpha_cheb(2/tau, L, 5*L, tau, indicator(om_min_2, om_max_2))
+    alpha1 = alpha_cheb(2/tau, L, 1000, tau, indicator(om_min_1, om_max_1))
+    alpha2 = alpha_cheb(2/tau, L, 1000, tau, indicator(om_min_2, om_max_2))
     
     # alpha3 = alpha_cheb(2/tau, L, L, tau, indicator(om_min, om_max))
     ax = prepare_plots(0, 2/tau)
@@ -265,14 +271,16 @@ def test():
     solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 50)
     solver.discretize()
     solver.solve()
-    solver.plot_results(5, 15, f"Chebyshev filter function ({om_min_1}, {om_max_1})")
+    # solver.plot_results(5, 15, f"Chebyshev filter function ({om_min_1}, {om_max_1})")
+    solver.plot_results(5, 15, "")
     omega2_1, ks1, dists1 = solver.convergence(seek_ev_1)
     omega2_3, ks3, dists3 = solver.convergence(seek_ev_2)
     
     solver2 = KrylovSolver(mesh, L, tau, alpha2, m_max = 50)
     solver2.discretize()
     solver2.solve()
-    solver2.plot_results(5, 15, f"Chebyshev filter function, ({om_min_2}, {om_max_2})")
+    # solver2.plot_results(5, 15, f"Chebyshev filter function, ({om_min_2}, {om_max_2})")
+    solver2.plot_results(5, 15, "")
     omega2_2, ks2, dists2 = solver2.convergence(seek_ev_1)
     omega2_4, ks4, dists4 = solver2.convergence(seek_ev_2)
     
@@ -288,10 +296,10 @@ def test():
     # solver3.plot_results(0, 25, "Chebyshev filter function")
     # omega2_3, ks3, dists3 = solver.convergence(seek_ev)
     
-    plot_convergence_2((ks2, dists2, f"{np.sqrt(seek_ev_1)}: $({om_min_2}, {om_max_2})$",  "o"),
-                       (ks1, dists1, f"{np.sqrt(seek_ev_1)}: $({om_min_1}, {om_max_1})$",  "x"),
-                       (ks2, dists4, f"{np.sqrt(seek_ev_2)}: $({om_min_2}, {om_max_2})$",  "o"),
-                       (ks1, dists3, f"{np.sqrt(seek_ev_2)}: $({om_min_1}, {om_max_1})$",  "x"))
+    plot_convergence_2((ks2, dists2, r"$\chi_{["+f"{om_min_2}, {om_max_2}]"+r"}$",  "o"),
+                       (ks1, dists1, r"$\chi_{["+f"{om_min_1}, {om_max_1}]"+r"}$",  "x"),
+                       (ks2, dists4, r"$\chi_{["+f"{om_min_2}, {om_max_2}]"+r"}$",  "o"),
+                       (ks1, dists3, r"$\chi_{["+f"{om_min_1}, {om_max_1}]"+r"}$",  "x"))
     
     plt.show()
     
