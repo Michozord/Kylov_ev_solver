@@ -18,7 +18,7 @@
 \usepackage[export]{adjustbox}
 
 % links in pdf
-\usepackage[unicode,colorlinks=true,pagebackref=false]{hyperref}
+\usepackage[unicode,colorlinks=false,pagebackref=false]{hyperref}
 
 \newtheorem{theorem}{Theorem}[chapter]
 \newtheorem{definition}[theorem]{Definition}
@@ -39,6 +39,8 @@
 \newcommand{\bigO}{\mathcal{O}}
 \newcommand{\F}{\mathcal{F}}
 \newcommand{\e}{\mathrm{end}}
+% italic eqrefs in italic environment
+\renewcommand{\eqref}[1]{(\ref{#1})}
 
 \algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
 
@@ -176,11 +178,11 @@ Wien, am \today
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction}
 \label{chapter:introduction}
-In this thesis, we consider the eigenvalue problem of the negative Laplace operator on a 2- or 3-dimensional domain with Neumann boundary conditions. We compute the eigenpairs $(\omega^2, u)$ using a Krylov eigenvalue solver based on time domain solutions, following the approach introduced in \cite{nannen}. This problem is significant in the theory of wave equations and physics, e.g., for the computation of acoustic resonances.
+In this thesis, we consider the eigenvalue problem of the negative Laplace operator on a 2-~or 3-dimensional domain with Neumann boundary conditions. We compute the eigenpairs $(\omega^2, u)$ using a Krylov eigenvalue solver based on time domain solutions, following the approach introduced in \cite{nannen}. This problem is significant in the theory of wave equations and physics, e.g., for the computation of acoustic resonances.
 
 We begin with the standard finite element method: discretizing the domain, fixing the finite-dimensional discrete solution space, and reformulating the problem to its weak form. This leads to a matrix eigenvalue problem to find eigenpairs $(\omega^2, v)$, such that $Sv = \omega^2Mv$, where the matrices $S$ and $M$ are sparse, symmetric, and (semi-)positive definite. 
 
-Elementary numerical solvers for matrix eigenvalue problems struggle when the size of the problem becomes large. Therefore, instead of using a direct solver, we perform a Krylov iteration, project the large-scale problem onto a lower-dimensional Krylov space, and solve this reduced problem using a direct solver with lower computational costs. We seek eigenvalues in a specific region of interest, so we want the Krylov space to primarly cover the eigenspaces corresponding to the sought eigenvalues. 
+Elementary numerical solvers for eigenvalue problems struggle when the dimension of the matrix becomes large. Therefore, instead of using a direct solver, we perform a Krylov iteration, project the large-scale problem onto a lower-dimensional Krylov space, and solve this reduced problem using a direct solver with lower computational costs. We seek eigenvalues in a specific region of interest, so we want the Krylov space to primarily cover the eigenspaces corresponding to the sought eigenvalues. 
 
 As an operator for the iteration, we could use the shift-and-inverse matrix, but this would require computing the inverse of a large matrix at each step, which is out of reach. A remedy is to introduce an operator $\Pi_\alpha$ -- a weighted time-integral of the solution to the semi-discrete wave equation, and its discrete equivalent $C$, which uses a quadrature rule instead of the integral and the finite difference method instead of the analytical solution. 
 
@@ -188,12 +190,12 @@ The construction of this operator requires a suitable weight function $\alpha$ o
 
 In this thesis, we discuss several approaches to obtaining weights that yield an appropriate filter function. We start with a method using the inverse Fourier transform. As it turns out, the discrete filter function is a polynomial in $\omega^2$. Thus, it is natural to reduce the problem to a polynomial collocation or a least squares minimization. In the third approach, we minimize the $L^2$ norm of the residuum between the obtained filter function $\dffv$ and the desired goal function.
 
-The structure of this paper is as follows. First, we state the problem, discretize it in space, and review elementary numerical methods for matrix eigenvalue problems. Following \cite{nannen}, we present the Krylov eigenvalue solver. As a result of Chapter \ref{chapter:ftd}, we formulate an implementable algorithm for solving the eigenvalue problem of the negative Laplace operator. In the subsequent part, we discuss the choice of the weight function and consider different approaches to obtain it. Then, in Chapter \ref{chapter:experiments}, we solve the original problem on a simple 2-dimensional rectangular domain to demonstrate the impact of the filter function on the convergence of the eigenvalues and the reliability of the algorithm.
+The structure of this paper is as follows. First, we state the problem, discretize it in space, and review elementary numerical methods for matrix eigenvalue problems. Following \cite{nannen}, we present the Krylov eigenvalue solver. As a result of Chapter \ref{chapter:ftd}, we formulate an implementable algorithm for solving the eigenvalue problem of the negative Laplace operator. In the subsequent part, we discuss the choice of the weight function and consider different approaches to obtain it. Then, in Chapter \ref{chapter:experiments}, we solve the original problem on a~simple 2-dimensional rectangular domain to demonstrate the impact of the filter function on the convergence of the eigenvalues and the reliability of the algorithm.
 
 
 \chapter{A Krylov eigenvalue solver based on filtered time domain solutions}
 \label{chapter:ftd}
-In this chapter, we present the concept of a Krylov eigenvalue solver for computing eigenvalues of the negative Laplace operator. By reformulating the problem to its weak form and selecting a finite solution space, we find that our problem is equivalent to a matrix eigenvalue problem for some high-dimensional matrix. The core idea of the Krylov eigenvalue solver is to construct a matrix $C$ that has the same eigenspaces as the original problem but different eigenvalues. Projection onto a lower-dimensional Krylov space generated by this matrix significantly reduces computational costs. We construct the operator $C$ by integrating in time a solution to the wave equation multiplied by some weight function. Proper selection of the weight function allows us to find eigenvalues of the original problem in the desired region. This chapter is based on \cite{nannen}.
+In this chapter, we introduce the concept of a Krylov eigenvalue solver for computing the eigenvalues of the negative Laplace operator. By reformulating the problem to its weak form and selecting a finite solution space, we find that our problem is equivalent to a matrix eigenvalue problem for some high-dimensional matrix. The core idea of the Krylov eigenvalue solver is to construct a matrix $C$ that has the same eigenspaces as the original problem but different eigenvalues. Projection onto a lower-dimensional Krylov space generated by this matrix significantly reduces computational costs. We construct the operator $C$ by integrating in time a solution to the wave equation, multiplied by a weight function. Proper selection of the weight function allows us to find the eigenvalues of the original problem in the desired region. This chapter is based on \cite{nannen}.
 
 \begin{definition}[Eigenvalue problem of the negative Laplace operator]\label{def:ev problem}
     Let $\Omega \subset \R^d$ for $d=2,3$ be a bounded domain with a Lipschitz boundary. We seek eigenvalues $\omega^2 \in \R_{+}$ and eigenfunctions $u\in H^1(\Omega)\backslash \{0\}$ of the negative Laplace operator with Neumann boundary conditions:
@@ -205,9 +207,9 @@ In this chapter, we present the concept of a Krylov eigenvalue solver for comput
 \end{definition}
 Now we discretize the problem in space, fixing a partition $\mathcal{T}$ of $\Omega$. We introduce a discrete solution space as a finite-dimensional space of piecewise polynomials on $\Omega$.
 \begin{definition}[Discrete solution space]\label{def:solution space}
-Let $\mathcal{P}_p$ denote the space of polynomials up to degree $p \in \N$. We define the discrete solution space as
+Let $\mathbb{P}_p$ denote the space of polynomials up to degree $p \in \N$. We define the discrete solution space as
 \begin{equation*}
-V_h := \left\{v \in H^1(\Omega): \quad \forall T \in \mathcal{T}, \, v|_T \in \mathcal{P}_p \right\}
+V_h := \left\{v \in H^1(\Omega): \quad \forall T \in \mathcal{T}, \, v|_T \in \mathbb{P}_p \right\}
 \end{equation*}
 with finite dimension $N := \mathrm{dim} (V_h)$.
 \end{definition}
@@ -239,11 +241,11 @@ where $S, M \in \R^{N \times N}$ are defined in Definition \ref{def:SM matrices}
 \end{lemma}
 
 \begin{proof}
-Since $(\varphi_1, \dots, \varphi_N)$ forms a basis of $V_h$, it suffices, if \eqref{eq:weak form} holds for all basis functions. By representing $u$ with coordinate vector $v\in \R^N$, we can substitute $u = (\varphi_1, \dots, \varphi_N) v$. Thus, we obtain:
+Since $(\varphi_1, \dots, \varphi_N)$ forms a basis of $V_h$, it suffices, if \eqref{eq:weak form} holds for all basis functions. By representing $u$ with its coordinate vector $v\in \R^N$, we can substitute $u = (\varphi_1, \dots, \varphi_N) v$. Thus, we obtain:
 \begin{align*}
-        \forall j=1, \dots, N : \, \int_\Omega (\nabla\varphi_1, \dots, \nabla\varphi_N)v\cdot \nabla \varphi_j \, dx &= \omega^2 \int_\Omega (\varphi_1, \dots, \varphi_N)v \varphi_j \, dx, \\
-        \forall j=1, \dots, N : \, \int_\Omega (\nabla \varphi_j \cdot \nabla \varphi_1, \dots, \nabla \varphi_j \cdot \nabla \varphi_N) v \, dx &= \omega^2 \int_\Omega (\varphi_j\varphi_1, \dots, \varphi_j\varphi_N)v \,dx, \\ 
-        \forall j = 1, \dots, N: \, (s_{j1},\dots,s_{jN})v &= \omega^2 (m_{j1},\dots, m_{jN})v,
+        \forall j=1, \dots, N : \, \int_\Omega (\nabla\varphi_1, \dots, \nabla\varphi_N)v\cdot \nabla \varphi_j \, dx &= \omega^2 \int_\Omega (\varphi_1, \dots, \varphi_N)v \varphi_j \, dx & \iff \\
+        \forall j=1, \dots, N : \, \int_\Omega (\nabla \varphi_j \cdot \nabla \varphi_1, \dots, \nabla \varphi_j \cdot \nabla \varphi_N) v \, dx &= \omega^2 \int_\Omega (\varphi_j\varphi_1, \dots, \varphi_j\varphi_N)v \,dx & \iff \\ 
+        \forall j = 1, \dots, N: \, (s_{j1},\dots,s_{jN})v &= \omega^2 (m_{j1},\dots, m_{jN})v, &
 \end{align*}
 which is equivalent to \eqref{eq:matrix form}.
 \end{proof}
@@ -254,9 +256,9 @@ Matrices $S$ and $M$ from Definition \ref{def:SM matrices} are self-adjoint. Fur
 
 
 \section{Elementary eigenvalue solvers for matrices}
-Since we have approximated the eigenvalue problem of the negative Laplacian operator (see Definition \ref{def:ev problem}) into a matrix eigenvalue problem, we recall elementary numerical algorithms to solve such problems. For proofs of convergence of these algorithms, we refer to \cite{numericsAB}.
+Since we have approximated the eigenvalue problem of the negative Laplacian operator (see Definition \ref{def:ev problem}) by a matrix eigenvalue problem, we recall elementary numerical algorithms to solve such problems. For proofs of the convergence of these algorithms, we refer to \cite{numericsAB}.
 
-The first algorithm provides an approximation of an eigenvector corresponding to the eigenvalue with the largest absolute value among the eigenvalues of the matrix  under assumptions of Theorem \ref{theorem:power iteration}.
+The first algorithm, under assumptions of Theorem \ref{theorem:power iteration}, provides an approximation of an eigenvector corresponding to the eigenvalue with the largest absolute value among the eigenvalues of the matrix.
 
 \begin{algorithm}[H]
 \caption{Power iteration}\label{alg:power iteration}
@@ -266,7 +268,7 @@ The first algorithm provides an approximation of an eigenvector corresponding to
         \State $v \gets Av^{(i-1)} $
         \State $v^{(i)} \gets \frac{v}{\|v\|_2}$
     \EndFor
-    \State \textbf{Output:} $v^{(i)}$ -- approximation of an eigenvector to the eigenvalue with the largest absolute value under assumptions of Theorem \ref{theorem:power iteration}.
+    \State \textbf{Output:} $v^{(i)}$ -- approximation of an eigenvector to the eigenvalue with the largest absolute value (under assumptions of Theorem \ref{theorem:power iteration}).
     \end{algorithmic}
 \end{algorithm}
 \begin{theorem}\label{theorem:power iteration}
@@ -283,7 +285,7 @@ Furthermore, holds the error estimation for the convergence of the eigenvalue. L
 We refer to \cite[p. 116]{numericsAB}.
 \end{proof}
 
-The second algorithm enables us to compute the entire spectrum of a matrix under assumptions of Theorem \ref{theorem:QR alg}. 
+The second algorithm, under assumptions of Theorem \ref{theorem:QR alg}, enables us to compute the entire spectrum of a matrix. 
 
 \begin{algorithm}[H]
 \caption{QR Algorithm}\label{alg:QR alg}
@@ -291,10 +293,10 @@ The second algorithm enables us to compute the entire spectrum of a matrix under
     \State \textbf{Input:} $A \in \R^{N \times N}$
     \State $A^{(0)} \gets A$
     \For{$i = 1, 2, \dots$}
-        \State compute QR-decomposition: $Q^{(i)} R^{(i)} = A^{(i-1)}$ 
+        \State compute QR decomposition: $Q^{(i)} R^{(i)} = A^{(i-1)}$ 
         \State $A^{(i)} \gets R^{(i)}Q^{(i)}$
     \EndFor
-    \State \textbf{Output:} $A^{(i)}$ -- approximation of an upper triangular matrix with eigenvalues of $A$ on the diagonal under assumptions of Theorem \ref{theorem:QR alg}. 
+    \State \textbf{Output:} $A^{(i)}$ -- approximation of an upper triangular matrix with eigenvalues of $A$ on the diagonal (under assumptions of Theorem \ref{theorem:QR alg}). 
     \end{algorithmic}
 \end{algorithm}
 
@@ -306,11 +308,11 @@ The second algorithm enables us to compute the entire spectrum of a matrix under
     We refer to \cite[p. 120]{numericsAB}.
 \end{proof}
 
-Since our goal is to find the eigenvalues of the negative Laplace operator, we could use the QR algorithm to obtain all eigenvalues of the discrete problem. However, this is not feasible due to the high computational costs of the QR algorithm. We focus on situations where the problem on the discrete level is high-dimensional. The QR algorithm demands the computation of a QR-decomposition of an $N \times N$ matrix in each iteration, which has cubic computational complexity. Therefore, this method is out of reach for our problem. We have to deploy a method that is based on a direct solver, such as the power iteration. 
+Since our goal is to find the eigenvalues of the negative Laplace operator, we could use the QR algorithm to obtain all eigenvalues of the discrete problem. However, this is not feasible due to the high computational costs of the QR algorithm. We focus on situations where the problem at the discrete level is high-dimensional. The QR algorithm requires the computation of a QR decomposition of an $N \times N$ matrix in each iteration, which has cubic computational complexity. Therefore, this method is out of reach for our problem. Instead, we must deploy a method that significantly reduces the problem's size before employing a~direct solver. 
 
 \section{A Krylov eigenvalue solver}
 
-Now we need to make an assumption that there exists a matrix $C\in \R^{N \times N}$ such that its eigenvectors are linear combinations of eigenvectors of the discrete problem \eqref{eq:matrix form}. 
+Now, we need to make an assumption that there exists a matrix $C\in \R^{N \times N}$ such that its eigenvectors are linear combinations of eigenvectors of the discrete problem \eqref{eq:matrix form}. 
 
 \begin{definition}\label{def:C}
     Let $C \in \R^{N\times N}$ be a matrix such that there exists an eigenvalue $\mu \in \R$ corresponding to the eigenvector $w\in \R^N$, i.e., $Cw = \mu w$, if and only if $w$ is an eigenvector or a linear combination of eigenvectors to some eigenvalue $\omega^2$ in the discrete problem \eqref{eq:matrix form}.
@@ -327,7 +329,7 @@ We obtain properties of the matrix $C$ that will be needed. The exact choice and
 
 In this thesis, we focus on situations where $N$ is large. Our goal is to project the $N$-dimensional eigenvalue problem \eqref{eq:matrix form} onto an $m$-dimensional Krylov space, using an orthonormal basis of this space. Typically, we choose $m$ much smaller than $N$, so that this problem is solvable with low computational costs using a direct solver.
 
-Let $\mathcal{K}_m(C; r)$ be an $m$-dimensional Krylov space for matrix $C\in \R^{N\times N}$ and start vector $r\in \R^N$, where $\|r\|_2=1$. We obtain an orthonormal basis $(b_0, \dots, b_{m-1})$ of the Krylov space using Gram-Schmidt orthonormalization:
+Let $\mathcal{K}_m(C; r)$ be an $m$-dimensional Krylov space generated by matrix $C\in \R^{N\times N}$ and normalized start vector $r\in \R^N$. We obtain an orthonormal basis $(b_0, \dots, b_{m-1})$ of the Krylov space using Gram-Schmidt orthonormalization:
 \begin{equation*}
     b_0 := r \quad \text{and} \quad \widetilde{b}_{j} := Cb_{j-1} - \sum_{i=0}^{j-1} (b_i^T C b_{j-1}) b_i, \quad b_j := \frac{\Tilde{b}_{j-1}}{\|\Tilde{b}_{j-1}\|_2} \quad \text{for all } j=1, \dots, m-1. 
 \end{equation*}
@@ -335,7 +337,7 @@ Let $\mathcal{K}_m(C; r)$ be an $m$-dimensional Krylov space for matrix $C\in \R
 
 Now we can project the original problem \eqref{eq:matrix form} onto the $m$-dimensional Krylov space.
 
-\begin{prop}[Eigenvalue problem on Krylov space]
+\begin{prop}[Eigenvalue problem on a Krylov space]
     Let $B_m = (b_0, \dots, b_{m-1}) \in \R^{N\times m}$ be an orthonormal basis of an $m$-dimensional Krylov space $\mathcal{K}_m(C; r)$. The eigenvalue problem on the Krylov space is to find eigenvalues $\omega_m^2 \in \R_+$ and eigenvectors $v_m\in\R^m$, such that:
     \begin{equation}\label{eq:Krylov problem}
         B_m^T S B_m v_m = \omega_m^2 B_m^T M B_m v_m.
@@ -343,7 +345,7 @@ Now we can project the original problem \eqref{eq:matrix form} onto the $m$-dime
 \end{prop}
 %TODO: proof????, Lemma? Theorem? 
 
-Since matrices $S$ and $M$ are Hermitian, Krylov iteration leads to convergence of eigen-spaces of \eqref{eq:Krylov problem} towards the eigenspace of $C$ corresponding to the eigenvalue $\mu_{\max}$ with the largest absolute value. Obviously, projected eigenvalues $\omega_m^2$ converge towards the eigenvalue $\omega^2$ of the original problem \eqref{eq:matrix form} corresponding to $\mu_{\max}$.
+Since matrices $S$ and $M$ are symmetric, Krylov iteration leads to convergence of eigen\-spaces of \eqref{eq:Krylov problem} towards the eigenspace of $C$ corresponding to the eigenvalue $\mu_{\max}$ with the largest absolute value. Obviously, projected eigenvalues $\omega_m^2$ converge towards the eigenvalue $\omega^2$ of the original problem \eqref{eq:matrix form} corresponding to $\mu_{\max}$.
 
 To sum up the core idea of this section, we can explicitly formulate an (not yet implementable) algorithm based on Krylov spaces to compute eigenvalues $\omega^2$.
 
@@ -359,7 +361,7 @@ To sum up the core idea of this section, we can explicitly formulate an (not yet
         \EndFor
         \State $B_m \gets (b_0, \dots, b_{m-1})$ \Comment{Projection matrix}
         \State $A \gets B_m^T M^{-1}S B_m$
-        \State solve $Av = \omega_m^2 v$ with power iteration
+        \State solve $Av = \omega_m^2 v$ with a direct solver
     \end{algorithmic}
 \end{algorithm}
 
@@ -377,7 +379,7 @@ In other words, the use of matrix $C$ filters sought eigenvalues from among all 
     \begin{equation*}
         C_\rho := (S - \rho M)^{-1}M
     \end{equation*}
-    for some $\rho \in \R$ has eigenvalue $\mu = (\omega^2 - \rho)^{-1}$ corresponding to the eigenspace to the eigenvalue $\omega^2$ of the original problem \eqref{eq:matrix form}. Therefore, $C_\rho$ with $\rho = (\omega^2_{\min}+\omega^2_{\max})/2 $ would be a possible choice of matrix $C$. Nevertheless, it requires the inverse of an $N\times N$ matrix $(S - \rho M)$, which for large $N$ is impossible with low computational complexity.
+    for some $\rho \in \R$ has eigenvalue $\mu = (\omega^2 - \rho)^{-1}$ corresponding to the eigenspace of the eigenvalue $\omega^2$ of the original problem \eqref{eq:matrix form}. Therefore, $C_\rho$ with $\rho = (\omega^2_{\min}+\omega^2_{\max})/2 $ would be a possible choice of matrix $C$. Nevertheless, it requires the inverse of an $N\times N$ matrix $(S - \rho M)$, which for large $N$ is not efficiently computable.
 \end{rem}
 
 \begin{proof}
@@ -397,7 +399,7 @@ To construct an appropriate finite-dimensional operator to replace the role of t
 We consider the homogeneous 2- or 3-dimensional wave equation in $\Omega \times (0, \infty)$:
 \begin{align}
 \begin{split}\label{eq:wave equation}
-    \ddot{u} = \Delta u \quad \text{in } \Omega \times (0, \infty), \quad  u = 0 \quad \text{in } \partial\Omega\times (0, \infty),\\
+    \ddot{u} = \Delta u \quad \text{in } \Omega \times (0, \infty), \quad  \frac{\partial u}{\partial \nu} = 0 \quad \text{in } \partial\Omega\times (0, \infty),\\
     u( \cdot, 0)= u_0, \quad \dot{u}(\cdot, 0) = 0 \quad \text{in } \Omega,
 \end{split}
 \end{align}
@@ -417,21 +419,21 @@ where $u$ is a function $\Omega \times [0, \infty) \rightarrow \R$ and $\ddot{u}
 
     We reformulate $\ddot{u} = \Delta u$ to its weak form:
     \begin{align*}
-        \forall \varphi \in V_h : \, \int_\Omega \ddot{u} \varphi \, dx &= \int_\Omega \Delta u \varphi \, dx, \\
-        \forall \varphi \in V_h : \, \int_\Omega \ddot{u} \varphi \, dx &= - \int_\Omega \nabla  u\cdot  \nabla \varphi \, dx.
+        \forall \varphi \in V_h : \, \int_\Omega \ddot{u} \varphi \, dx &= \int_\Omega \Delta u \varphi \, dx &\iff \\
+        \forall \varphi \in V_h : \, \int_\Omega \ddot{u} \varphi \, dx &= - \int_\Omega \nabla  u\cdot  \nabla \varphi \, dx.&
     \end{align*}
-    $V_h$ is a finite-dimensional space; therefore, the condition "for all test functions" is equivalent to the condition "for all basis test functions":
+    $V_h$ is a finite-dimensional space, and integration and differentiation are linear operators. Therefore, the condition ``for all test functions" is equivalent to the condition ``for all basis test functions":
     \begin{align*}
-        \forall j=1, \dots, N:\, \int_\Omega (\varphi_1, \dots, \varphi_N)\ddot{y} \varphi_j \, dx &= -  \int_\Omega (\nabla \varphi_1, \dots, \nabla \varphi_N)y\cdot  \nabla \varphi_j \, dx, \\
-        M\ddot{y} &= -Sy.
+        \forall j=1, \dots, N:\, \int_\Omega (\varphi_1, \dots, \varphi_N)\ddot{y} \varphi_j \, dx &= -  \int_\Omega (\nabla \varphi_1, \dots, \nabla \varphi_N)y\cdot  \nabla \varphi_j \, dx & \iff \\
+        M\ddot{y} &= -Sy. &
     \end{align*}
-    It remains to show the equivalence of initial conditions. For $u_0$, we have:
+    It remains to show the equivalence of the initial conditions. For $u_0$, we have:
     \begin{equation*}
         (\varphi_1, \dots, \varphi_N)r = u_0 = u(\cdot, 0) = (\varphi_1, \dots, \varphi_N)y(0),
     \end{equation*}
     so $y(0) = r$ in $\Omega$, and similarly $\dot{y}(0) = 0$ in $\Omega$.
 \end{proof}
-Now we can solve the semi-discrete wave equation \eqref{eq:discr wave equation} to construct an integral operator. 
+Now, we can solve the semi-discrete wave equation \eqref{eq:discr wave equation} to construct an integral operator. 
 \begin{lemma}\label{lemma:y solution}
     The unique solution to \eqref{eq:discr wave equation} is:
     \begin{equation}\label{eq:solution wave eq}
@@ -440,7 +442,7 @@ Now we can solve the semi-discrete wave equation \eqref{eq:discr wave equation} 
     where $(v_j)_{j=1}^N$ is an orthonormal basis of $\R^N$ of eigenvectors of matrix $M^{-1}S$ with corresponding eigenvalues $\omega_j^2$.
 \end{lemma}
 \begin{proof}
-    Because of the symmetry of matrices $S$ and $M$, there exists an orthonormal basis $(v_j)_{j=1}^N$ of eigenvectors of $M^{-1}S$. We denote corresponding eigenvalues with $\omega_j^2$, $j=1, \dots N$. Obviously, for all $j=1, \dots, N$ and for all $c_{1j}, c_{2j}\in \R$, the function $t\mapsto \left(c_{1j} \cos(\omega_j t) + c_{2j} \sin(\omega_j t)\right)v_j$ solves the differential equation \eqref{eq:discr wave equation}. Due to the linearity of the problem, 
+    Because of the symmetry of matrices $S$ and $M$, there exists an orthonormal basis $(v_j)_{j=1}^N$ of $\R^N$ consisting of eigenvectors of $M^{-1}S$. We denote corresponding eigenvalues with $\omega_j^2$, $j=1, \dots, N$. Obviously, for all $j=1, \dots, N$ and for all $c_{1j}, c_{2j}\in \R$, the function $t\mapsto \left(c_{1j} \cos(\omega_j t) + c_{2j} \sin(\omega_j t)\right)v_j$ solves the differential equation \eqref{eq:discr wave equation}. Due to the linearity of the problem, 
     \begin{equation*}
         y(t) = \sum_{j=1}^N \left(c_{1j} \cos(\omega_j t) + c_{2j} \sin(\omega_j t)\right)v_j
     \end{equation*}
@@ -450,7 +452,7 @@ Now we can solve the semi-discrete wave equation \eqref{eq:discr wave equation} 
 Now we can define an integral operator that maps the initial value of the semi-discrete wave equation \eqref{eq:discr wave equation} to a weighted time-integral of its unique solution. The discrete form of this operator will take over the role of matrix $C$. Depending on the choice of the weight function, eigenvalues of this discrete operator may fulfill the requirements that we have set for matrix $C$ in the previous section. This will be discussed later in Chapter \ref{chapter:function}. 
 
 \begin{definition}\label{def:pi_alpha}
-    Let $\alpha: [0; \infty) \rightarrow \R$ be a piecewise continuous function with compact support. We define $\Pi_\alpha: \R^N \rightarrow \R^N$ as a linear operator:
+    Let $\alpha: [0; \infty) \rightarrow \R$ be a piecewise continuous function with a compact support. We define $\Pi_\alpha: \R^N \rightarrow \R^N$ as a linear operator:
     \begin{equation*}
         \Pi_\alpha r := \int_0^\infty \alpha(t) y(t;r) \,dt,
     \end{equation*}
@@ -469,13 +471,13 @@ The following lemma determines the correspondence between eigenvalues of $\Pi_\a
         \item If $\omega^2$ is an eigenvalue of \eqref{eq:matrix form} corresponding to eigenvector $v$, then $v$ is also an eigenvector of $\Pi_\alpha$ corresponding to eigenvalue $\beta_\alpha(\omega)$. 
         \item If $\lambda$ is an eigenvalue of $\Pi_\alpha$ to eigenvector $v$, then there exists an eigenvalue $\omega^2$ of \eqref{eq:discr wave equation} such that $\beta_\alpha (\omega) = \lambda$, and 
         \begin{equation*}
-            v \in \bigoplus\{ U : \exists \omega \, U \text{ is eigenspace to eigenvalue to } \omega \text{ and } \beta_\alpha(\omega) = \lambda\}.
+            v \in \bigoplus\{ U : \quad \exists \omega: \, U \text{ is eigenspace to eigenvalue to } \omega \text{ and } \beta_\alpha(\omega) = \lambda\}.
         \end{equation*}
     \end{enumerate}
 \end{lemma}
 \begin{proof}
     \begin{enumerate}
-        \item Since $(v_j)_{j=1}^N$ is an orthonormal basis of eigenvectors of matrix $M^{-1}S$, every eigenvector of \eqref{eq:matrix form} equals $v_j$ from \eqref{eq:solution wave eq} for some $j=1, \dots, N$. Therefore $y(t, v) = \cos(\omega_j t)v$ and 
+        \item Since $(v_j)_{j=1}^N$ is an orthonormal basis consisting of eigenvectors of matrix $M^{-1}S$, for every eigenvector $v$ of \eqref{eq:matrix form} exists some $j=1, \dots, N$, such that $v = v_j$ with $v_j$ from \eqref{eq:solution wave eq}. Therefore, $y(t, v) = \cos(\omega_j t)v$ and 
         \begin{equation*}
             \Pi_\alpha v = \int_0^\infty \alpha(t) \cos(\omega_j t) v \, dt = \beta_\alpha(\omega) v.
         \end{equation*}
@@ -489,7 +491,7 @@ The following lemma determines the correspondence between eigenvalues of $\Pi_\a
 \end{proof}
 
 \section{Time discretization}
-In the previous section, we introduced an operator $\Pi_\alpha$ that could meet our eigenvalue requirements and replace the matrix $C$ in Krylov iteration. However, exact computation of the value $\Pi_\alpha r$ is impossible for two reasons: it demands an analytical solution $y(\cdot; r)$ to the semi-discrete wave equation \eqref{eq:discr wave equation} as well as the computation of an integral.
+In the previous section, we introduced the operator $\Pi_\alpha$ that could meet our eigenvalue requirements and replace the matrix $C$ in Krylov iteration. However, exact computation of the value $\Pi_\alpha r$ is impossible for two reasons: it demands an analytical solution $y(\cdot; r)$ to the semi-discrete wave equation \eqref{eq:discr wave equation} as well as the computation of an integral.
 
 In numerical method, we replace the integral in the definition of $\Pi_\alpha$ by the rectangular rule. Since we only need the values of the function $y(\cdot; r)$ at quadrature nodes, we can discretize the problem \eqref{eq:discr wave equation} in time and compute an approximation of the exact solution at those points using the finite difference method.
 \begin{lemma}[Finite difference method]\label{lemma:finite diffs}
@@ -499,10 +501,10 @@ In numerical method, we replace the integral in the definition of $\Pi_\alpha$ b
     \end{equation*}
 \end{lemma}
 \begin{proof}
-    This follows from a straight-forward calculation using Taylor expansion of the function $y$. For details, see \cite[p. 93]{numodes}.
+    This follows from a straight-forward calculation using Taylor expansion of the function $y$. For the details, see \cite[p. 93]{numodes}.
 \end{proof}
 
-\begin{prop}[Finite difference method for semi-discrete wave equation]
+\begin{prop}[Finite difference method for the semi-discrete wave equation]
     Let $\tau>0$ be the step size of a uniform mesh on $[0, \infty)$. By replacing the second time derivatives in \eqref{eq:discr wave equation} with the finite differences from Lemma \ref{lemma:finite diffs}, we obtain the following approximation $y_l(r)$ of $y(\tau l; r)$ for all $l \in \N$:
     \begin{align}\label{eq:fd for wave eq}
     \begin{split}
@@ -535,7 +537,7 @@ In numerical method, we replace the integral in the definition of $\Pi_\alpha$ b
     \end{equation}
 \end{prop}
 
-The discrete operator $C$ defined in Proposition \ref{prop:C operator} allows us to avoid high computational costs in each Krylov step $r \mapsto Cr$. However, we have to verify the coincidence between eigenpairs of $C$ and eigenpairs of the original problem \eqref{eq:matrix form}. For this reason, we construct a discrete filter function as a discrete analogue of \eqref{eq:cont filter function}.
+The discrete operator $C$ defined in Proposition \ref{prop:C operator} allows us to avoid high computational costs in each Krylov step $r \mapsto Cr$. However, we have to verify the coincidence between eigenpairs of $C$ and eigenpairs of the original problem \eqref{eq:matrix form}. For this reason, we construct a discrete filter function as a discrete counterpart of $\beta_\alpha$.
 
 If $r$ is an eigenvector of the matrix $M^{-1}S$ with eigenvalue $\omega^2$, then the time-stepping \eqref{eq:fd for wave eq} takes the following form for all $n\in \N$:
 \begin{equation}\label{eq:y_l q_l}
@@ -616,7 +618,7 @@ We recall the recursive definition of Chebyshev polynomials on the interval $[-1
     This concludes the proof.
 \end{proof}
 
-The matrix $M^{-1}S$ has spectral decomposition $M^{-1}S = V\mathrm{diag}(\omega_1^2, \dots, \omega_N^2)V^T$, thus there exists its square root $\sqrt{M^{-1}S} = V\mathrm{diag}(\omega_1, \dots, \omega_N)V^T$. 
+For the following lemma note, that the matrix $M^{-1}S$ has a spectral decomposition $M^{-1}S = V\mathrm{diag}(\omega_1^2, \dots, \omega_N^2)V^T$, so there exists its square root $\sqrt{M^{-1}S} = V\mathrm{diag}(\omega_1, \dots, \omega_N)V^T$. 
 
 \begin{lemma}\label{lemma:dff}
     Let $L\in \N$ be the number of quadrature nodes, $T$ be the upper bound of the integral, and $\tau = T/L$, as in Proposition \ref{prop:C operator}. Let $q_l(\omega)$ be defined for all $l \in \N$ and $\omega \in \R$ by \eqref{eq:q def}. We define the discrete filter function $\dff: [0, \infty) \rightarrow \R$ as follows:
@@ -678,7 +680,7 @@ Now that we have constructed the operator $C$ meeting our requirements, we can r
         \EndFor
         \State $B_m \gets (b_0, \dots, b_{m-1})$ \Comment{Projection matrix}
         \State $A \gets B_m^T M^{-1}S B_m$
-        \State solve $Av_m = \omega_m^2 v_m$ with power iteration
+        \State solve $Av_m = \omega_m^2 v_m$ with a direct solver
     \end{algorithmic} 
 \end{algorithm}
 
@@ -688,11 +690,11 @@ The chosen time-step $\tau$ should fulfill the CFL condition (see Lemma \ref{lem
 
 \chapter{Choice of the weight function}
 \label{chapter:function}
-To fully enable the functionality of the Krylov eigenvalue solver based on filtered time-domain, we need an appropriate weight function $\alpha$. The first section of this chapter follows the choice in \cite{nannen}. In subsequent sections, we discuss other numerical methods for selecting the weight function.
+To fully enable the functionality of the Krylov eigenvalue solver based on the filtered time domain, we need an appropriate weight function $\alpha$. The first section of this chapter follows the choice in \cite{nannen}. In subsequent sections, we discuss other numerical methods for selecting the weight function.
 
 The entire spectrum of eigenvalues $\omega^2$ of the discrete approximation \eqref{eq:matrix form} of the negative Laplacian eigenvalue problem is included within some interval $\left[0, \omega_\e^2\right]$. We search for eigenvalues within a specified region of interest $\left[\omega_{\min}^2, \omega_{\max}^2\right] \subset \left[0, \omega_\e^2\right]$. By employing the Krylov eigenvalue solver (Algorithm \ref{alg:Krylov pro}), we can compute eigenvalues $\omega^2$ such that the absolute value of the discrete filter function $\left|\dff(\omega)\right|$ is maximized.
 
-Consequently, our goal is to construct a weight function $\alpha$ such that the filter function $\left|\beta_\alpha\right|$ \eqref{eq:cont filter function} or its discrete equivalent $\left|\dff\right|$ \eqref{eq:dff} takes on larger values if $\omega \in \left[\omega_{\min}, \omega_{\max} \right]$ and is close to 0 otherwise. Of course, we can require this only in the controlled interval $\left[0, \omega_\e\right]$, since, according to Lemma \ref{lemma:dff}, $\dff$ is a polynomial. Moreover, we require that the function $\alpha$ is piecewise continuous and compactly supported (see Definition \ref{def:pi_alpha}).
+Consequently, our goal is to construct a weight function $\alpha$ such that the filter function $\left|\beta_\alpha\right|$ \eqref{eq:cont filter function} or its discrete equivalent $\left|\dff\right|$ \eqref{eq:dff} takes on larger values if $\omega \in \left[\omega_{\min}, \omega_{\max} \right]$ and is close to 0 otherwise. Of course, we can require this only in the controlled interval $\left[0, \omega_\e\right]$, since, according to Lemma \ref{lemma:dff}, $\dff$ is a polynomial. Moreover, in Definition \ref{def:pi_alpha} we required that the function $\alpha$ is piecewise continuous and compactly supported.
 
 \section{Inverse Fourier transform method}\label{section:fourier}
 In this section, we follow the choice in \cite{nannen}. The first presented method of selecting a weight function is based on the observation that the mapping $\alpha \mapsto \beta_\alpha$ is somehow similar to the Fourier transform.
@@ -831,14 +833,14 @@ The definitions of the discrete operator $C$ for Krylov iteration \eqref{eq:C op
     \end{equation}
 \end{definition}
 
-Note that for a given weight function $\alpha: \left[0, \omega_\e\right] \rightarrow \R$ and a vector $\Vec{\alpha} = \left(\alpha(\tau l)\right)_{l=0}^{L-1}$, the definition of $\dff$ in Lemma \ref{lemma:dff} is equivalent to Definition \ref{def:dffv}, i.e., $\dff = \dffv$.
+Note that for a given weight function $\alpha: \left[0, \omega_\e\right] \rightarrow \R$ and evaluation vector $\Vec{\alpha} := \left(\alpha(\tau l)\right)_{l=0}^{L-1}$, the definition of $\dff$ in Lemma \ref{lemma:dff} is equivalent to Definition \ref{def:dffv}, i.e., $\dff = \dffv$.
 
 We fix an arbitrary target function $\gamma$ that fulfills our requirements for the discrete filter function in the controlled interval. We select $L$ nodes in the controlled interval, in the simplest setting equidistant, and formulate our problem as a polynomial collocation problem with $\left\{q_l : l=0, \dots, L-1\right\}$ basis of the space of polynomials up to degree $L-1$ in $\omega^2$.
 \begin{definition}\label{def:evaluation matrix}
-    For given number of time-steps $L\in \N$ and $K\in \N$ collocation nodes $ 0 \leqslant \omega_0 < \dots < \omega_{K-1} \leqslant \omega_\e$ we define the evaluation matrix $Q \in \R^{K\times L}$ as $Q_{kl} := q_l\left(\omega_k\right)$ for all $k=0, \dots, K-1$ and $l=0, \dots, L-1$. 
+    For a given number of time-steps $L\in \N$ and $K\in \N$ collocation nodes $ 0 \leqslant \omega_0 < \dots < \omega_{K-1} \leqslant \omega_\e$ we define the evaluation matrix $Q \in \R^{K\times L}$ as $Q_{kl} := q_l\left(\omega_k\right)$ for all $k=0, \dots, K-1$ and $l=0, \dots, L-1$. 
 \end{definition}
 
-Let $\tau>0$ be the time-step, $L\in \N$ be the number of time-steps and $\left[\omega_{\min}, \omega_{\max}\right]$ denote the target interval. Selecting $L$ equidistant collocation nodes $\omega_l = l\omega_\e/ (L-1)$, $l=0, \dots, L-1$, in the controlled interval $\left[0, \omega_{\e}\right]$ leads to collocation problem to find $\Vec{\alpha} \in \R^L$, such that:
+Selecting $L$ equidistant collocation nodes $\omega_l := l\omega_\e/ (L-1)$, $l=0, \dots, L-1$, in the controlled interval $\left[0, \omega_{\e}\right]$ leads to  a collocation problem to find $\Vec{\alpha} \in \R^L$, such that:
 \begin{equation*}
     \forall k = 0, \dots, L-1: \quad \dffv\left(\omega_k\right) = \gamma(\omega_k).
 \end{equation*}
@@ -857,7 +859,7 @@ As an example, we choose the same parameters as in the previous section, especia
     \label{fig:eq coll beta}
 \end{figure}
 \newpage
-By a small number of collocation knots, intervals between nodes are large, and we can observe strong oscillation of the polynomial, especially for larger values of $\omega$. Increasing the number of nodes does not improve the behavior for two reasons. Firstly, this increases the degree of the polynomial, which compounds the problem despite shorter intervals between nodes. Secondly, higher values of $L$ rapidly worsen the conditioning of the matrix $Q$. Figure \ref{fig:eq coll cond} presents $\mathrm{cond}(Q) := \|Q\|_2 \|Q^{-1}\|_2$ (where $\| \cdot \|_2$ denotes the induced matrix norm by the Euclidean norm) depending on the size of the problem $L$.
+By a small number of collocation knots, intervals between nodes are large, and we can observe strong oscillation of the polynomial, especially for larger values of $\omega$. Increasing the number of nodes does not improve the behavior for two reasons. Firstly, this increases the degree of the polynomial, which compounds the problem despite shorter intervals between nodes. Secondly, higher values of $L$ rapidly worsen the conditioning of the matrix $Q$. Figure \ref{fig:eq coll cond} presents $\mathrm{cond}(Q) := \|Q\|_2 \|Q^{-1}\|_2$ (where $\| \cdot \|_2$ denotes the induced matrix norm by the Euclidean norm) depending on the problem's size $L$.
 
 \begin{figure}
     \centering
@@ -866,7 +868,7 @@ By a small number of collocation knots, intervals between nodes are large, and w
     \label{fig:eq coll cond}
 \end{figure}
 
-Because equidistant nodes in the collocation method do not produce desired results, we attempt to replace them. From Lemma \ref{lemma:q chebyshev}, we know that functions $q_l(\omega)$ are polynomials in $\omega^2$. The next proposition shows that the natural choice is Chebyshev collocation in $\omega^2$.
+Because equidistant nodes in the collocation method do not produce desired results, we attempt to replace them. From Lemma \ref{lemma:q chebyshev}, we know that functions $q_l(\omega)$ are polynomials in $\omega^2$. The next proposition shows that the natural choice is the Chebyshev collocation.
 
 \begin{prop}[Chebyshev nodes] \label{def:chebyshev nodes}
     For $L\in\N$, Chebyshev nodes on the interval $(-1, 1)$ are given by:
@@ -875,7 +877,7 @@ Because equidistant nodes in the collocation method do not produce desired resul
     \end{equation*}
     \begin{enumerate}
         \item The Chebyshev polynomial $T_L$ (see Definition \ref{def:chebyshev polynomials}) has $L$ roots in the interval $(-1, 1)$, which are exactly the Chebyshev nodes.
-        \item For $f \in C^{L}\left([a,b]\right)$, arbitrary collocation nodes $x_0, \dots, x_{L-1} \in [a,b]$ and Lagrange collocation polynomial $p\in \mathcal{P}_{L-1}$ such that $p(x_l) = f(x_l)$ for all $l=0, \dots, L-1$, there holds the error estimation:
+        \item For $f \in C^{L}\left([a,b]\right)$, arbitrary collocation nodes $x_0, \dots, x_{L-1} \in [a,b]$ and Lagrange collocation polynomial $p\in \mathbb{P}_{L-1}$ such that $p(x_l) = f(x_l)$ for all $l=0, \dots, L-1$, there holds the error estimation:
         \begin{equation}\label{eq:lagrange error est}
             \|f-p\|_\infty \leqslant \frac{\|f^{(L+1)}\|_\infty}{(L+1)!} \max_{x\in[a,b]} \prod_{l=0}^{L-1} \left|x-x_l\right|.
         \end{equation}
@@ -915,7 +917,7 @@ For a fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \o
         \draw [dashed] ($(image1.north west) + (77.5pt, -24pt)$) -- (image2.north west);
         \draw [dashed] ($(image1.south west) + (77.5pt, 24pt)$) -- (image2.south west);
     \end{tikzpicture}
-    \caption{Plots of the function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. The target interval is $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, with a time-step of $\tau = 0.0056$ and $\omega_\e = 2/\tau \approx 357.14$. We vary the number of time-steps and collocation nodes $L$. Crosses represent values of the target function at the knots. The yellow curve represents the discrete filter function obtained by the inverse Fourier transform of the indicator truncated to end-time $T=2.8$.}
+    \caption{Plots of the function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. The target interval is $\left[\omega_{\min}, \omega_{\max} \right] = [12, 14]$, with the time-step $\tau = 0.0056$ and $\omega_\e = 2/\tau \approx 357.14$. We vary the number of time-steps and collocation nodes $L$. Crosses represent values of the target function at the knots. The yellow curve represents the discrete filter function obtained by the inverse Fourier transform of the indicator truncated to end-time $T=2.8$.}
     \label{fig:cheb coll 1}
 \end{figure}
 
@@ -951,7 +953,7 @@ For a fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \o
         \draw [dashed] ($(image1.north west) + (195pt, -24pt)$) -- (image2.north west);
         \draw [dashed] ($(image1.south west) + (195pt, 24pt)$) -- (image2.south west);
     \end{tikzpicture}
-    \caption{Plots of the function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. The target interval is $\left[\omega_{\min}, \omega_{\max} \right] = [122, 130]$, with a time-step of $\tau = 0.0056$ and $\omega_\e = 2/\tau \approx 357.14$. We vary the number of time-steps and collocation nodes $L$. Crosses represent values of the target function at the knots. The yellow curve represents the discrete filter function obtained by the inverse Fourier transform of the indicator truncated to end-time $T=2.8$.}
+    \caption{Plots of the function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. The target interval is $\left[\omega_{\min}, \omega_{\max} \right] = [122, 130]$, with the time-step $\tau = 0.0056$ and $\omega_\e = 2/\tau \approx 357.14$. We vary the number of time-steps and collocation nodes $L$. Crosses represent values of the target function at the knots. The yellow curve represents the discrete filter function obtained by the inverse Fourier transform of the indicator truncated to end-time $T=2.8$.}
     \label{fig:cheb coll 2}
 \end{figure}
 
@@ -962,15 +964,15 @@ For a fixed time-step $\tau>0$, we choose collocation nodes $\omega_0, \dots, \o
 %    \caption{Plots of the function $\left|\dffv\right|$ with $\Vec{\alpha}$ obtained by collocation with Chebyshev nodes in $\omega^2$. The target interval is $\left[\omega_{\min}, \omega_{\max} \right] = [122, 130]$, with a time-step of $\tau = 0.0056$ and $\omega_\e = 2/\tau \approx 357.14$. We vary the number of time-steps and collocation nodes $L$. Crosses represent values of the target function at the knots. The yellow curve represents the discrete filter function obtained by the inverse Fourier transform of the indicator truncated to end-time $T=2.8$.}
 %    \label{fig:cheb coll 2}
 %\end{figure}
-
 \newpage
-Error estimation for Lagrange interpolation \eqref{eq:lagrange error est}, which was our motivation to replace equidistant nodes with Chebyshev ones, demands a function $\gamma$ that is $L$-times continuously differentiable, which is not the case for the indicator function. Therefore, in the third example, we change our target function to a $C^\infty$ function, the Gaussian peak $g(\omega) = \exp\left(-(\omega-\omega_{\mathrm{mid}})^2\right)$ with $\omega_{\mathrm{mid}}$ in the middle of the region of interest. Results are presented in Figure \ref{fig:cheb coll cont ex}. Again, we compare the obtained discrete filter function to one produced with the truncated inverse Fourier transform in a similar way to the derivation of \eqref{eq:alpha fourier}.
+Error estimation for Lagrange interpolation \eqref{eq:lagrange error est}, which was our motivation to replace equidistant nodes with Chebyshev ones, demands a function $\gamma$ that is $L$ times continuously differentiable, which is not the case for the indicator function. Therefore, in the third example, we change our target function to a $C^\infty$ function, the Gaussian peak $g(\omega) = \exp\left(-(\omega-\omega_{\mathrm{mid}})^2\right)$ with $\omega_{\mathrm{mid}}$ in the middle of the region of interest. Results are presented in Figure \ref{fig:cheb coll cont ex}. Again, we compare the obtained discrete filter function to one produced with the truncated inverse Fourier transform in a similar way to the derivation of \eqref{eq:alpha fourier}.
 
 A remarkable advantage of collocation in Chebyshev nodes is the good conditioning of the collocation matrix $Q$. The condition number for Chebyshev nodes is, in contrast to equidistant nodes, independent of the size of the problem $L$. Furthermore, the obtained discrete filter function does not oscillate strongly between collocation knots, even for an uncontinuous target function like the indicator.
 
-Following \cite{nannen}, we assume that the sought eigenvalues of the negative Laplace operator are closer to 0 than to the end of the controlled interval $\omega_\e$. Chebyshev nodes in $\omega^2$ have the highest density in the upper area of the interval $[0, \omega_\e]$. Thus, especially for lower numbers of collocation knots and a small target interval, the entire interval $\left[\omega_{\min}, \omega_{\max} \right]$ may be contained between two consecutive nodes. This sets the right-hand side of the collocation problem \eqref{eq:alpha eq coll} to 0, and as a result, we get $\Vec{\alpha}=0$ and $\dffv \equiv 0$. We can observe this problem in Figure \ref{fig:cheb coll 1} for $L=100$. In this particular example, $ 8.4142\approx\omega_1 < \omega_{\min} = 12 < 14 = \omega_{\max} < \omega_2 \approx 14.0213 $. Also, a small shift of the target interval does not impact the discrete filter function at all if the change in $\omega_{\min}$ and $\omega_{\max}$ does not exceed the distance to the nearest nodes. A similar problem can be observed for the $C^\infty$ target function for $L=100$ in Figure \ref{fig:cheb coll cont ex}.
+Following \cite{nannen}, we assume that the sought eigenvalues of the negative Laplace operator are closer to 0 than to the end of the controlled interval $\omega_\e$. Chebyshev nodes in $\omega^2$ have the highest density in the upper area of the interval $[0, \omega_\e]$. Thus, especially for lower numbers of collocation knots and a small target interval, the entire interval $\left[\omega_{\min}, \omega_{\max} \right]$ may be contained between two adjacent nodes. This sets the right-hand side of the collocation problem \eqref{eq:alpha eq coll} to 0, and as a result, we get $\Vec{\alpha}=0$ and $\dffv \equiv 0$. We can observe this problem in Figure \ref{fig:cheb coll 1} for $L=100$. In this particular example, $ 8.4142\approx\omega_1 < \omega_{\min} = 12 < 14 = \omega_{\max} < \omega_2 \approx 14.0213 $. Furthermore, a small shift of the target interval does not impact the discrete filter function at all if the change in $\omega_{\min}$ and $\omega_{\max}$ does not exceed the distance to the nearest nodes. A similar problem can be observed for the $C^\infty$ target function for $L=100$ in Figure \ref{fig:cheb coll cont ex}.
 
-Obviously, with increasing $L$, the distances between nodes decrease, which solves this issue. However, this is undesired, since we want to choose $L$ as small as possible due to the complexity of the Algorithm. Another possibility would be to increase the number of collocation nodes $K$ by the same number of basis functions $L$. This would lead to a $K\times L$ evaluation matrix with $K>L$ and a least squares problem instead of a linear system of equations.
+Obviously, with increasing $L$, the distances between nodes decrease, which solves this issue. However, this is undesired, since we want to choose $L$ as small as possible due to the complexity of the algorithm. Another possibility would be to increase the number of collocation nodes $K$ by the same number of basis functions $L$. This would lead to a $K\times L$ evaluation matrix with $K>L$ and a least squares problem instead of a linear system of equations.
+
 
 \begin{figure}[h]
     % left margin: 54 pt
@@ -1008,8 +1010,9 @@ Obviously, with increasing $L$, the distances between nodes decrease, which solv
 %    \label{fig:cheb coll cont ex}
 %\end{figure}
 
+
 \section{Least squares method and minimization of $L^2$ norm}\label{section:lsq l2}
-We start this section with the idea of fixing the number $L$ of time-steps (and thus the polynomial degree) to avoid increasing the computational costs of the algorithm, while simultaneously increasing the number of collocation knots. Obviously, the obtained system of equations is (in general) not solvable, so we use linear least squares fitting. Then we switch to another approach -- we try to find $\Vec{\alpha}$ that minimizes the $L^2$ norm of the difference between the corresponding discrete filter function and the target function $\gamma$. Finally, Theorem \ref{theorem:lsq converges to l2} will show the connection between these two methods.
+We start this section with the idea of fixing the number $L$ of time-steps (and thus the polynomial degree) to avoid increasing the computational costs of the algorithm, while simultaneously increasing the number of collocation knots. Obviously, the obtained system of equations is (in general) not solvable, so we use linear least squares fitting. Then, we switch to another approach -- we try to find $\Vec{\alpha}$ that minimizes the $L^2$ norm of the difference between the corresponding discrete filter function and the target function $\gamma$. Finally, Theorem \ref{theorem:lsq converges to l2} will show the connection between these two methods.
 
 \begin{definition}[Least squares method]\label{def:least sq}
     Let $\tau>0$ denote the time-step and $L \in \N$ denote the number of time-steps. For given nodes $\omega_0, \dots, \omega_{K-1} \in [0, \omega_\e]$ with $K>L$, let $Q\in\R^{K\times L}$ denote the evaluation matrix from Definition \ref{def:evaluation matrix}. For a piecewise continuous target function $\gamma : [0, \omega_\e] \rightarrow \R$, we search for $\Vec{\alpha} \in \R^{L}$, such that:
@@ -1035,7 +1038,7 @@ Note that the problem stated in Definition \ref{def:least sq} is just a modifica
 Another approach would be to define, for a fixed number of time-steps $L$ and a time-step $\tau>0$, an operator $\Phi: \R^L \rightarrow \R$ as an $L^2$ norm on the controlled interval of the difference between the goal function $\gamma$ and the corresponding discrete filter function associated with $\Vec{\alpha} \in \R^L$. In our method, we will attempt to determine the global minimum of this continuous operator.
 
 \begin{definition}[$L^2$ scalar product and norm]
-    For a given controlled interval $[0, \omega_\e]$, we define the $L^2$ scalar product as: $\langle \cdot, \cdot \rangle : L^2\left([0, \omega_\e]\right) \times L^2\left([0, \omega_\e]\right) \rightarrow \R$, 
+    For a given controlled interval $[0, \omega_\e]$, the $L^2$ scalar product is defined as: $\langle \cdot, \cdot \rangle : L^2\left([0, \omega_\e]\right) \times L^2\left([0, \omega_\e]\right) \rightarrow \R$, 
     \begin{equation*}
         \langle f, g\rangle := \int_0^{\omega_\e} f(x)g(x) \, dx.
     \end{equation*}
@@ -1083,7 +1086,7 @@ Since the defined operator $\Phi$ mimics the squared $L^2$ distance between the 
         \nabla^2 \Phi(v) = 2 \tau^2 X.
     \end{equation*}
     
-    Let us consider $B:=\left(q_0|_{[0, \omega_\e]}, \dots, q_{L-1}|_{[0, \omega_\e]}\right)$ and $U := \mathrm{span}(B) \subset L^2\left([0, \omega_\e]\right)$. $U$ is an $L$-dimensional Hilbert space with the restricted $L^2$ scalar product $\langle \cdot, \cdot \rangle_U = \langle \cdot , \cdot \rangle|_{U^2}$. The representation matrix of this scalar product with respect to the basis $B$ is $X$. Therefore $X$ is positive-definite and especially $\nabla^2\Phi(\Vec{\alpha})$ is also positive-definite. This concludes, that $\Vec{\alpha}$ is the unique minimum of $\Phi$. 
+    Let us consider $B:=\left(q_0|_{[0, \omega_\e]}, \dots, q_{L-1}|_{[0, \omega_\e]}\right)$ and $U := \mathrm{span}(B) \subset L^2\left([0, \omega_\e]\right)$. $U$ is an $L$-dimensional Hilbert space with the restricted $L^2$ scalar product $\langle \cdot, \cdot \rangle_U = \langle \cdot , \cdot \rangle|_{U^2}$. The representation matrix of this scalar product with respect to the basis $B$ is $X$. Therefore $X$ is positive definite and especially $\nabla^2\Phi(\Vec{\alpha})$ is also positive definite. This concludes, that $\Vec{\alpha}$ is the unique minimum of $\Phi$. 
 \end{proof}
 
 We still lack a practical evaluation of the matrix $X$ and the vector $d$ from \eqref{eq:l2 matrix cont} to make the $L^2$ minimization method fully functional. Analytical computation of the integrals is out of reach here, so we replace them with the midpoint rule using $K$ subintervals:
@@ -1119,20 +1122,20 @@ where $h := \omega_\e/K$ is the quadrature step-size and $\omega_k := (k+1/2)h$ 
     which concludes the proof.
 \end{proof}
 
-We will implement the $L^2$ minimization using the introduced approximation of the integrals by the midpoint quadrature rule. The claim of the last lemma simplifies the preparation of the matrix $X_h$ and the right-hand side of the equation $d_h$ in practice. Moreover, a remarkable consequence of this lemma is the following link between obtaining $\Vec{\alpha}$ by the least squares method and the normal equation \eqref{eq:normal eq} with equidistant knots and by $L^2$ minimization \eqref{eq:l2 matrix cont}.
+We will implement the $L^2$ minimization using the introduced approximation of the integrals by the midpoint quadrature rule. The claim of the last lemma simplifies the preparation of the matrix $X_h$ and the right-hand side of the equation $d_h$ in practice. Moreover, a remarkable consequence of this lemma is the following link between obtaining $\Vec{\alpha}$ by the least squares method and the normal equation \eqref{eq:normal eq} with equidistant knots, and by $L^2$ minimization \eqref{eq:l2 matrix cont}.
 
 \begin{theorem}[Least squares method with equidistant knots converges to $L^2$ minimization]\label{theorem:lsq converges to l2}
     Let $\tau>0$ be the time-step, $L$ the number of time-steps, and $[0, \omega_\e]$ the controlled interval. Let $\gamma$ be a piecewise continuous target function. For all $h>0$, let $K := \lfloor \omega_\e/h\rfloor $ denote the number of equidistant knots: $ \Delta_h := {\omega_k := (k+1/2)h : \quad k=0, \dots, K-1}$. With $\Vec{\alpha}_h$, we denote the solution to the normal equation (see Proposition \ref{prop:normal eq}) with knots $\Delta_h$. Let $\Vec{\alpha}$ denote the solution to the $L^2$ minimization \eqref{eq:l2 matrix cont}. Then $\lim_{h\rightarrow 0} \Vec{\alpha}_h = \Vec{\alpha}$.
 
 \end{theorem}
 \begin{proof}
-    For every $h>0$ and $K>L$, let $Q_K$ be the evaluation matrix (see Definition \ref{def:evaluation matrix}) in knots $\Delta_h$. According to Proposition \ref{prop:normal eq}, $\Vec{\alpha}_h$ solves the normal equation: 
+    For every $h>0$ and $K>L$, let $Q_h$ be the evaluation matrix (see Definition \ref{def:evaluation matrix}) in knots $\Delta_h$. According to Proposition \ref{prop:normal eq}, $\Vec{\alpha}_h$ solves the normal equation: 
     \begin{equation*}
-        Q^T Q \Vec{\alpha}_h = Q^Tc,
+        Q_h^T Q_h \Vec{\alpha}_h = Q_h^Tc,
     \end{equation*}
     with $c:= 1/\tau \left(\gamma(\omega_0), \dots, \gamma(\omega_{K-1})\right)^T$, or, equivalently:
     \begin{equation*}
-        hQ^T Q \Vec{\alpha}_h = hQ^Tc.
+        hQ_h^T Q_h \Vec{\alpha}_h = hQ_h^Tc.
     \end{equation*}
     Thus from Lemma \ref{lemma:QTQ} follows, that $\Vec{\alpha}_h$ solves:
     \begin{equation}\label{eq:alpha_h eq}
@@ -1293,11 +1296,11 @@ In both cases, the behavior of the discrete filter function in the neighborhood 
 %\end{figure}
 
 \chapter{Numerical experiments}\label{chapter:experiments}
-In this chapter we apply deployed Krylov eigenvalue solver (Algorithm \ref{alg:Krylov pro}) to problem stated in Definition \ref{def:ev problem} on a two-dimensional rectangular domain. We compare the convergence of the eigenvalues inside and outside of the target interval for different filter functions. For space discretization, computation of matrices $M$ and $S$, and visualisation of obtained eigenfunctions, we use the FEM library Netgen/NGSolve in Python.
+In this chapter we apply the deployed Krylov eigenvalue solver (Algorithm \ref{alg:Krylov pro}) to the problem stated in Definition \ref{def:ev problem} on a two-dimensional rectangular domain. We compare the convergence of the eigenvalues inside and outside of the target interval for different filter functions. For space discretization, computation of matrices $M$ and $S$, and visualization of obtained eigenfunctions, we use the FEM library Netgen/NGSolve in Python.
 
-We consider the domain $\Omega := \left[0, \sqrt[3]{2}\right]\times\left[0, 1\right] \subset \R^2$ and fix a partition $\mathcal{T}$ with maximal size $h = 0.05$. As a discrete solution space, we choose first-order splines in $\R^2$: $V_h = \left\{v \in H^1(\Omega) : \quad \forall T \in \mathcal{T}, v|_T \in \mathcal{P}_1\right\}$. This leads to an $N=629$-dimensional matrix eigenvalue problem. 
+We consider the domain $\Omega := \left[0, \sqrt[3]{2}\right]\times\left[0, 1\right] \subset \R^2$ and fix a partition $\mathcal{T}$ with maximal size $h = 0.05$. As a discrete solution space, we choose first-order splines in $\R^2$: $V_h = \left\{v \in H^1(\Omega) : \quad \forall T \in \mathcal{T}, v|_T \in \mathbb{P}_1\right\}$. This leads to an $N=629$-dimensional matrix eigenvalue problem. 
 
-The exact spectrum of the negative Laplace operator on $\Omega$ with Neumann boundary conditions is $ \sigma(-\Delta) = \left\{\omega^2_{m,n} := \left(m^2/\sqrt[3]{4} + n^2\right)\pi^2 : \quad m, n \in \N \right\}$. We expect some perturbations of the spectrum due to discretization in space, however, these errors do not depend on our method. Thus, we compare the convergence of eigenvalues obtained by the Krylov iteration to the eigenvalues of the $N$-dimensional matrix eigenvalue problem after partitioning. In other words, the reference spectrum $\sigma(M^{-1}S)$ consists of eigenvalues of the matrix $M^{-1}S$, denoted as $\Tilde{\omega}_{m,n}^2$. We compute them numerically using the \texttt{numpy.linalg.eig()} function in Python. This method is also used as a direct solver to solve the projected $m$-dimensional problem.
+The exact spectrum of the negative Laplace operator on $\Omega$ with Neumann boundary conditions is $ \sigma(-\Delta) = \left\{\omega^2_{m,n} := \left(m^2/\sqrt[3]{4} + n^2\right)\pi^2 : \quad m, n \in \N \right\}$. We expect some perturbations of the spectrum due to discretization in space; however, these errors do not depend on our method. Thus, we compare the convergence of eigenvalues obtained by the Krylov iteration to the eigenvalues of the $N$-dimensional matrix eigenvalue problem after partitioning. In other words, the reference spectrum $\sigma(M^{-1}S)$ consists of eigenvalues of the matrix $M^{-1}S$, denoted as $\Tilde{\omega}_{m,n}^2$. We compute them numerically using the \texttt{numpy.linalg.eig()} function in Python. This method is also used as a direct solver to solve the projected $m$-dimensional problem.
 
 In the experiment, we select a time-step $\tau = 0.0056$, which corresponds to controlled interval between $0$ and $\omega_\e = 2/\tau \approx 357.14$, covering all resonances of the discrete problem \ref{eq:matrix form}. In each Krylov-step, we perform $L=200$ time-steps. We construct the discrete filter function $\dffv$ by the least squares fitting presented in Section \ref{section:lsq l2} with $K=1000$ Chebyshev nodes. 
 
@@ -1306,7 +1309,7 @@ For each eigenvalue $\Tilde{\omega}^2_{m,n}$ in the reference spectrum and each 
     \mathrm{error}_{k}\left(\Tilde{\omega}^2_{m,n}\right) := \min\left\{\left|\omega_{(k)}^2 - \Tilde{\omega}^2_{m,n}\right| : \quad \omega_{(k)}^2 \text{ is a result after the \textit{k}-th iteration}\right\}.
 \end{equation*}
 
-\begin{figure}[h!]
+\begin{figure}[p]
     $L=100, T=0.56$:\\
     \includegraphics[width=0.49\linewidth]{latex//images//simulation/Figure_3_100.png}
     \includegraphics[width=0.49\linewidth]{latex//images//simulation/Figure_2_100.png}
@@ -1316,30 +1319,33 @@ For each eigenvalue $\Tilde{\omega}^2_{m,n}$ in the reference spectrum and each 
     \caption{Convergence of the obtained resonances towards the reference ones in the first 50 Krylov iterations for $L=100$ and $L=200$ time-steps per iteration. The filter function is constructed using the least squares method with 1000 Chebyshev knots, and the target function $\chi_{\left[\omega_{\min}, \omega_{\max}\right]}$ with target intervals $[6,8]$ (right plots) and $ [11,13]$ (left plots).} 
     \label{fig:simulation}
 \end{figure}
-\begin{figure}[h!]
+
+
+
+Figure \ref{fig:simulation} presents the obtained resonance frequencies between 5 and 15 in the first 50 Krylov iterations for two different target intervals: $\left[\omega_{\min}, \omega_{\max}\right] = [6, 8]$ and $\left[\omega_{\min}, \omega_{\max}\right] = [11, 13]$. Furthermore, we compare results for $L=100$ and $L=200$ time-steps per iteration, which correspond to end-times $T=0.56$ and $T=1.12$, respectively. The left vertical axis represents the step of the Krylov iteration. Vertical dotted lines indicate reference resonances $\Tilde{\omega}_{m,n}$, such that $\Tilde{\omega}_{m,n}^2 \in \sigma(M^{-1}S)$. Plotted points are obtained resonances in each iteration. The color and mark of the point depend on $\mathrm{error}_{k}\left(\Tilde{\omega}_{m,n}^2\right)$: resonances with a small error are blue, and those with a larger error are yellow. Furthermore, points satisfying $\mathrm{error}_{k}\left(\Tilde{\omega}_{m,n}^2\right) < 10^{-5}$ are depicted with circles, while others are depicted with crosses. The red curve (with values on the right vertical axis) represents the absolute value of the discrete filter function $\dffv$. 
+
+We observe, that a smaller number of time-steps in each Krylov iteration slows down the convergence both inside and outside the target interval. Nevertheless, with $L=100$ time-steps per iteration and in both target intervals, the method captured all sought eigenvalues in the region of interest after fewer than 50 iterations with a tolerance smaller than $10^{-5}$. In other numerical experiments, we observed similar results.
+
+For further error analysis, we focus on two particular resonances: $\omega_{1,2} \approx 6.76$ and $\omega_{4,2} \approx 11.78$, each in the middle of one of two target intervals. Figure \ref{fig:errors plot} presents $\mathrm{error}_{k}\left(\Tilde{\omega}_{1,2}^2\right)$ and $\mathrm{error}_{k}\left(\Tilde{\omega}_{4,2}^2\right)$ depending on the step $k$ and filter function. Note that the approximation of the resonance obtained by the Krylov iteration cannot worsen, since in each iteration the algorithm enlarges the Krylov space. If an eigenvector $v$ lies in the subspace spanned by $B_k$, then it also lies in the subspace spanned by $B_{k+1}$. Therefore, we truncate these plots to 25 and 35 steps, respectively, where the approached tolerance is much smaller than the tolerance resulting from the space-discretization, and further iteration does not impact this particular resonance.
+
+\begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{latex//images//simulation/Figure_1.png}
     \caption{Error between perturbed eigenvalues $\Tilde{\omega}_{1,2}^2$ (left plot) and $\Tilde{\omega}_{4,2}^2$ (right plot) for target functions $\chi_{[6,8]}$ (blue line) and $\chi_{[11,13]}$ (green line). $L=200$ time-steps per iteration.}
     \label{fig:errors plot}
 \end{figure}
-\begin{figure}[h!]
+
+We observe much faster convergence of the method in regions, where $\left|\dffv\right|$ is larger. Especially, in the middle of the target interval the method with parameter $L=200$ yields accuracy in $\omega^2$ exceeding $10^{-10}$ after fewer than 30 steps. On the other hand, resonances outside the target interval, where the filter function is closer to 0, converge much slower or seem not to be captured in the first 50 iterations at all. In other numerical experiments with different filter functions, we also observed a similarly strong correlation between the absolute amplitude of the discrete filter function and the convergence rate of the eigenvalues.
+
+In the carried out experiments, we reduced the size of the problem from $N=629$ to $m=20$ or $m=50$ (performing $L=200$ or $L=100$ time-steps per iteration, respectively) and obtained all eigenvalues in the target intervals with precision exceeding $10^{-5}$ relative to the reference spectrum. 
+
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.49\linewidth]{latex//images//simulation/sim_4.png}
     \includegraphics[width=0.49\linewidth]{latex//images//simulation/sim_2.png}
     \caption{Eigenfunctions corresponding to resonances $\omega_{1,2}$ (left plot) and $\omega_{4,2}$ (right plot) obtained after 20 steps of Krylov iteration with appropriate target intervals. The exact solutions are: $u_{m,n}(x,y) = \cos\left(m\pi x /\sqrt[3]{2}\right)\cos(n\pi y)$.}
     \label{fig:waves}
 \end{figure}
-
-Figure \ref{fig:simulation} presents the obtained resonance frequencies between 5 and 15 in the first 50 Krylov iterations for two different target intervals: $\left[\omega_{\min}, \omega_{\max}\right] = [6, 8]$ and $\left[\omega_{\min}, \omega_{\max}\right] = [11, 13]$. Furthermore, we compare results for $L=100$ and $L=200$ time-steps per iteration, which correspond to end-times $T=0.56$ and $T=1.12$, respectively. The left vertical axis represents the step of the Krylov iteration. Vertical dotted lines indicate reference resonances $\Tilde{\omega}_{m,n}$, such that $\Tilde{\omega}_{m,n}^2 \in \sigma(M^{-1}S)$. Plotted points are obtained resonances in each iteration. The color and mark of the point depend on $\mathrm{error}_{k}\left(\Tilde{\omega}_{m,n}^2\right)$: resonances with a small error are blue, and those with a larger error are yellow. Furthermore, points satisfying $\mathrm{error}_{k}\left(\Tilde{\omega}_{m,n}^2\right) < 10^{-5}$ are depicted with circles, while others are depicted with crosses. The red curve (with values on the right vertical axis) represents the absolute value of the discrete filter function $\dffv$. 
-
-We observe, that a smaller number of time-steps in each Krylov iteration slows down the convergence both inside and outside the target interval. Nevertheless, with $L=100$ time-steps per iteration and in both target intervals, the method captured all sought eigenvalues in the region of interest after fewer than 50 iterations with a tolerance smaller than $10^{-5}$. In other numerical experiments, we observed similar results.
-
-For further error analysis, we focus on two particular resonances: $\omega_{1,2} \approx 6.76$ and $\omega_{4,2} \approx 11.78$, each in the middle of one target interval. Figure \ref{fig:errors plot} presents $\mathrm{error}_{k}\left(\Tilde{\omega}_{1,2}^2\right)$ and $\mathrm{error}_{k}\left(\Tilde{\omega}_{4,2}^2\right)$ depending on the step $k$ and filter function. Note that the approximation of the resonance obtained by the Krylov iteration cannot worsen, since in each iteration the algorithm enlarges the Krylov space. If an eigenvector $v$ lies in the subspace spanned by $B_k$, then it also lies in the subspace spanned by $B_{k+1}$. Therefore, we truncate these plots to 25 and 35 steps, respectively, where the approached tolerance is much smaller than the tolerance resulting from the space-discretization, and further iteration does not impact this particular resonance.
-
-We observe much faster convergence of the method in regions, where $\left|\dffv\right|$ is larger. Especially, in the middle of the target interval the method with parameter $L=200$ yields accuracy in $\omega^2$ exceeding $10^{-10}$ after fewer than 30 steps. On the other hand, resonances outside the target interval, where the filter function is closer to 0, converge much slower or seem not to be captured in the first 50 iterations at all. In other numerical experiments with different filter functions, we also observed a similarly strong correlation between the absolute amplitude of the discrete filter function and the convergence rate of the eigenvalues.
-
-In the carried out experiments, we reduced the size of the problem from $N=629$ to $m=20$ or $m=50$ (performing $L=200$ or $L=100$ time-steps per iteration, respectively) and obtained all eigenvalues in the target intervals with precision exceeding $10^{-5}$ relative to the reference spectrum. 
-
 
 
 \chapter{Conclusions}
@@ -1360,7 +1366,7 @@ In most cases, we did not observe significant differences between the presented 
 In the experiments carried out in Chapter \ref{chapter:experiments}, we computed the eigenvalues of the negative Laplace operator on the rectangular domain in $\R^2$ in two target intervals. Thanks to the projection onto the Krylov space obtained by an appropriate filter function, we significantly reduced the size of the problem, and therefore also the computational costs, without loss of accuracy in the obtained eigenpairs. 
 
 \bibliographystyle{alpha} 
-%\bibliographystyle{abbrv}
+%\bibliographystyle{acm}
 \bibliography{literature.bib}
 
 \end{document}
