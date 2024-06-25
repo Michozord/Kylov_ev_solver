@@ -1,3 +1,5 @@
 .spyproject/config/
 *.pyc
 .ipynb_checkpoints/*
+/artifacts/*
+/latex/*
