@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ngsaddon"
+version = "1.0.0"
+
+description = "A sample Python project"
+
+readme = "README.md"
+requires-python = ">=3.12"
+license = {file = "LICENSE.txt"}
+keywords = []
+authors = [
+  {name = "Trojanowski M."}
+]
+
+dependencies = []
+
+[project.urls]
+"Homepage" = "https://github.com/Michozord/NGSolve_addon"
+ 
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
