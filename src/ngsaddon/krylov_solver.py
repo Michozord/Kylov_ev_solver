@@ -42,7 +42,7 @@ class KrylovSolver():
     m_max : int, optional
         Maximal number of Krylov iterations. The default is 30.
     """
-    def __init__(self, mesh: ngsolve.comp.Mesh, L: int, tau: float, alpha: Filter, m_min: int = 2, m_max: int = 30):
+    def __init__(self, mesh: comp.Mesh, L: int, tau: float, alpha: Filter, m_min: int = 2, m_max: int = 30):
        self.mesh = None
        self.fes = None
        self.gf = None
