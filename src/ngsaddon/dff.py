@@ -128,7 +128,7 @@ class FilterGenerator:
         if self.om_min >= self.om_max or self.om_max > self.om_end or self.om_min < 0:
             raise ValueError("Invalid omega values for FilterGenerator! There must be 0 <= om_min < om_max <= om_end.")
         
-    def chebyshev(self, K: int) -> np.array:
+    def chebyshev(self, K: int) -> Filter:
         mesh = self._chebyshev_nodes(0, self.om_end, K)
         Q = _q_eval_mat(self.L, self.tau, mesh)
         target = self._indicator()
@@ -143,7 +143,7 @@ class FilterGenerator:
             alpha = np.linalg.solve(QTQ, np.transpose(Q) @ rhs)
         return Filter(alpha, filter_type = FilterType.CHEB, om_end = self.om_end, tau=self.tau)
     
-    def l2(self, K: Optional[int] = 20) -> np.array:
+    def l2(self, K: Optional[int] = 20) -> Filter:
         quad_mesh = np.linspace(0, self.om_end - 1/K, num = int(K*self.om_end)) + 1/(2*K)
         Q = _q_eval_mat(self.L, self.tau, quad_mesh)
         rhs = np.zeros(self.L)
@@ -155,7 +155,7 @@ class FilterGenerator:
         alpha = np.linalg.solve(X, rhs)/self.tau
         return Filter(alpha, filter_type = FilterType.L2, om_end = self.om_end, tau=self.tau)
     
-    def fourier(self) -> np.array:
+    def fourier(self) -> Filter:
         T = self.L * self.tau
         def alpha(t: float) -> float:
             if t == 0:

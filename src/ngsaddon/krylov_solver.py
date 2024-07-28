@@ -6,28 +6,47 @@ Created on Mon May 27 21:44:27 2024
 """
 
 from ngsolve import *
-# from ngsolve.webgui import Draw
 from netgen.geom2d import SplineGeometry
 from scipy.sparse import csr_matrix
-# from l2_minimization import compute_alpha as alpha_l2
-# from chebyshev_collocation import compute_alpha as alpha_cheb
 import numpy as np
+import scipy
 from types import FunctionType
 from copy import deepcopy
 from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.style as style
+import time
+from typing import List, Tuple
 
-from ngsaddon.dff import *
+from ngsaddon.dff import Filter, FilterGenerator
 
 
 class KrylovSolver():
-    def __init__(self, mesh, L, tau, alpha, m_min = 2, m_max = 50):
+    """
+    This class performs FEM with Krylov iteration: discretizes the solution space, 
+    computes the discretization matrices and solves for its eigenpairs using Krylov 
+    iteration.
+    
+    Parameters
+    ----------
+    mesh : ngsolve.comp.Mesh
+        Mesh object of the discretized domain.
+    L : int
+        L > 0. Number of time-steps in each iteation.
+    tau : tau
+        tau > 0. Size of each time-step.
+    alpha : Filter
+        Filter object representing discrete filter function (dff).
+    m_min : int, optional
+        From this iteration onwards the results are saved in KrylovSolver.results. The default is 2.
+    m_max : int, optional
+        Maximal number of Krylov iterations. The default is 30.
+    """
+    def __init__(self, mesh: ngsolve.comp.Mesh, L: int, tau: float, alpha: Filter, m_min: int = 2, m_max: int = 30):
        self.mesh = None
        self.fes = None
        self.gf = None
-       self.M_inv = None
-       self.S = None
+       self.MinvS = None
        self.true_eigvals = []
        self.L = L
        self.tau = tau
@@ -35,66 +54,95 @@ class KrylovSolver():
        self.m_min = m_min
        self.m_max = m_max
        self.mesh = mesh
+       self.results = None
         
         
-    def discretize(self):       
-        self.fes = H1(self.mesh, order=1)     # H1 solution space
+    def discretize(self, order: int=1):
+        """
+        This method discretizes the problem: creates solution space with its basis, 
+        prepares matrices M and S.
+
+        Parameters
+        ----------
+        order : int, optional
+            Order of polynomials in H1 solution space. The default is 1.
+
+        """
+        tm = time.time()
+        self.fes = H1(self.mesh, order=order)     # H1 solution space
         self.gf = GridFunction(self.fes, multidim=self.mesh.nv)    # basis functions 
         for i in range (self.mesh.nv):
             self.gf.vecs[i][:] = 0
             self.gf.vecs[i][i] = 1
-            
-        
+                   
         u, v = self.fes.TnT()  # symbolic objects for trial and test functions in H1
         
-        print(f"Discretization: {self.fes.ndof} degrees of freedom.")
+        print(f"Triangularization done after {time.time()-tm:.5f} seconds:\n\t{self.fes.ndof} degrees of freedom.")
+        tm = time.time()
         
         s = BilinearForm(self.fes)
         s += grad(u)*grad(v)*dx
         s.Assemble()
-        self.S = csr_matrix(s.mat.CSR()).toarray()
+        S = csr_matrix(s.mat.CSR()).toarray()
         
         m = BilinearForm(self.fes)
         m += u*v*dx
         m.Assemble()
         M = csr_matrix(m.mat.CSR()).toarray()
-        self.M_inv = np.linalg.inv(M)
-        self._compute_true_eigvals()
+        self.MinvS = np.linalg.inv(M) @ S   
+        print(f"Discretization matrices computed after {time.time()-tm:.5f} seconds.")
         
+    def compute_true_eigvals(self):
+        """
+        Computes true eigenvalues of the M^-1 S matrix. If this method has been called, 
+        true eigenvalues are added to plots in KrylovSolver.plot_results() method.
         
-    def _compute_true_eigvals(self):
-        eigvals, eigvecs = np.linalg.eig(self.M_inv @ self.S)
+        NOTE: This method should be used in small-scale examples for comparison of the
+        results of the Krylov iteration with true eigenvalues only! In large-scale 
+        examples it ruins the performance of the whole method, since it uses direct 
+        solver on large matrices S and M.
+
+        """
+        raise RuntimeWarning("This method should be used for demonstation of the results in small-scale examples only. In large-scale problems it ruins performance of the Krylov eigenvalue solver!")
+        eigvals, eigvecs = np.linalg.eig(self.MinvS)
         if np.sqrt(max(eigvals)) > 2/self.tau:
-            raise RuntimeWarning(f"There are eigenvalues of MinvS exceeding controlled interlval! {np.sqrt(max(eigvals))} > {2/self.tau}")
+            raise RuntimeWarning(f"There are eigenvalues of MinvS exceeding controlled interval! {np.sqrt(max(eigvals))} > {2/self.tau}")
         self.true_eigvals = eigvals
         
 
-    def solve(self):
+    def solve(self) -> List[Tuple[float, np.ndarray, np.ndarray]]:
+        """
+        Core method, that performs the Krylov iteration to compute eigenvalues omega^2
+        with corresponding eigenvectors. It stores the results of steps between m_min and m_max
+        in the KrylovSolver.results property and returns them.
+
+        Returns
+        -------
+        results : List[Tuple[float, np.array, np.array]]
+            List of results in each step between m_min and m_max. Each item is
+            a Tuple corresponding to one Krylov step and contains:
+                k : float
+                    number of iteration
+                eigvals : np.ndarray
+                    np.array of all obtained eigenvalues (omega^2 in this step)
+                eigvecs: np.ndarray
+                    np.array with eigenvectors in columns. eigvecs[:,i] is an eigenvector to eigvals[i].
+        """
         L, tau, alpha = self.L, self.tau, self.alpha
-        M_inv, S = self.M_inv, self.S
-        N = S.shape[0]
+        N = self.MinvS.shape[0]
     
-        if s:= M_inv.shape != (N,N):
-            raise ValueError(f"Matrix M^-1 has invalid dimension {s}, while start vector has dimension {N}!")
-        if s:= S.shape != (N,N):
-            raise ValueError(f"Matrix S has invalid dimension {s}, while start vector has dimension {N}!")
-            
         r = np.random.rand(N)
         r /= np.linalg.norm(r)
         r = r.reshape((N,1))
         
-        if isinstance(alpha, FunctionType):
-            alpha = np.array(list(map(lambda l: alpha(tau*l), range(L))))
-        
         tau2 = tau*tau
-        MinvS = M_inv @ S
-        
+        MinvS = self.MinvS
         results = []
         
         B = deepcopy(r)
         for k in range(1, self.m_max+1):
             y_pp = deepcopy(B[:,-1])              # y_(l-2)
-            y_p = y_pp - tau2/2 * MinvS @ y_pp    # y_(l-1)
+            y_p = y_pp - tau2/2 * MinvS @ y_pp   # y_(l-1)
             b = tau * alpha[0] * y_pp + tau * alpha[1]* y_p
             for l in range(2, L):   
                 y = - tau2 * MinvS @ y_p + 2 * y_p - y_pp
@@ -127,31 +175,9 @@ class KrylovSolver():
         self.results = results                    
         return results
     
-    def _prepare_plot(self, start, end, title=""):
-        fig = plt.figure()
-        plt.rcParams.update({'mathtext.fontset' : 'cm', 'grid.color' : 'black', 'grid.linestyle' : ':'})
-        plt.rcParams.update({'font.size': 22})
-        plt.title(title)
-        ax1 = plt.subplot()
-        ax1.grid(axis="y")
-        ax1.set_xlim(start, end)
-        ax1.set_ylim(0, self.m_max)
-        ax1.set_ylabel(r"$k$", fontname="serif")
-        ax1.set_xlabel(r"$\omega$", fontname="serif")
-        ax2 = ax1.twinx()
-        ax2.set_ylim(0, 1.2)
-        ax2.set_ylabel(r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$", fontname="serif")
-        fig.tight_layout()
-        for omega in np.sqrt(self.true_eigvals):
-            ax1.axvline(omega, linestyle=':', color='grey') # vertical lines in true eigvals
-        ax1.axvline(om42 := np.sqrt(self.closest_true_eigval(11.78**2)[1]), linestyle="-", color = "green", lw=1.5, label=r"$\omega_{4,2}$")
-        ax1.axvline(om12 := np.sqrt(self.closest_true_eigval(6.76**2)[1]), linestyle="-", color = "green", lw=1.5, label=r"$\omega_{1,2}$")
-        plt.text(om42, 1.23, r'$\tilde{\omega}_{4,2}$', color='green', fontsize=22, horizontalalignment='center')
-        plt.text(om12, 1.23, r'$\tilde{\omega}_{1,2}$', color='green', fontsize=22, horizontalalignment='center')
-        return ax1, ax2
-    
     
     def _color(self, value):
+        # color and marker of omega depending on its accuracy
         dist = np.min(np.abs(self.true_eigvals - value))
         norm = mcolors.Normalize(vmin=-15, vmax=0)
         cmap = plt.get_cmap('cividis')
@@ -159,44 +185,101 @@ class KrylovSolver():
         return marker, cmap(norm(np.log(dist)))
         
         
-    def plot_results(self, start, end, title=""):
+    def plot_results(self, start: float, end: float, title: str="", plot_filter: bool=True, 
+                     label_om: str=r"$\omega$", label_step: str=r"$k$", 
+                     label_filter: str=r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$",
+                     ev_marker: str="x", ev_color: str="blue",
+                     filter_plot_kwargs: dict={"color":"red"}):
+        """
+        Generates plot presenting obtained resonances (omegas). 
+
+        Parameters
+        ----------
+        start : float
+            start point of the plot.
+        end : float
+            end point of the plot.
+        title : str, optional
+            Title of the plot. The default is "".
+        plot_filter : bool, optional
+            If True, plot of the filter function is appended to the plot. The default is True.
+        label_om : str, optional
+            Label on the omega (horizontal)-axis. The default is r"$\omega$".
+        label_step : str, optional
+            Label on the iteration-step k (vertical left)-axis. The default is r"$k$".
+        label_filter : str, optional
+            Label on the filter function (vertical right)-axis. The default is r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$".
+        ev_marker : str, optional
+            Marker for omegas. The default is "x".
+        ev_color : str, optional
+            Color of eigenvalues. The default is "blue".
+        filter_plot_kwargs : dict, optional
+            Dictionary with kwargs for the plot of the filter function. All kwargs of plt.plot method are supported. The default is {"color":"red"}.
+
+        Raises
+        ------
+        RuntimeError
+            If there are no results in the KrylovSolver. Use solve() method and try again.
+
+        """
         if self.results is None:
-            raise RuntimeError("There are no results to plot!")   
+            raise RuntimeError("There are no results to plot!")
             
-        ax1, ax2 = self._prepare_plot(start, end, title=title)
-        plot_beta(self.alpha, self.L, self.tau, start, end, ax2, color="red")
-        # ax1.plot(x:=[np.sqrt(k*k*np.pi*np.pi + j*j) for k in range(10) for j in range(10)],[0]*len(x), "X", color="k")
+        fig = plt.figure()
+        plt.title(title)
+        ax1 = plt.subplot()
+        ax1.grid(axis="y")
+        ax1.set_xlim(start, end)
+        ax1.set_ylim(0, self.m_max)
+        ax1.set_ylabel(label_step, fontname="serif")
+        ax1.set_xlabel(label_om, fontname="serif")
+        if plot_filter:
+            ax2 = ax1.twinx()
+            ax2.set_ylim(0, 1.2)
+            ax2.set_ylabel(label_filter, fontname="serif")
+            fig.tight_layout()
+            self.alpha.plot(start, end, ax2, **filter_plot_kwargs)
+        
+        for omega in np.sqrt(self.true_eigvals):
+            ax1.axvline(omega, linestyle=':', color='grey') # vertical lines in true eigvals
+            
         for k, eigvals, _ in self.results:
             for eigval in eigvals:
-                marker, clr = self._color(eigval)
-                ax1.plot(np.sqrt(eigval), k, marker, color=clr, markerfacecolor='none')
+                marker, clr = self._color(eigval) if self.true_eigvals else ev_marker, ev_color
+                ax1.plot(np.sqrt(abs(eigval)), k, marker, color=clr, markerfacecolor='none')
         
-        # plt.show()
+        plt.show()
+                
         
-    def closest_true_eigval(self, val):
-        dists = np.abs(self.true_eigvals - val)
-        index = np.nanargmin(dists)
-        return index, self.true_eigvals[index]
-        
-        
-    
-    def convergence(self, value):
-        seek_eigval_index, seek_true_eigval = self.closest_true_eigval(value)
-        print("True seek eigenvalue: ", seek_true_eigval)
-        
-        ks, resids = [], []
-        
-        for k, eigvals, _ in self.results:
-            dists = np.abs(eigvals - seek_true_eigval)
-            closest_index = np.nanargmin(dists)
-            # if np.abs(self.closest_true_eigval(eigvals[closest_index])[1] - seek_true_eigval) > 1e-13:
-            #     continue
-            ks.append(k)
-            resids.append(dists[closest_index])
+    def get_single_result(self, ev: float, k: int=-1) -> tuple[float, np.array]:
+        """
+        Returns computed eigenvalue closest to given ev with its eigenvector 
+        after k-th step of the Krylov iteration.
 
-        return seek_true_eigval, ks, resids 
-    
-    def get_single_result(self, k, ev):
+        Parameters
+        ----------
+        ev : float
+            Eigenvalue (omega^2), to which closest value should be returned.
+        k : int, optional
+            Step of the itereation. Use -1 for last iteration. The default is -1.
+
+        Raises
+        ------
+        RuntimeError
+            If there are no results in the KrylovSolver. Use solve() method and try again.
+        ValueError
+            If given step k is not in stored results.
+
+        Returns
+        -------
+        float
+            Eigenvalue (omega^2) in results of the k-th step closest to ev.
+        np.array
+            Eigenvector to sought eigenvalue.
+
+        """
+        if k == -1:
+            k = self.m_max
         if self.results is None:
             raise RuntimeError("There are no results to return!")
         
@@ -212,99 +295,3 @@ class KrylovSolver():
             
  
     
-def plot_convergence(*data):
-    fig, ax = plt.subplots(facecolor="white")
-    for ks, dists, label, clr, stl, mrk in data:
-        plt.semilogy(ks, dists, label=label, marker=mrk, linestyle=stl, color=clr, markersize=15)
-    plt.xlim(((10, 35)))
-    plt.legend(loc="lower left")
-    plt.grid()
-    # plt.show()
-    
-def plot_convergence_2(*data):
-    fig, axes = plt.subplots(ncols=2, facecolor="white", sharey=True)
-    stl = "solid"
-    for ks, dists, label, mrk in data[:2]:
-        ax = axes[0]
-        ax.semilogy(ks, dists, label=label, marker=mrk, linestyle=stl, markersize=15)
-        ax.set_xlim((0, 25))
-        ax.set_ylabel(r"$\text{error}_k (\tilde{\omega}_{1,2}^2)$")        
-    for ks, dists, label, mrk in data[2:]:
-        ax = axes[1]
-        ax.semilogy(ks, dists, label=label, marker=mrk, linestyle=stl, markersize=15)
-        ax.set_xlim((0, 35))
-        ax.set_ylabel(r"$\text{error}_k (\tilde{\omega}_{4,2}^2)$")        
-    
-    for ax in axes:
-        ax.legend(loc="lower left")
-        ax.grid()
-        ax.set_xlabel("$k$")
-    # plt.title(r"Error in $\omega^2$ in convergence to $\approx 7^2$ and $\approx 12^2$ for different filter functions")
-
-
-
-def test():
-    tau = 0.0056        # controlled interval up to omega_end = 360
-    L = 100
-
-    om_min_1, om_max_1 = 11, 13
-    om_min_2, om_max_2 = 6, 8
-    # # alpha1 = alpha_l2(2/tau, L, tau, om_min_1, om_max_1)
-    # # alpha2 = alpha_l2(2/tau, L, tau, om_min_2, om_max_2)
-    alpha1 = alpha_cheb(2/tau, L, 1000, tau, indicator(om_min_1, om_max_1))
-    alpha2 = alpha_cheb(2/tau, L, 1000, tau, indicator(om_min_2, om_max_2))
-    
-    # # alpha3 = alpha_cheb(2/tau, L, L, tau, indicator(om_min, om_max))
-    # ax = prepare_plots(0, 2/tau)
-    # plot_beta(alpha1, L, tau, 0, 2/tau, ax, label=f"({om_min_1}, {om_max_1})")
-    # plot_beta(alpha2, L, tau, 0, 2/tau, ax, label=f"({om_min_2}, {om_max_2})")
-    # # plot_beta(alpha3, L, tau, 0, 2/tau, ax, label="Chebyshev coll")
-    # plt.legend()
-    
-    seek_ev_1, seek_ev_2 = 7**2, 12**2
-    
-    # mesh = Mesh(unit_square.GenerateMesh(maxh=0.1))
-    geo = SplineGeometry()
-    geo.AddRectangle((0,0),(pow(2, 1/3),1))
-    # geo.AddRectangle((0,0),(2,1))
-    mesh = Mesh(geo.GenerateMesh(maxh=0.05))
-    
-    solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 50)
-    solver.discretize()
-    solver.solve()
-    # solver.plot_results(5, 15, f"Chebyshev filter function ({om_min_1}, {om_max_1})")
-    solver.plot_results(5, 15, "")
-    omega2_1, ks1, dists1 = solver.convergence(seek_ev_1)
-    omega2_3, ks3, dists3 = solver.convergence(seek_ev_2)
-    
-    solver2 = KrylovSolver(mesh, L, tau, alpha2, m_max = 50)
-    solver2.discretize()
-    solver2.solve()
-    # solver2.plot_results(5, 15, f"Chebyshev filter function, ({om_min_2}, {om_max_2})")
-    solver2.plot_results(5, 15, "")
-    omega2_2, ks2, dists2 = solver2.convergence(seek_ev_1)
-    omega2_4, ks4, dists4 = solver2.convergence(seek_ev_2)
-    
-    plt.show()
-    style.use("classic")
-    plt.rcParams.update({'axes.formatter.offset_threshold': 5, 'lines.linewidth': 1.5, 'font.size' : 22, 'markers.fillstyle': 'none'})
-    
-    print(np.sqrt(omega2_1), np.sqrt(omega2_3))
-    
-    # solver3 = KrylovSolver(mesh, L, tau, alpha3, m_max = 50)
-    # solver3.discretize()
-    # solver3.solve()
-    # solver3.plot_results(0, 25, "Chebyshev filter function")
-    # omega2_3, ks3, dists3 = solver.convergence(seek_ev)
-    
-    plot_convergence_2((ks2, dists2, r"$\chi_{["+f"{om_min_2}, {om_max_2}]"+r"}$",  "o"),
-                       (ks1, dists1, r"$\chi_{["+f"{om_min_1}, {om_max_1}]"+r"}$",  "x"),
-                       (ks2, dists4, r"$\chi_{["+f"{om_min_2}, {om_max_2}]"+r"}$",  "o"),
-                       (ks1, dists3, r"$\chi_{["+f"{om_min_1}, {om_max_1}]"+r"}$",  "x"))
-    
-    plt.show()
-    
-
-if __name__ == "__main__":
-    test()
-    # print("ok")
