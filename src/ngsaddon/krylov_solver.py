@@ -9,16 +9,13 @@ from ngsolve import *
 from netgen.geom2d import SplineGeometry
 from scipy.sparse import csr_matrix
 import numpy as np
-import scipy
-from types import FunctionType
 from copy import deepcopy
 from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
-import matplotlib.style as style
 import time
 from typing import List, Tuple
 
-from ngsaddon.dff import Filter, FilterGenerator
+from ngsaddon.dff import Filter
 
 
 class KrylovSolver():
@@ -204,11 +201,11 @@ class KrylovSolver():
         plot_filter : bool, optional
             If True, plot of the filter function is appended to the plot. The default is True.
         label_om : str, optional
-            Label on the omega (horizontal)-axis. The default is r"$\omega$".
+            Label on the omega (horizontal)-axis. The default is r"$\\omega$".
         label_step : str, optional
             Label on the iteration-step k (vertical left)-axis. The default is r"$k$".
         label_filter : str, optional
-            Label on the filter function (vertical right)-axis. The default is r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$".
+            Label on the filter function (vertical right)-axis. The default is r"$|\\tilde{\\beta}_{\\vec{\\alpha}}(\\omega)|$".
         ev_marker : str, optional
             Marker for omegas. The default is "x".
         ev_color : str, optional
@@ -245,9 +242,9 @@ class KrylovSolver():
             
         for k, eigvals, _ in self.results:
             for eigval in eigvals:
-                # marker, clr = self._color(eigval) if len(self.true_eigvals)>0 else ev_marker, ev_color
-                marker, clr = ev_marker, ev_color
-                ax1.plot(np.sqrt(eigval), k, marker, color=clr, markerfacecolor='none')
+                marker, clr = self._color(eigval) if len(self.true_eigvals)>0 else (ev_marker, ev_color)
+                # marker, clr = ev_marker, ev_color
+                ax1.plot(np.sqrt(abs(eigval)), k, marker, color=clr, markerfacecolor='none')
         
         plt.show()
                 

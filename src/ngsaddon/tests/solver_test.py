@@ -11,18 +11,11 @@ from ngsaddon.dff import Filter, FilterGenerator
 from ngsolve import *
 from netgen.geom2d import SplineGeometry
 import numpy as np
-from matplotlib import pyplot as plt
 
 tol = 10e-1
 
 class SolverTest(unittest.TestCase):
     def test1(self):
-        """
-        test1 for KrylovSolver: 
-            target  (6, 8)
-            geo     (2^(1/3) x 1)
-            order   1
-        """
         sought_omegas = np.array([6.3031300268411945, 6.784734955712434, 7.513367041612873])
         
         om_min_1, om_max_1 = 6, 8
