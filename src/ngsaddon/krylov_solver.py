@@ -103,10 +103,10 @@ class KrylovSolver():
         solver on large matrices S and M.
 
         """
-        raise RuntimeWarning("This method should be used for demonstation of the results in small-scale examples only. In large-scale problems it ruins performance of the Krylov eigenvalue solver!")
+        print("Warning! This method should be used for demonstation of the results in small-scale examples only. In large-scale problems it ruins performance of the Krylov eigenvalue solver!")
         eigvals, eigvecs = np.linalg.eig(self.MinvS)
         if np.sqrt(max(eigvals)) > 2/self.tau:
-            raise RuntimeWarning(f"There are eigenvalues of MinvS exceeding controlled interval! {np.sqrt(max(eigvals))} > {2/self.tau}")
+            print(f"Warning! There are eigenvalues of MinvS exceeding controlled interval! {np.sqrt(max(eigvals))} > {2/self.tau}")
         self.true_eigvals = eigvals
         
 
@@ -245,8 +245,9 @@ class KrylovSolver():
             
         for k, eigvals, _ in self.results:
             for eigval in eigvals:
-                marker, clr = self._color(eigval) if self.true_eigvals else ev_marker, ev_color
-                ax1.plot(np.sqrt(abs(eigval)), k, marker, color=clr, markerfacecolor='none')
+                # marker, clr = self._color(eigval) if len(self.true_eigvals)>0 else ev_marker, ev_color
+                marker, clr = ev_marker, ev_color
+                ax1.plot(np.sqrt(eigval), k, marker, color=clr, markerfacecolor='none')
         
         plt.show()
                 
