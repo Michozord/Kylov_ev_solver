@@ -56,6 +56,30 @@ class SolverTest(unittest.TestCase):
         for sought_omega in sought_omegas:
             with self.subTest():
                 self.assertTrue(any([abs(sought_omega - found) < tol for found in found_omegas]))
+    
+    
+    def test3(self):
+        sought_omegas = np.array([11.919492599237676,
+                                  12.173609393329663,
+                                  12.620126129337908,
+                                  12.725924302192096,
+                                  12.981106038488175])
+        
+        om_min_1, om_max_1 = 11, 13
+        tau = 0.0056
+        L = 200
+        alpha1 = FilterGenerator(L, tau, om_min_1, om_max_1, 2/tau).fourier()
+        geo = SplineGeometry()
+        geo.AddRectangle((0,0),(pow(2, 1/3),1))
+        mesh = Mesh(geo.GenerateMesh(maxh=0.05))
+        solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 5, m_min = 4)
+        solver.discretize(1)
+        solver.solve()
+        solver.m_max = 50
+        found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][0] if om_min_1**2 < ev and ev < om_max_1**2])
+        for sought_omega in sought_omegas:
+            with self.subTest():
+                self.assertTrue(any([abs(sought_omega - found) < tol for found in found_omegas]))
 
 
 if __name__ == "__main__":

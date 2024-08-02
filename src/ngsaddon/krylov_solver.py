@@ -60,7 +60,7 @@ class KrylovSolver():
        self.tau = tau
        self.alpha = alpha
        self.m_min = m_min
-       self.m_max = m_max
+       self._m_max = m_max
        self.mesh = mesh
        self.results = Results()
         
@@ -134,19 +134,38 @@ class KrylovSolver():
                     np.array of all obtained eigenvalues (omega^2 in this step)
                 eigvecs: np.ndarray
                     np.array with eigenvectors in columns. eigvecs[:,i] is an eigenvector to eigvals[i].
-        """
-        L, tau, alpha = self.L, self.tau, self.alpha
+        """    
         N = self.MinvS.shape[0]
-    
         r = np.random.rand(N)
         r /= np.linalg.norm(r)
         r = r.reshape((N,1))
-        
+        self.B = deepcopy(r)
+        self._solve(1)  # solve eigenvalue problem starting at 1 
+        return self.results
+    
+    @property
+    def m_max(self):
+        return self._m_max
+
+    @m_max.setter
+    def m_max(self, m_max):
+        if m_max <= self.m_max:
+            print("New value of m_max cannot be smaller than the old one.")
+            pass
+        old_m_max = self._m_max
+        self._m_max = m_max
+        if self.results:
+            self._solve(old_m_max + 1)
+
+    # TODO: timer 
+    
+    def _solve(self, start):
+        tm = time.time()
+        L, tau, alpha = self.L, self.tau, self.alpha
+        N = self.MinvS.shape[0]
         tau2 = tau*tau
         MinvS = self.MinvS
-        
-        self.B = deepcopy(r)
-        for k in range(1, self.m_max+1):
+        for k in range(start, self.m_max+1):
             y_pp = deepcopy(self.B[:,-1])              # y_(l-2)
             y_p = y_pp - tau2/2 * MinvS @ y_pp   # y_(l-1)
             b = tau * alpha[0] * y_pp + tau * alpha[1]* y_p
@@ -177,8 +196,8 @@ class KrylovSolver():
                 A = self.B.transpose() @ MinvS @ self.B
                 eigvals, eigvecs = np.linalg.eig(A)
                 self.results[k] = (np.real(eigvals), self.B @ np.real(eigvecs))
-                          
-        return self.results
+        print(f"Krylov iteration done after {time.time()-tm:.5f} seconds.")
+
     
     
     def _color(self, value):
