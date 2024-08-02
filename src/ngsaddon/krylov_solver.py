@@ -13,9 +13,20 @@ from copy import deepcopy
 from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
 import time
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from ngsaddon.dff import Filter
+
+
+class Results(dict):
+    def __getitem__(self, k):
+        if k == -1:
+            if not self.items():
+                raise Exception
+            max_key = max(self.keys())
+            return super().__getitem__(max_key)
+        else:
+            return super().__getitem__(k)
 
 
 class KrylovSolver():
@@ -51,7 +62,7 @@ class KrylovSolver():
        self.m_min = m_min
        self.m_max = m_max
        self.mesh = mesh
-       self.results = None
+       self.results = Results()
         
         
     def discretize(self, order: int=1):
@@ -107,7 +118,7 @@ class KrylovSolver():
         self.true_eigvals = eigvals
         
 
-    def solve(self) -> List[Tuple[float, np.ndarray, np.ndarray]]:
+    def solve(self) -> Results[int, Tuple[np.ndarray, np.ndarray]]:
         """
         Core method, that performs the Krylov iteration to compute eigenvalues omega^2
         with corresponding eigenvectors. It stores the results of steps between m_min and m_max
@@ -115,11 +126,10 @@ class KrylovSolver():
 
         Returns
         -------
-        results : List[Tuple[float, np.array, np.array]]
-            List of results in each step between m_min and m_max. Each item is
-            a Tuple corresponding to one Krylov step and contains:
-                k : float
-                    number of iteration
+        results : Results[int, Tuple[np.ndarray, np.ndarray]]
+            Results in each step between m_min and m_max in a dictionary-like form.
+            Each item has key k numer of iteration and value - a Tuple corresponding 
+            to k-th Krylov step and contains:
                 eigvals : np.ndarray
                     np.array of all obtained eigenvalues (omega^2 in this step)
                 eigvecs: np.ndarray
@@ -134,11 +144,10 @@ class KrylovSolver():
         
         tau2 = tau*tau
         MinvS = self.MinvS
-        results = []
         
-        B = deepcopy(r)
+        self.B = deepcopy(r)
         for k in range(1, self.m_max+1):
-            y_pp = deepcopy(B[:,-1])              # y_(l-2)
+            y_pp = deepcopy(self.B[:,-1])              # y_(l-2)
             y_p = y_pp - tau2/2 * MinvS @ y_pp   # y_(l-1)
             b = tau * alpha[0] * y_pp + tau * alpha[1]* y_p
             for l in range(2, L):   
@@ -150,27 +159,26 @@ class KrylovSolver():
             # Gram-Schmidt:
             proj = np.zeros(b.shape)
             for i in range(k):
-                proj += ((B[:,i] @ b) * B[:,i]).reshape(proj.shape)
+                proj += ((self.B[:,i] @ b) * self.B[:,i]).reshape(proj.shape)
             b -= proj
             
             if np.linalg.norm(b) < 1e-13:
                 print(f"Exact eigenspace is a subspace of {k-1} Krylov space, ||b_{k}|| = {np.linalg.norm(b)}.\nBreaking Krylov iteration.")
-                A = B.transpose() @ MinvS @ B
+                A = self.B.transpose() @ MinvS @ self.B
                 eigvals, eigvecs = np.linalg.eig(A)
-                results.append((k, np.real(eigvals), B @ np.real(eigvecs)))
+                self.results[k] = (np.real(eigvals), B @ np.real(eigvecs))
                 break
             
             b /= np.linalg.norm(b)
-            B = np.concatenate((B, b.reshape((N, 1))), axis=1)
+            self.B = np.concatenate((self.B, b.reshape((N, 1))), axis=1)
     
             if k >= self.m_min:
                 
-                A = B.transpose() @ MinvS @ B
+                A = self.B.transpose() @ MinvS @ self.B
                 eigvals, eigvecs = np.linalg.eig(A)
-                results.append((k, np.real(eigvals), B @ np.real(eigvecs)))
-        
-        self.results = results                    
-        return results
+                self.results[k] = (np.real(eigvals), self.B @ np.real(eigvecs))
+                          
+        return self.results
     
     
     def _color(self, value):
@@ -219,7 +227,7 @@ class KrylovSolver():
             If there are no results in the KrylovSolver. Use solve() method and try again.
 
         """
-        if self.results is None:
+        if not self.results:
             raise RuntimeError("There are no results to plot!")
             
         fig = plt.figure()
@@ -240,7 +248,7 @@ class KrylovSolver():
         for omega in np.sqrt(self.true_eigvals):
             ax1.axvline(omega, linestyle=':', color='grey') # vertical lines in true eigvals
             
-        for k, eigvals, _ in self.results:
+        for k, (eigvals, _) in self.results.items():
             for eigval in eigvals:
                 marker, clr = self._color(eigval) if len(self.true_eigvals)>0 else (ev_marker, ev_color)
                 # marker, clr = ev_marker, ev_color
@@ -276,17 +284,10 @@ class KrylovSolver():
             Eigenvector to sought eigenvalue.
 
         """
-        if k == -1:
-            k = self.m_max
-        if self.results is None:
+        if not self.results:
             raise RuntimeError("There are no results to return!")
         
-        for result in self.results:
-            if k == result[0]:
-                k, eigvals, eigvecs = result
-                break
-        else:
-            raise ValueError(f"k={k} not in results!")
+        eigvals, eigvecs = self.results[k]
         
         index = np.nanargmin(np.abs(eigvals - ev))
         return eigvals[index], eigvecs[:,index]

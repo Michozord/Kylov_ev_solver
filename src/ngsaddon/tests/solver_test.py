@@ -28,7 +28,7 @@ class SolverTest(unittest.TestCase):
         solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 30)
         solver.discretize(1)
         solver.solve()
-        found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][1] if om_min_1**2 < ev and ev < om_max_1**2])
+        found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][0] if om_min_1**2 < ev and ev < om_max_1**2])
         for sought_omega in sought_omegas:
             with self.subTest():
                 self.assertTrue(any([abs(sought_omega - found) < tol for found in found_omegas]))
@@ -52,7 +52,7 @@ class SolverTest(unittest.TestCase):
         solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 30)
         solver.discretize(1)
         solver.solve()
-        found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][1] if om_min_1**2 < ev and ev < om_max_1**2])
+        found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][0] if om_min_1**2 < ev and ev < om_max_1**2])
         for sought_omega in sought_omegas:
             with self.subTest():
                 self.assertTrue(any([abs(sought_omega - found) < tol for found in found_omegas]))
