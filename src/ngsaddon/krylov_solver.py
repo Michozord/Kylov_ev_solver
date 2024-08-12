@@ -65,19 +65,19 @@ class KrylovSolver():
        self.results = Results()
         
         
-    def discretize(self, order: int=1):
+    def discretize(self, **kwargs):
         """
         This method discretizes the problem: creates solution space with its basis, 
         prepares matrices M and S.
 
         Parameters
         ----------
-        order : int, optional
-            Order of polynomials in H1 solution space. The default is 1.
+        **kwargs 
+            kwargs for generation of ngsolve.H1 solution space.
 
         """
         tm = time.time()
-        self.fes = H1(self.mesh, order=order)     # H1 solution space
+        self.fes = H1(self.mesh, **kwargs)     # H1 solution space
         self.gf = GridFunction(self.fes, multidim=self.mesh.nv)    # basis functions 
         for i in range (self.mesh.nv):
             self.gf.vecs[i][:] = 0
