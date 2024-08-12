@@ -30,20 +30,19 @@ def test():
     geo.AddRectangle((0,0),(pow(2, 1/3),1))
     # geo.AddRectangle((0,0),(2,1))
     mesh = Mesh(geo.GenerateMesh(maxh=0.05))
-    breakpoint()
     
     solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 50)
     solver.discretize()
     solver.solve()
-    breakpoint()
     # solver.plot_results(5, 15, f"Chebyshev filter function ({om_min_1}, {om_max_1})")
-    solver.plot_results(5, 15, "")
+    solver.plot(5, 15, "")
+    solver.plot2(25, 225, "")
     
-    solver2 = KrylovSolver(mesh, L, tau, alpha2, m_max = 50)
-    solver2.discretize()
-    solver2.solve()
-    # solver2.plot_results(5, 15, f"Chebyshev filter function, ({om_min_2}, {om_max_2})")
-    solver2.plot_results(5, 15, "")
+    # solver2 = KrylovSolver(mesh, L, tau, alpha2, m_max = 50)
+    # solver2.discretize()
+    # solver2.solve()
+    # # solver2.plot_results(5, 15, f"Chebyshev filter function, ({om_min_2}, {om_max_2})")
+    # solver2.plot_results(5, 15, "")
     
     
     

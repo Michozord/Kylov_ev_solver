@@ -53,6 +53,21 @@ class Filter(np.ndarray):
         vals = abs(self.tau * Q @ self)
         ax.plot(plot_mesh, vals, **kwargs)
         return ax
+    
+    
+    def plot2(self, start: Optional[int] = 0, end: Optional[int] = None, 
+             ax: Optional[Axes] = None, num: Optional[int] = 10000, 
+             **kwargs) -> Axes:
+        if end is None: end = self.om_end
+        if ax is None:
+            fig, ax = plt.subplots()
+            plt.grid()
+            ax.set_title(f"{FilterType(self.filter_type).name} Filter on (0, {self.om_end}): L = {self.L}, " + r"$\tau$ "+ f"= {self.tau}")
+        plot_mesh = np.sqrt(np.linspace(start, end, num=num))
+        Q = _q_eval_mat(self.L, self.tau, plot_mesh)
+        vals = abs(self.tau * Q @ self)
+        ax.plot(plot_mesh*plot_mesh, vals, **kwargs)
+        return ax
 
 
 @dataclass

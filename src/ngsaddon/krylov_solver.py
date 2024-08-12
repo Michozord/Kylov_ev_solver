@@ -148,7 +148,7 @@ class KrylovSolver():
         return self._m_max
 
     @m_max.setter
-    def m_max(self, m_max):
+    def m_max(self, m_max: int):
         if m_max <= self.m_max:
             print("New value of m_max cannot be smaller than the old one.")
             pass
@@ -156,10 +156,10 @@ class KrylovSolver():
         self._m_max = m_max
         if self.results:
             self._solve(old_m_max + 1)
-
-    # TODO: timer 
     
-    def _solve(self, start):
+    def _solve(self, start: int):
+        # this method performs the Krylov iteration starting at the point start
+        # to self.m_max
         tm = time.time()
         L, tau, alpha = self.L, self.tau, self.alpha
         N = self.MinvS.shape[0]
@@ -185,7 +185,7 @@ class KrylovSolver():
                 print(f"Exact eigenspace is a subspace of {k-1} Krylov space, ||b_{k}|| = {np.linalg.norm(b)}.\nBreaking Krylov iteration.")
                 A = self.B.transpose() @ MinvS @ self.B
                 eigvals, eigvecs = np.linalg.eig(A)
-                self.results[k] = (np.real(eigvals), B @ np.real(eigvecs))
+                self.results[k] = (np.real(eigvals), self.B @ np.real(eigvecs))
                 break
             
             b /= np.linalg.norm(b)
@@ -209,13 +209,14 @@ class KrylovSolver():
         return marker, cmap(norm(np.log(dist)))
         
         
-    def plot_results(self, start: float, end: float, title: str="", plot_filter: bool=True, 
+    def plot(self, start: float, end: float, title: str="", plot_filter: bool=True, 
                      label_om: str=r"$\omega$", label_step: str=r"$k$", 
                      label_filter: str=r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$",
                      ev_marker: str="x", ev_color: str="blue",
                      filter_plot_kwargs: dict={"color":"red"}):
         """
-        Generates plot presenting obtained resonances (omegas). 
+        Generates plot presenting obtained resonances (omegas). The resonance-axis
+        is scaled in omega (presents square roots of eigenvalues).
 
         Parameters
         ----------
@@ -272,6 +273,55 @@ class KrylovSolver():
                 marker, clr = self._color(eigval) if len(self.true_eigvals)>0 else (ev_marker, ev_color)
                 # marker, clr = ev_marker, ev_color
                 ax1.plot(np.sqrt(abs(eigval)), k, marker, color=clr, markerfacecolor='none')
+        
+        plt.show()
+        
+    
+    def plot2(self, start: float, end: float, title: str="", plot_filter: bool=True, 
+                     label_om: str=r"$\omega^2$", label_step: str=r"$k$", 
+                     label_filter: str=r"$|\tilde{\beta}_{\vec{\alpha}}(\omega^2)|$",
+                     ev_marker: str="x", ev_color: str="blue",
+                     filter_plot_kwargs: dict={"color":"red"}):
+        """
+        Generates plot presenting obtained eigenvalues (omegas^2). The eigenvalue-axis
+        is scaled in omega^2 (presents eigenvalues).
+
+        Parameters
+        ----------
+        see method KrylovSolver.plot()
+
+        Raises
+        ------
+        see method KrylovSolver.plot()
+
+        """
+        
+        if not self.results:
+            raise RuntimeError("There are no results to plot!")
+            
+        fig = plt.figure()
+        plt.title(title)
+        ax1 = plt.subplot()
+        ax1.grid(axis="y")
+        ax1.set_xlim(start, end)
+        ax1.set_ylim(0, self.m_max)
+        ax1.set_ylabel(label_step, fontname="serif")
+        ax1.set_xlabel(label_om, fontname="serif")
+        if plot_filter:
+            ax2 = ax1.twinx()
+            ax2.set_ylim(0, 1.2)
+            ax2.set_ylabel(label_filter, fontname="serif")
+            fig.tight_layout()
+            self.alpha.plot2(start, end, ax2, **filter_plot_kwargs)
+        
+        for omega in np.sqrt(self.true_eigvals):
+            ax1.axvline(omega, linestyle=':', color='grey') # vertical lines in true eigvals
+            
+        for k, (eigvals, _) in self.results.items():
+            for eigval in eigvals:
+                marker, clr = self._color(eigval) if len(self.true_eigvals)>0 else (ev_marker, ev_color)
+                # marker, clr = ev_marker, ev_color
+                ax1.plot(eigval, k, marker, color=clr, markerfacecolor='none')
         
         plt.show()
                 
