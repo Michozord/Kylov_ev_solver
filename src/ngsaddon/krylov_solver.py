@@ -19,10 +19,14 @@ from ngsaddon.dff import Filter
 
 
 class Results(dict):
+    """
+    Simple class to store results of the Krylov iteration. Each item has key k 
+    numer of iteration and value containing eigenprairs.
+    """
     def __getitem__(self, k):
         if k == -1:
             if not self.items():
-                raise Exception
+                raise KeyError("No items in this dictionary.")
             max_key = max(self.keys())
             return super().__getitem__(max_key)
         else:
