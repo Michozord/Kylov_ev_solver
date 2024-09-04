@@ -5,7 +5,7 @@ Created on Mon May 27 21:44:27 2024
 @author: Michal Trojanowski
 """
 
-from ngsolve import *
+from ngsolve import * 
 from netgen.geom2d import SplineGeometry
 from scipy.sparse import csr_matrix
 import numpy as np
@@ -54,7 +54,7 @@ class KrylovSolver():
     m_max : int, optional
         Maximal number of Krylov iterations. The default is 30.
     """
-    def __init__(self, mesh: comp.Mesh, L: int, tau: float, alpha: Filter, m_min: int = 2, m_max: int = 30):
+    def __init__(self, problem, mesh: comp.Mesh, L: int, tau: float, alpha: Filter, m_min: int = 2, m_max: int = 30):
        self.mesh = None
        self.fes = None
        self.gf = None
@@ -67,6 +67,7 @@ class KrylovSolver():
        self._m_max = m_max
        self.mesh = mesh
        self.results = Results()
+       self.problem = problem
         
         
     def discretize(self, **kwargs):
@@ -93,12 +94,12 @@ class KrylovSolver():
         tm = time.time()
         
         s = BilinearForm(self.fes)
-        s += grad(u)*grad(v)*dx
+        s += self.problem.s(u, v)*dx
         s.Assemble()
         S = csr_matrix(s.mat.CSR()).toarray()
         
         m = BilinearForm(self.fes)
-        m += u*v*dx
+        m += self.problem.m(u, v)*dx
         m.Assemble()
         M = csr_matrix(m.mat.CSR()).toarray()
         self.MinvS = np.linalg.inv(M) @ S   
