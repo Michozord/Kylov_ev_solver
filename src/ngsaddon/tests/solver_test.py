@@ -26,7 +26,7 @@ class SolverTest(unittest.TestCase):
         geo.AddRectangle((0,0),(pow(2, 1/3),1))
         mesh = Mesh(geo.GenerateMesh(maxh=0.05))
         solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 30)
-        solver.discretize(1)
+        solver.discretize(dim=1)
         solver.solve()
         found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][0] if om_min_1**2 < ev and ev < om_max_1**2])
         for sought_omega in sought_omegas:
@@ -50,7 +50,7 @@ class SolverTest(unittest.TestCase):
         geo.AddRectangle((0,0),(pow(2, 1/3),1))
         mesh = Mesh(geo.GenerateMesh(maxh=0.05))
         solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 30)
-        solver.discretize(1)
+        solver.discretize(dim=1)
         solver.solve()
         found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][0] if om_min_1**2 < ev and ev < om_max_1**2])
         for sought_omega in sought_omegas:
@@ -73,7 +73,7 @@ class SolverTest(unittest.TestCase):
         geo.AddRectangle((0,0),(pow(2, 1/3),1))
         mesh = Mesh(geo.GenerateMesh(maxh=0.05))
         solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 5, m_min = 4)
-        solver.discretize(1)
+        solver.discretize()
         solver.solve()
         solver.m_max = 50
         found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][0] if om_min_1**2 < ev and ev < om_max_1**2])
