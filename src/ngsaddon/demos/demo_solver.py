@@ -12,6 +12,7 @@ import numpy as np
 
 from ngsaddon import KrylovSolver
 from ngsaddon.dff import Filter, FilterGenerator
+from ngsaddon.negative_laplacian import s, m
 
 
 def test():
@@ -31,7 +32,7 @@ def test():
     # geo.AddRectangle((0,0),(2,1))
     mesh = Mesh(geo.GenerateMesh(maxh=0.05))
     
-    solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 50)
+    solver = KrylovSolver(s, m, mesh, L, tau, alpha1, m_max = 50)
     solver.discretize()
     solver.solve()
     # solver.plot_results(5, 15, f"Chebyshev filter function ({om_min_1}, {om_max_1})")

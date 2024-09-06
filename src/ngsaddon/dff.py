@@ -295,6 +295,7 @@ class FilterGenerator:
         Filter
 
         """
+        print("Note: Fourier method works for negative Laplacian problem only!")
         T = self.L * self.tau
         def alpha(t: float) -> float:
             if t == 0:
@@ -357,6 +358,13 @@ class FilterGenerator:
 
 
 def _q_eval_mat(L, tau, omegas: np.array) -> np.array:
+    """
+    Returns
+    -------
+    Q : np.array
+        Evaluation matrix of q_i(omega). Q[i,j] = q_i(j*tau).
+
+    """
     K = len(omegas)
     tau2 = tau*tau
     omegas2 = omegas*omegas

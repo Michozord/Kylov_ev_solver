@@ -5,7 +5,9 @@ Created on Mon May 27 21:44:27 2024
 @author: Michal Trojanowski
 """
 
-from ngsolve import *
+from ngsolve import * 
+from ngsolve.fem import CoefficientFunction
+from ngsolve.comp import ProxyFunction
 from netgen.geom2d import SplineGeometry
 from scipy.sparse import csr_matrix
 import numpy as np
@@ -13,7 +15,7 @@ from copy import deepcopy
 from matplotlib import pyplot as plt
 import matplotlib.colors as mcolors
 import time
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Callable
 
 from ngsaddon.dff import Filter
 
@@ -41,6 +43,10 @@ class KrylovSolver():
     
     Parameters
     ----------
+    s: Callable[[ngsolve.comp.ProxyFunction, ngsolve.comp.ProxyFunction], ngsolve.fem.CoefficientFunction]
+        Left-hand-site of the weak formulation of the problem to solve.
+    m : Callable[[ngsolve.comp.ProxyFunction, ngsolve.comp.ProxyFunction], ngsolve.fem.CoefficientFunction]
+        Right-hand-site of the weak formulation of the problem to solve.
     mesh : ngsolve.comp.Mesh
         Mesh object of the discretized domain.
     L : int
@@ -54,7 +60,9 @@ class KrylovSolver():
     m_max : int, optional
         Maximal number of Krylov iterations. The default is 30.
     """
-    def __init__(self, mesh: comp.Mesh, L: int, tau: float, alpha: Filter, m_min: int = 2, m_max: int = 30):
+    def __init__(self, s: Callable[[ProxyFunction, ProxyFunction], CoefficientFunction], m: Callable[[ProxyFunction, ProxyFunction], CoefficientFunction], mesh: comp.Mesh, L: int, tau: float, alpha: Filter, m_min: int = 2, m_max: int = 30):
+       self.s = s
+       self.m = m
        self.mesh = None
        self.fes = None
        self.gf = None
@@ -67,6 +75,7 @@ class KrylovSolver():
        self._m_max = m_max
        self.mesh = mesh
        self.results = Results()
+
         
         
     def discretize(self, **kwargs):
@@ -93,12 +102,12 @@ class KrylovSolver():
         tm = time.time()
         
         s = BilinearForm(self.fes)
-        s += grad(u)*grad(v)*dx
+        s += self.s(u, v)*dx
         s.Assemble()
         S = csr_matrix(s.mat.CSR()).toarray()
         
         m = BilinearForm(self.fes)
-        m += u*v*dx
+        m += self.m(u, v)*dx
         m.Assemble()
         M = csr_matrix(m.mat.CSR()).toarray()
         self.MinvS = np.linalg.inv(M) @ S   

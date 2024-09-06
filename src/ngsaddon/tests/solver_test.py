@@ -8,6 +8,7 @@ Created on Sun Jul 28 14:51:29 2024
 import unittest 
 from ngsaddon import KrylovSolver
 from ngsaddon.dff import Filter, FilterGenerator
+from ngsaddon.negative_laplacian import s, m
 from ngsolve import *
 from netgen.geom2d import SplineGeometry
 import numpy as np
@@ -25,7 +26,7 @@ class SolverTest(unittest.TestCase):
         geo = SplineGeometry()
         geo.AddRectangle((0,0),(pow(2, 1/3),1))
         mesh = Mesh(geo.GenerateMesh(maxh=0.05))
-        solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 30)
+        solver = KrylovSolver(s, m, mesh, L, tau, alpha1, m_max = 30)
         solver.discretize(dim=1)
         solver.solve()
         found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][0] if om_min_1**2 < ev and ev < om_max_1**2])
@@ -49,7 +50,7 @@ class SolverTest(unittest.TestCase):
         geo = SplineGeometry()
         geo.AddRectangle((0,0),(pow(2, 1/3),1))
         mesh = Mesh(geo.GenerateMesh(maxh=0.05))
-        solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 30)
+        solver = KrylovSolver(s, m, mesh, L, tau, alpha1, m_max = 30)
         solver.discretize(dim=1)
         solver.solve()
         found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][0] if om_min_1**2 < ev and ev < om_max_1**2])
@@ -72,7 +73,7 @@ class SolverTest(unittest.TestCase):
         geo = SplineGeometry()
         geo.AddRectangle((0,0),(pow(2, 1/3),1))
         mesh = Mesh(geo.GenerateMesh(maxh=0.05))
-        solver = KrylovSolver(mesh, L, tau, alpha1, m_max = 5, m_min = 4)
+        solver = KrylovSolver(s, m, mesh, L, tau, alpha1, m_max = 5, m_min = 4)
         solver.discretize()
         solver.solve()
         solver.m_max = 50
@@ -84,6 +85,7 @@ class SolverTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+    # SolverTest().test1()
 
         
         
