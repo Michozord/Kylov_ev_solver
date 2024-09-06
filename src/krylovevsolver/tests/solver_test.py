@@ -6,9 +6,9 @@ Created on Sun Jul 28 14:51:29 2024
 """
 
 import unittest 
-from ngsaddon import KrylovSolver
-from ngsaddon.dff import Filter, FilterGenerator
-from ngsaddon.negative_laplacian import s, m
+from krylovevsolver import KrylovSolver
+from krylovevsolver.dff import Filter, FilterGenerator
+from krylovevsolver.negative_laplacian import s, m
 from ngsolve import *
 from netgen.geom2d import SplineGeometry
 import numpy as np

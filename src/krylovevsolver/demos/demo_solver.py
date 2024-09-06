@@ -10,9 +10,9 @@ from netgen.geom2d import SplineGeometry
 from matplotlib import pyplot as plt
 import numpy as np
 
-from ngsaddon import KrylovSolver
-from ngsaddon.dff import Filter, FilterGenerator
-from ngsaddon.negative_laplacian import s, m
+from krylovevsolver import KrylovSolver
+from krylovevsolver.dff import Filter, FilterGenerator
+from krylovevsolver.negative_laplacian import s, m
 
 
 def test():

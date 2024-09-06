@@ -4,4 +4,4 @@
 /artifacts/*
 /latex/*
 **/*egg-info/
-/src/ngsaddon/demos/.ipynb_checkpoints
+/src/krylovevsolver/demos/.ipynb_checkpoints

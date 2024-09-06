@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ngsaddon"
+name = "krylovevsolver"
 version = "1.0.0"
 
 description = "A sample Python project"
@@ -19,7 +19,7 @@ authors = [
 dependencies = []
 
 [project.urls]
-"Homepage" = "https://github.com/Michozord/NGSolve_addon"
+"Homepage" = "https://github.com/Michozord/Kylov_ev_solver"
  
 [tool.setuptools.packages.find]
 where = ["src"]

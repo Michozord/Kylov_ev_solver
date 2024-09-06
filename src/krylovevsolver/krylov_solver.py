@@ -17,7 +17,7 @@ import matplotlib.colors as mcolors
 import time
 from typing import List, Tuple, Dict, Callable
 
-from ngsaddon.dff import Filter
+from krylovevsolver.dff import Filter
 
 
 class Results(dict):
