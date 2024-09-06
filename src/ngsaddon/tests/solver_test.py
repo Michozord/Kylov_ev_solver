@@ -8,7 +8,7 @@ Created on Sun Jul 28 14:51:29 2024
 import unittest 
 from ngsaddon import KrylovSolver
 from ngsaddon.dff import Filter, FilterGenerator
-from ngsaddon.problems import NegativeLaplacian
+from ngsaddon.negative_laplacian import s, m
 from ngsolve import *
 from netgen.geom2d import SplineGeometry
 import numpy as np
@@ -22,12 +22,11 @@ class SolverTest(unittest.TestCase):
         om_min_1, om_max_1 = 6, 8
         tau = 0.0056
         L = 100
-        problem = NegativeLaplacian
         alpha1 = FilterGenerator(L, tau, om_min_1, om_max_1, 2/tau).fourier()
         geo = SplineGeometry()
         geo.AddRectangle((0,0),(pow(2, 1/3),1))
         mesh = Mesh(geo.GenerateMesh(maxh=0.05))
-        solver = KrylovSolver(problem, mesh, L, tau, alpha1, m_max = 30)
+        solver = KrylovSolver(s, m, mesh, L, tau, alpha1, m_max = 30)
         solver.discretize(dim=1)
         solver.solve()
         found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][0] if om_min_1**2 < ev and ev < om_max_1**2])
@@ -47,12 +46,11 @@ class SolverTest(unittest.TestCase):
         om_min_1, om_max_1 = 11, 13
         tau = 0.0056
         L = 200
-        problem = NegativeLaplacian
         alpha1 = FilterGenerator(L, tau, om_min_1, om_max_1, 2/tau).fourier()
         geo = SplineGeometry()
         geo.AddRectangle((0,0),(pow(2, 1/3),1))
         mesh = Mesh(geo.GenerateMesh(maxh=0.05))
-        solver = KrylovSolver(problem, mesh, L, tau, alpha1, m_max = 30)
+        solver = KrylovSolver(s, m, mesh, L, tau, alpha1, m_max = 30)
         solver.discretize(dim=1)
         solver.solve()
         found_omegas = sorted([np.sqrt(ev) for ev in solver.results[-1][0] if om_min_1**2 < ev and ev < om_max_1**2])
@@ -71,12 +69,11 @@ class SolverTest(unittest.TestCase):
         om_min_1, om_max_1 = 11, 13
         tau = 0.0056
         L = 200
-        problem = NegativeLaplacian
         alpha1 = FilterGenerator(L, tau, om_min_1, om_max_1, 2/tau).fourier()
         geo = SplineGeometry()
         geo.AddRectangle((0,0),(pow(2, 1/3),1))
         mesh = Mesh(geo.GenerateMesh(maxh=0.05))
-        solver = KrylovSolver(problem, mesh, L, tau, alpha1, m_max = 5, m_min = 4)
+        solver = KrylovSolver(s, m, mesh, L, tau, alpha1, m_max = 5, m_min = 4)
         solver.discretize()
         solver.solve()
         solver.m_max = 50
