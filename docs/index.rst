@@ -20,8 +20,9 @@ Visualisation of an eigenfunction of the negative Laplacian on a simple rectangu
 2. Mathematical background
 ==========================
 
-* Full description of the method including proofs and examples you can find here_.*
-: _here: https://ngsolve.org .. todo replace link!!!
+Full description of the method including proofs and examples you can find in PDF here_.
+
+.. _here: https://x.com
 
 2.1. Finite element method
 --------------------------
@@ -36,18 +37,43 @@ As an example, we consider the **negative Laplacian eigenvalue problem** with Ne
 	\frac{\partial u}{\partial \nu} = 0 \quad\text{ on } \partial\Omega. 
 
 Its weak form is:
+
 .. math::
 	\int_\Omega \nabla u \cdot \nabla \varphi \, dx = \omega_h^2 \int_\Omega u \varphi \, dx.
 	
 Using a fixed basis :math:`\varphi_1, \dots, \varphi_N` of the solutions space :math:`V_h`, we define the discretization matrices :math:`S` and :math:`M` as follows:
+
 .. math::
 	s_{ij} := \int_\Omega \nabla \varphi_i \cdot \nabla \varphi_j \, dx \quad \text{ and } \quad m_{ij} := \int_\Omega \varphi_i \varphi_j \, dx.
 	
 This leads to the discrete matrix eigenvalue problem:
+
 .. math::
 	Sv = \omega^2 Mv,
+
+or, equivalently, 
+	
+.. math::
+	M^{-1}Sv = \omega^2 v,
 	
 where :math:`v` denotes the coordinate vector of the eigenfunction.
+
+2.2. Filtered time-domain solutions
+-----------------------------------
+
+Krylov eigenvalue solver finds eigenvalues within a specified **region of interest**, denoted as :math:`(\omega_\min^2, \omega_\max^2)`. We aim to construct a linear operator :math:`C` that shares the same eigenspaces as :math:`M^{-1}S`, but with different eigenvalues. Crucial to the contruction of the operator :math:`C` is the **weight vector** :math:`\Vec{\alpha}` and induced **discrete filter function** (**dff**) :math:`\beta(\omega)`. 
+
+- If :math:`v` is an eigenvector of :math:`M^{-1}S` corresponding to an eigenvalue :math:`\omega^2 \in (\omega_\min^2, \omega_\max^2)`, then :math:`v` is an eigenvector of :math:`C` corresponding to a large eigenvalue :math:`\beta(\omega)`.
+- If :math:`v` is an eigenvector of :math:`M^{-1}S` corresponding to an eigenvalue :math:`\omega^2 \notin (\omega_\min^2, \omega_\max^2)`, then :math:`v` is an eigenvector of :math:`C` corresponding to a close to zero eigenvalue :math:`\beta(\omega)`.
+
+.. image:: images/dff.png
+   :width: 600
+
+For a detailed construction of this operator, see PDF_. It is impossible to push values of :math:`\beta` outside the region of interest close to 0, so we control the values of dff withinin a **control interval** denoted as :math:`(0, \omega_{\mathrm{end}}^2)` only. All eigenvalues of :math:`M^{-1}S` should lie in this interval: :math:`(0, \omega_{\mathrm{end}}^2)`. 
+ 
+.. _PDF: https://x.com
+
+In constructing :math:`C`, we perform simple time-stepping with :math:`L` time-steps of size :math:`\tau` to the end-time :math:`T = L\tau`. **CFL condition** requires, that :math:`\tau \leq 2/\omega_{\mathrm{end}}`. For computational efficiency, we recommend using :math:`\tau \lessapprox 2/\omega_{\mathrm{end}}`. A higher number of time-steps :math:`L` (or larger end-time :math:`L`) increases the reliability of the algorithm and improves the behavior of the dff, but linearly increases computation costs.
 
 
 3. Installation 
