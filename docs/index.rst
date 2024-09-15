@@ -24,5 +24,6 @@ Visualisation of an eigenfunction of the negative Laplacian on a simple rectangu
    :caption: Contents:
    background.rst
    installation.rst
+   docu demo
    full.rst
 
