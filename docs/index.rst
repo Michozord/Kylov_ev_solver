@@ -20,7 +20,7 @@ Visualisation of an eigenfunction of the negative Laplacian on a simple rectangu
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-   background.rst
-   installation.rst
-   full.rst
+   background
+   installation
+   full
 
