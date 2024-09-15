@@ -17,13 +17,10 @@ By applying special filter functions and Krylov iteration to the generated discr
 Visualisation of an eigenfunction of the negative Laplacian on a simple rectangular domain.
 
 
-
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
    background.rst
    installation.rst
-   docu demo
    full.rst
 
