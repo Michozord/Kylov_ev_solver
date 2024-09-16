@@ -1,9 +1,7 @@
 Mathematical background
 ==========================
 
-Full description of the method including proofs and examples you can find in PDF.
-
-.. _PDF: https://x.com
+Full description of the method including proofs and examples you can find in `PDF <>`.
 
 1. Finite element method
 --------------------------
@@ -50,9 +48,8 @@ Krylov eigenvalue solver finds eigenvalues within a specified **region of intere
 .. image:: images/dff.png
    :width: 600
 
-For a detailed description of this operator, see PDF. It is impossible to push values of :math:`\beta` outside the region of interest close to 0, so we control the values of dff withinin a **control interval** denoted as :math:`(0, \omega_{\mathrm{end}}^2)` only. All eigenvalues of :math:`M^{-1}S` should lie in this interval: :math:`(0, \omega_{\mathrm{end}}^2)`. 
- 
-.. _PDF: https://x.com
+For a detailed description of this operator, see `PDF <>`. It is impossible to push values of :math:`\beta` outside the region of interest close to 0, so we control the values of dff withinin a **control interval** denoted as :math:`(0, \omega_{\mathrm{end}}^2)` only. All eigenvalues of :math:`M^{-1}S` should lie in this interval: :math:`(0, \omega_{\mathrm{end}}^2)`. 
+
 
 In constructing :math:`C`, we perform simple time-stepping with :math:`L` time-steps of size :math:`\tau` to the end-time :math:`T = L\tau`. The **CFL condition** requires, that :math:`\tau \leq 2/\omega_{\mathrm{end}}`. For computational efficiency, we recommend using :math:`\tau \lessapprox 2/\omega_{\mathrm{end}}`. A higher number of time-steps :math:`L` (or larger end-time :math:`L`) increases the reliability of the algorithm and improves the behavior of the dff, but linearly increases computation costs.
 
@@ -68,6 +65,6 @@ The properties of the Krylov iteration, along with an appropriate filtering meth
 .. image:: images/convergence.png
    :width: 600
    
-The results of the first 50 steps of the Krylov iteration for the negative Laplacian problem with the region of interest :math:`(\omega_\min, \omega_\max) = (11, 13)`. In the plot, each horizontal level corresponds to one iteration step (:math:`k` denotes the step number). Each point represents a computed value of :math:`\omega`, with its color and marker indicating the accuracy of the approximation. Eigenvalues computed with an accuracy better than :math:10^{-5} are marked with an "o.". The vertical dotted lines represent true eigenvalues of :math:`M^{-1}S` for reference. 
+The results of the first 50 steps of the Krylov iteration for the negative Laplacian problem with the region of interest :math:`(\omega_\min, \omega_\max) = (11, 13)`. In the plot, each horizontal level corresponds to one iteration step (:math:`k` denotes the step number). Each point represents a computed value of :math:`\omega`, with its color and marker indicating the accuracy of the approximation. Eigenvalues computed with an accuracy better than :math:`10^{-5}` are marked with an "o". The vertical dotted lines represent true eigenvalues of :math:`M^{-1}S` for reference. 
 
 The red line (scaled on the right axis) represents the dff :math:`\beta(\omega)`. Faster convergence is observed in regions where the dff is larger, while little to no convergence occurs in other regions. After 50 iterations, all eigenvalues within the target interval are approximated with an accuracy exceeding :math:`10^{-5}`. A direct approach would require solving a 629-dimensional matrix eigenvalue problem.

@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-``krylovevsolver``. A Krylov eigenvalue solver in Python
+``krylovevsolver`` - a Krylov eigenvalue solver in Python
 =========================================================
 
-This Python package is designed for numerically solving eigenvalue problems of linear partial differential operators, such as the Laplacian operator. It utilizes the finite element method, specifically employing the ``netgen`` and ``ngsolve`` packages (see here), to define domains, boundaries, and discretize the problem.
+This Python package is designed for numerically solving eigenvalue problems of linear partial differential operators, such as the Laplacian operator. It utilizes the finite element method, specifically employing the ``netgen`` and ``ngsolve`` packages (see here_), to define domains, boundaries, and discretize the problem.
 
 .. _here: https://ngsolve.org
 
@@ -23,6 +23,7 @@ Visualisation of an eigenfunction of the negative Laplacian on a simple rectangu
 
    background.rst
    installation.rst
+   solving
    full.rst
 
 
