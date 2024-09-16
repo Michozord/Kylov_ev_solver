@@ -12,7 +12,7 @@ import numpy as np
 
 from krylovevsolver import KrylovSolver
 from krylovevsolver.dff import Filter, FilterGenerator
-from krylovevsolver.negative_laplacian import s, m
+from krylovevsolver.wave_equation import s, m
 
 
 tau = 0.0056        # controlled interval up to omega_end = 360
