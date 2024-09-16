@@ -24,7 +24,16 @@ class Results(dict):
     """
     Simple class to store results of the Krylov iteration. Each item has key k 
     numer of iteration and value containing eigenprairs.
-    """
+    
+    Results[int, Tuple[np.ndarray, np.ndarray]]
+        Results in each step between m_min and m_max in a dictionary-like form.
+        Each item has key k numer of iteration and value - a Tuple corresponding 
+        to k-th Krylov step and contains:
+            eigvals : np.ndarray
+                np.array of all obtained eigenvalues (omega^2 in this step)
+            eigvecs: np.ndarray
+                np.array with eigenvectors in columns. eigvecs[:,i] is an eigenvector to eigvals[i].
+    """    
     def __getitem__(self, k):
         if k == -1:
             if not self.items():
@@ -131,30 +140,19 @@ class KrylovSolver():
         self.true_eigvals = eigvals
         
 
-    def solve(self) -> Results[int, Tuple[np.ndarray, np.ndarray]]:
+    def solve(self):
         """
         Core method, that performs the Krylov iteration to compute eigenvalues omega^2
         with corresponding eigenvectors. It stores the results of steps between m_min and m_max
         in the KrylovSolver.results property and returns them.
-
-        Returns
-        -------
-        results : Results[int, Tuple[np.ndarray, np.ndarray]]
-            Results in each step between m_min and m_max in a dictionary-like form.
-            Each item has key k numer of iteration and value - a Tuple corresponding 
-            to k-th Krylov step and contains:
-                eigvals : np.ndarray
-                    np.array of all obtained eigenvalues (omega^2 in this step)
-                eigvecs: np.ndarray
-                    np.array with eigenvectors in columns. eigvecs[:,i] is an eigenvector to eigvals[i].
-        """    
+        """
+        
         N = self.MinvS.shape[0]
         r = np.random.rand(N)
         r /= np.linalg.norm(r)
         r = r.reshape((N,1))
         self.B = deepcopy(r)
         self._solve(1)  # solve eigenvalue problem starting at 1 
-        return self.results
     
     @property
     def m_max(self):
