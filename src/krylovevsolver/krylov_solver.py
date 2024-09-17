@@ -144,7 +144,7 @@ class KrylovSolver():
         """
         Core method, that performs the Krylov iteration to compute eigenvalues omega^2
         with corresponding eigenvectors. It stores the results of steps between m_min and m_max
-        in the KrylovSolver.results property and returns them.
+        in the KrylovSolver.results property.
         """
         
         N = self.MinvS.shape[0]
