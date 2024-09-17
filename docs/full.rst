@@ -42,26 +42,19 @@ This class performs FEM with Krylov iteration: discretizes the solution space, c
 
 ``solve(self)``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-	Core method, that performs the Krylov iteration to compute eigenvalues :math:`\omega^2`
-	with corresponding eigenvectors. It stores the results of steps between ``m_min`` and ``m_max``
-	in the ``KrylovSolver.results`` property.
+	Core method, that performs the Krylov iteration to compute eigenvalues :math:`\omega^2`with corresponding eigenvectors. It stores the results of steps between ``m_min`` and ``m_max`` in the ``KrylovSolver.results`` property.
 
 
 ``compute_true_eigvals(self)``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	Computes true eigenvalues of the :math:`M^{-1} S` matrix. If this method has been called, 
-	true eigenvalues are added to plots in ``KrylovSolver.plot_results()`` method.
+	Computes true eigenvalues of the :math:`M^{-1} S` matrix. If this method has been called, true eigenvalues are added to plots in ``KrylovSolver.plot_results()`` method.
 	
-	**NOTE**: This method should be used in small-scale examples for comparison of the
-	results of the Krylov iteration with true eigenvalues only! In large-scale 
-	examples it ruins the performance of the whole method, since it uses direct 
-	solver on large matrices :math:`S` and :math:`M`.
+	**NOTE**: This method should be used in small-scale examples for comparison of the results of the Krylov iteration with true eigenvalues only! In large-scale examples it ruins the performance of the whole method, since it uses direct solver on large matrices :math:`S` and :math:`M`.
 	
 	
 ``plot(self, start: float, end: float, title: str="", plot_filter: bool=True, label_om: str=r"$\omega$", label_step: str=r"$k$", label_filter: str=r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$", ev_marker: str="x", ev_color: str="blue", filter_plot_kwargs: dict={"color":"red"})``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	Generates plot presenting obtained resonances (:math:`\omega`). The resonance-axis
-	is scaled in :math:`\omega` (presents square roots of eigenvalues).
+	Generates plot presenting obtained resonances (:math:`\omega`). The resonance-axis is scaled in :math:`\omega` (presents square roots of eigenvalues).
 
 	**Parameters:**
 	
@@ -104,8 +97,7 @@ This class performs FEM with Krylov iteration: discretizes the solution space, c
 		
 ``get_single_result(self, ev: float, k: int=-1) -> tuple[float, np.array]``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	Returns computed eigenvalue closest to given ev with its eigenvector 
-	after `k`-th step of the Krylov iteration.
+	Returns computed eigenvalue closest to given ev with its eigenvector after the ``k``-th step of the Krylov iteration.
 
     **Parameters:**
 
@@ -157,6 +149,7 @@ This dataclass contains methods, that generate weights (:math:`\alpha`) in stand
 	Returns weights (as a ``Filter``) obtained by the collocation or least-squares fitting in Chebyshev nodes in :math:`\omega^2`.
 
 	**Parameters:**
+	
         ``K : int``
             Number of nodes.
 
