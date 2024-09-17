@@ -158,10 +158,11 @@ This dataclass contains methods, that generate weights (:math:`\alpha`) in stand
 	fitting in Chebyshev nodes in :math:`\omega^2`.
 
 	**Parameters:**
+	
         ``K : int``
             Number of nodes.
 
-    **Returns**
+    **Returns:**
         ``Filter``
 			A ``Filter`` object with computed weights.
 
@@ -211,7 +212,7 @@ This dataclass contains methods, that generate weights (:math:`\alpha`) in stand
 
 ``Filter``
 ------------------
-Class to store filter as a numpy ndarray (actually evaluation of weights :math:`alpha` at points :math:`0, \tau, 2\tau, ..., \tau (L-1)` with its parameters: time-step `tau`, `omega_end`, number of time-steps `L` and derivation method of the filter (`FilterType`).
+Class to store filter as a numpy ``ndarray`` (actually evaluation of weights :math:`\alpha` at points :math:`0, \tau, 2\tau, ..., \tau (L-1)` with its parameters: time-step ``tau``, ``omega_end``, number of time-steps ``L`` and derivation method of the filter (``FilterType``).
 
 ``__new__(cls, array_input, filter_type, om_end: float, tau: float)``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
