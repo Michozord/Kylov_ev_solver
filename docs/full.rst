@@ -61,48 +61,22 @@ Parameters
 kwargs for generation of ``ngsolve.H1`` solution space.
 
 
-def plot(self, start: float, end: float, title: str="", plot_filter: bool=True, 
-				 label_om: str=r"$\omega$", label_step: str=r"$k$", 
-				 label_filter: str=r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$",
-				 ev_marker: str="x", ev_color: str="blue",
-				 filter_plot_kwargs: dict={"color":"red"}):
-	"""
-	Generates plot presenting obtained resonances (omegas). The resonance-axis
-	is scaled in omega (presents square roots of eigenvalues).
+Test 
+------------
 
-	Parameters
-	----------
-	start : float
-		start point of the plot.
-	end : float
-		end point of the plot.
-	title : str, optional
-		Title of the plot. The default is "".
-	plot_filter : bool, optional
-		If True, plot of the filter function is appended to the plot. The default is True.
-	label_om : str, optional
-		Label on the omega (horizontal)-axis. The default is r"$\\omega$".
-	label_step : str, optional
-		Label on the iteration-step k (vertical left)-axis. The default is r"$k$".
-	label_filter : str, optional
-		Label on the filter function (vertical right)-axis. The default is r"$|\\tilde{\\beta}_{\\vec{\\alpha}}(\\omega)|$".
-	ev_marker : str, optional
-		Marker for omegas. The default is "x".
-	ev_color : str, optional
-		Color of eigenvalues. The default is "blue".
-	filter_plot_kwargs : dict, optional
-		Dictionary with kwargs for the plot of the filter function. All kwargs of plt.plot method are supported. The default is {"color":"red"}.
 
-	Raises
-	------
-	RuntimeError
-		If there are no results in the KrylovSolver. Use solve() method and try again.
+def my_function(my_arg, my_other_arg):
+    """A function just for me.
 
-	"""
+    :param my_arg: The first of my arguments.
+    :param my_other_arg: The second of my arguments.
+
+    :returns: A message (just for me, of course).
+    """
 
 Class ``Results``
 --------------------
 A simple dictionary-like class to store results of the Krylov iteration. 
 
-- Key `k` is the number of iteration between `m_min` and `m_max` (-1 refers to the last iteration).
-- Value is a `Tuple[np.ndarray, np.ndarray]]`. The first array (`eigvals`) contains obtained eigenvalues (:math:`\omega^2` in this step). The second one (`eigvecs`) contains eigenvectors in columns. eigvecs[:,i] is an eigenvector to eigvals[i].
+- Key ``k`` is the number of iteration between ``m_min`` and ``m_max`` (-1 refers to the last iteration).
+- Value is a ``Tuple[np.ndarray, np.ndarray]]``. The first array (``eigvals``) contains obtained eigenvalues (:math:`\omega^2` in this step). The second one (``eigvecs``) contains eigenvectors in columns. ``eigvecs[:,i]`` is an eigenvector to ``eigvals[i]``.
