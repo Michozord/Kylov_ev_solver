@@ -61,7 +61,44 @@ Parameters
 kwargs for generation of ``ngsolve.H1`` solution space.
 
 
+def plot(self, start: float, end: float, title: str="", plot_filter: bool=True, 
+				 label_om: str=r"$\omega$", label_step: str=r"$k$", 
+				 label_filter: str=r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$",
+				 ev_marker: str="x", ev_color: str="blue",
+				 filter_plot_kwargs: dict={"color":"red"}):
+	"""
+	Generates plot presenting obtained resonances (omegas). The resonance-axis
+	is scaled in omega (presents square roots of eigenvalues).
 
+	Parameters
+	----------
+	start : float
+		start point of the plot.
+	end : float
+		end point of the plot.
+	title : str, optional
+		Title of the plot. The default is "".
+	plot_filter : bool, optional
+		If True, plot of the filter function is appended to the plot. The default is True.
+	label_om : str, optional
+		Label on the omega (horizontal)-axis. The default is r"$\\omega$".
+	label_step : str, optional
+		Label on the iteration-step k (vertical left)-axis. The default is r"$k$".
+	label_filter : str, optional
+		Label on the filter function (vertical right)-axis. The default is r"$|\\tilde{\\beta}_{\\vec{\\alpha}}(\\omega)|$".
+	ev_marker : str, optional
+		Marker for omegas. The default is "x".
+	ev_color : str, optional
+		Color of eigenvalues. The default is "blue".
+	filter_plot_kwargs : dict, optional
+		Dictionary with kwargs for the plot of the filter function. All kwargs of plt.plot method are supported. The default is {"color":"red"}.
+
+	Raises
+	------
+	RuntimeError
+		If there are no results in the KrylovSolver. Use solve() method and try again.
+
+	"""
 
 Class ``Results``
 --------------------
