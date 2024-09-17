@@ -36,7 +36,7 @@ This class performs FEM with Krylov iteration: discretizes the solution space, c
 
 	**Parameters:**
 
-		`` **kwargs ``
+		``**kwargs``
 			kwargs for generation of ``ngsolve.H1`` solution space.
 
 
@@ -49,7 +49,7 @@ This class performs FEM with Krylov iteration: discretizes the solution space, c
 
 ``compute_true_eigvals(self)``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	Computes true eigenvalues of the :math:`M^-1 S` matrix. If this method has been called, 
+	Computes true eigenvalues of the :math:`M^{-1} S` matrix. If this method has been called, 
 	true eigenvalues are added to plots in ``KrylovSolver.plot_results()`` method.
 	
 	**NOTE**: This method should be used in small-scale examples for comparison of the
@@ -60,10 +60,10 @@ This class performs FEM with Krylov iteration: discretizes the solution space, c
 	
 ``plot(self, start: float, end: float, title: str="", plot_filter: bool=True, label_om: str=r"$\omega$", label_step: str=r"$k$", label_filter: str=r"$|\tilde{\beta}_{\vec{\alpha}}(\omega)|$", ev_marker: str="x", ev_color: str="blue", filter_plot_kwargs: dict={"color":"red"})``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	Generates plot presenting obtained resonances (omegas). The resonance-axis
+	Generates plot presenting obtained resonances (:math:`\omega`). The resonance-axis
 	is scaled in :math:`\omega` (presents square roots of eigenvalues).
 
-	**Parameters**
+	**Parameters:**
 	
 		``start : float``
 			start point of the plot.
@@ -84,9 +84,9 @@ This class performs FEM with Krylov iteration: discretizes the solution space, c
 		``ev_color : str, optional``
 			Color of eigenvalues. The default is ``"blue"``.
 		``filter_plot_kwargs : dict, optional``
-			Dictionary with kwargs for the plot of the filter function. All kwargs of plt.plot method are supported. The default is ``{"color":"red"}``.
+			Dictionary with kwargs for the plot of the filter function. All kwargs of the ``plt.plot()`` method are supported. The default is ``{"color":"red"}``.
 
-	**Raises**
+	**Raises:**
 		``RuntimeError``
 			If there are no results in the ``KrylovSolver``. Use ``solve()`` method and try again.
 
@@ -138,7 +138,8 @@ A simple dictionary-like class to store results of the Krylov iteration.
 
 ``FilterGenerator``
 ------------------------
-This dataclass contains methods, that generate weights (:math:`alpha`) in standard way: by :math:`L_2` minimization or collocation / least-squares in Chebyshev nodes.
+This dataclass contains methods, that generate weights (:math:`\alpha`) in standard way: by :math:`L_2` minimization or collocation / least-squares in Chebyshev nodes.
+
 **Parameters:**
 	``_L: int``
 		number of time-steps
@@ -153,8 +154,8 @@ This dataclass contains methods, that generate weights (:math:`alpha`) in standa
 
 ``chebyshev(self, K: int) -> Filter``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	Returns weights (as Filter) obtained by collocation or least-squares 
-	fitting in Chebyshev nodes in omega^2.
+	Returns weights (as a ``Filter``) obtained by the collocation or least-squares 
+	fitting in Chebyshev nodes in :math:`\omega^2`.
 
 	**Parameters:**
         ``K : int``
@@ -162,6 +163,7 @@ This dataclass contains methods, that generate weights (:math:`alpha`) in standa
 
     **Returns**
         ``Filter``
+			A ``Filter`` object with computed weights.
 
 
 ``l2(self, K: Optional[int] = 20) -> Filter``
@@ -174,6 +176,7 @@ This dataclass contains methods, that generate weights (:math:`alpha`) in standa
 
     **Returns:**
         ``Filter``
+			A ``Filter`` object with computed weights.
 
 ``fourier(self) -> Filter``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -181,6 +184,7 @@ This dataclass contains methods, that generate weights (:math:`alpha`) in standa
 
     **Returns:**
         ``Filter``
+			A ``Filter`` object with computed weights.
 
 
 ``plot_chebyshev_nodes(self, N: int, ax: Optional[Axes] = None, marker="x", **kwargs) -> Axes``
@@ -217,7 +221,7 @@ Constructor of a new filter.
         ``array_input``
             Evaluation of weights alpha at points :math:`0, \tau, 2\tau, ..., \tau (L-1)` as a ``list``, ``tuple`` or anything that can be casted to a numpy ``ndarray``.
         ``filter_type : FilterType``
-        
+			Filter generation method.
         ``om_end : float``
             :math:`\omega_{\mathrm{end}}`, ``om_end > 0``.
         ``tau : float``
@@ -225,6 +229,7 @@ Constructor of a new filter.
 
     **Returns:**
         ``obj``
+			A new ``Filter`` object.
 
 
 ``plot(self, start: Optional[float] = 0, end: Optional[float] = None, ax: Optional[Axes] = None, num: Optional[int] = 10000, **kwargs) -> Axes``
@@ -242,8 +247,8 @@ This method plots filter function :math:`\beta(\omega)`. The method creates new 
         ``num : Optional[int], optional``
             Fineness of the plot, i.e., number of sample points in the interval 
             (``start``, ``end``). The default is 10000.
-        ``**kwargs ``
-            Kwargs for matplotlib.axes.Axes.plot() method.
+        ``**kwargs``
+            Kwargs for ``matplotlib.axes.Axes.plot()`` method.
 
     **Returns:**
         ``Axes``
@@ -265,4 +270,4 @@ Copy of the function ``Filter.plot()``. The only exception is that it plots :mat
 
 ``FilterType``
 -------------------
-A simple ``enum`` to distinguish types of filter functions.
+A simple ``Enum`` to distinguish types of filter functions.
