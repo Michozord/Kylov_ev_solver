@@ -154,11 +154,9 @@ This dataclass contains methods, that generate weights (:math:`\alpha`) in stand
 
 ``chebyshev(self, K: int) -> Filter``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-	Returns weights (as a ``Filter``) obtained by the collocation or least-squares 
-	fitting in Chebyshev nodes in :math:`\omega^2`.
+	Returns weights (as a ``Filter``) obtained by the collocation or least-squares fitting in Chebyshev nodes in :math:`\omega^2`.
 
 	**Parameters:**
-	
         ``K : int``
             Number of nodes.
 
