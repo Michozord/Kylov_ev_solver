@@ -11,12 +11,16 @@ description = "A Krylov eigenvalue solver for linear partial differential operat
 readme = "README.md"
 requires-python = ">=3.12"
 license = {file = "LICENSE.txt"}
-keywords = []
+keywords = ["FEM", "PDE", "Krylov"]
+classifiers = ["Development Status :: 3 - Alpha", 
+    "License :: OSI Approved :: MIT License", 
+    "Topic :: Scientific/Engineering :: Mathematics"
+]
 authors = [
   {name = "Trojanowski M."}
 ]
 
-dependencies = []
+dependencies = ["ngsolve", "netgen", "scipy", "numpy", "matplotlib"]
 
 [project.urls]
 "Homepage" = "https://github.com/Michozord/Kylov_ev_solver"
