@@ -1,7 +1,7 @@
 Mathematical background
 ==========================
 
-Full description of the method including proofs and examples you can find in `PDF <_static/krylov_ev_solver.pdf>`.
+Full description of the method including proofs and examples you can find in `PDF <_static/krylov_ev_solver.pdf>`_.
 
 1. Finite element method
 --------------------------
@@ -48,7 +48,7 @@ Krylov eigenvalue solver finds eigenvalues within a specified **region of intere
 .. image:: images/dff.png
    :width: 600
 
-For a detailed description of this operator, see `PDF <_static/krylov_ev_solver.pdf>`. It is impossible to push values of :math:`\beta` outside the region of interest close to 0, so we control the values of dff withinin a **control interval** denoted as :math:`(0, \omega_{\mathrm{end}}^2)` only. All eigenvalues of :math:`M^{-1}S` should lie in this interval: :math:`(0, \omega_{\mathrm{end}}^2)`. 
+For a detailed description of this operator, see `PDF <_static/krylov_ev_solver.pdf>`_. It is impossible to push values of :math:`\beta` outside the region of interest close to 0, so we control the values of dff withinin a **control interval** denoted as :math:`(0, \omega_{\mathrm{end}}^2)` only. All eigenvalues of :math:`M^{-1}S` should lie in this interval: :math:`(0, \omega_{\mathrm{end}}^2)`. 
 
 
 In constructing :math:`C`, we perform simple time-stepping with :math:`L` time-steps of size :math:`\tau` to the end-time :math:`T = L\tau`. The **CFL condition** requires, that :math:`\tau \leq 2/\omega_{\mathrm{end}}`. For computational efficiency, we recommend using :math:`\tau \lessapprox 2/\omega_{\mathrm{end}}`. A higher number of time-steps :math:`L` (or larger end-time :math:`L`) increases the reliability of the algorithm and improves the behavior of the dff, but linearly increases computation costs.
