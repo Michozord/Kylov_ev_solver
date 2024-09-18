@@ -20,7 +20,7 @@ authors = [
   {name = "Trojanowski M."}
 ]
 
-dependencies = ["ngsolve", "netgen", "scipy", "numpy", "matplotlib"]
+dependencies = ["ngsolve==6.2.2403", "netgen", "scipy", "numpy", "matplotlib"]
 
 [project.urls]
 "Homepage" = "https://github.com/Michozord/Kylov_ev_solver"
