@@ -5,3 +5,5 @@
 /latex/*
 **/*egg-info/
 /src/krylovevsolver/demos/.ipynb_checkpoints
+build/
+dist/
